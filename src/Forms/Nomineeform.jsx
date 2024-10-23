@@ -64,7 +64,7 @@ const NomineeForm = () => {
 
   const handleFileUpload = (e) => {
     const files = Array.from(e.target.files);
-    const maxFileSize = 2 * 1024 * 1024; // 2MB limit
+    const maxFileSize = 2 * 1024 * 1024; 
     const supportedFormats = ["image/jpeg", "image/png", "application/pdf"];
 
     const validFiles = files.filter((file) => {
@@ -88,7 +88,6 @@ const NomineeForm = () => {
       return;
     }
 
-    // Add premium calculation logic here, for now, we're just simulating it
     alert("Premium Calculated!");
     setFormError("");
   };
@@ -117,7 +116,7 @@ const NomineeForm = () => {
   };
 
   return (
-    <div className="container mx-auto p-6">
+    <div className=" mx-auto p-6">
       <h1 className="text-3xl font-bold mb-8">Nominee Information</h1>
       {nominees.map((nominee, index) => (
         <div key={index} className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
@@ -179,13 +178,12 @@ const NomineeForm = () => {
               <p className="text-red-500">{nominee.errors.percentage}</p>
             )}
           </div>
-          {/* Rest of the form fields */}
         </div>
       ))}
 
       <button
         onClick={addNominee}
-        className="bg-green-500 text-white px-6 py-2 rounded-md mb-8 hover:bg-green-600 transition"
+        className="bg-[#446b2b] text-white px-6 py-2 rounded-md mb-8 hover:bg-[#263f16] transition"
       >
         Add Another Nominee
       </button>
@@ -212,18 +210,17 @@ const NomineeForm = () => {
 
       <h2 className="text-2xl font-bold mb-4">Premium Calculator</h2>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-        {/* Premium form inputs */}
       </div>
       {formError && <p className="text-red-500">{formError}</p>}
       <button
         onClick={calculatePremium}
-        className="bg-green-500 text-white px-6 py-2 rounded-md hover:bg-green-600 transition"
+        className="bg-[#466d2c] text-white px-6 py-2 rounded-md hover:bg-[#233615] transition"
       >
         Calculate your Premium
       </button>
       <button
         onClick={handleFormSubmit}
-        className="bg-blue-500 text-white px-6 py-2 rounded-md hover:bg-blue-600 transition"
+        className="bg-[#466d2b] text-white px-6 py-2 rounded-md hover:bg-[#233615] transition mx-5"
       >
         Submit Form
       </button>

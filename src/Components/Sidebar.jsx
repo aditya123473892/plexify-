@@ -5,10 +5,11 @@ import { CircularProgressbar, buildStyles } from "react-circular-progressbar";
 import "react-circular-progressbar/dist/styles.css";
 import { FiMessageCircle, FiUser } from "react-icons/fi"; // FiUser added for profile icon
 import styled from "styled-components";
+import { Link,useNavigate } from "react-router-dom";
+import NomineeForm from "../Forms/Nomineeform";
 
-// Styled Components for Sidebar, Navbar, Dropdown
 const NavbarContainer = styled.nav`
-  background-color: #4caf50; /* Green color */
+  background-color: #446b2b; /* Green color */
   padding: 1rem;
   display: flex;
   justify-content: space-between;
@@ -69,6 +70,7 @@ const DropdownItem = styled.li`
 `;
 
 function Sidebar() {
+  const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(true);
   const [sidebarWidth, setSidebarWidth] = useState(256); // Sidebar width in pixels
   const [isResizing, setIsResizing] = useState(false);
@@ -89,7 +91,7 @@ function Sidebar() {
 
   const resizeSidebar = (e) => {
     if (isResizing) {
-      const newWidth = Math.max(e.clientX, 64); // Minimum sidebar width of 64px
+      const newWidth = Math.max(e.clientX, 64);
       setSidebarWidth(newWidth);
     }
   };
@@ -98,7 +100,6 @@ function Sidebar() {
     setIsResizing(false);
   };
 
-  // Close the dropdown if clicked outside
   useEffect(() => {
     function handleClickOutside(event) {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
@@ -111,11 +112,15 @@ function Sidebar() {
     };
   }, [dropdownRef]);
 
+  const logout = () => {
+    localStorage.clear(); 
+    navigate('/signin'); 
+  };
   return (
     <>
       {/* Sidebar */}
       <div
-        className="h-screen bg-[#4CAF50] transition-all duration-300 flex flex-col items-center p-4 shadow-lg"
+        className="h-screen bg-[#446b2b] transition-all duration-300 flex flex-col items-center p-4 shadow-lg"
         style={{
           width: isOpen ? `${sidebarWidth}px` : "64px",
           position: "fixed",
@@ -129,7 +134,7 @@ function Sidebar() {
         <div className="flex justify-between items-center w-full mb-6">
           <button
             onClick={toggleSidebar}
-            className="text-white text-xl focus:outline-none"
+            className="text-white text-xl focus:outline-none mt-3 ms-2"
           >
             {isOpen ? <MdOutlineClose /> : <FaBars />}
           </button>
@@ -137,27 +142,35 @@ function Sidebar() {
 
         {/* Sidebar Links */}
         <nav className="flex flex-col space-y-6 text-white w-full">
-          <a
-            href="#"
-            className="flex items-center p-2 hover:bg-[#388E3C] transition duration-200 rounded-md"
+          <Link
+            to="/"
+            className="flex items-center p-2 hover:bg-[#205223cc] transition duration-200 rounded-md"
           >
             <FaHome className="text-xl" />
             <span className={`ml-4 ${!isOpen && "hidden"}`}>Home</span>
-          </a>
-          <a
-            href="#"
-            className="flex items-center p-2 hover:bg-[#388E3C] transition duration-200 rounded-md"
+          </Link>
+          <Link
+            to="/"
+            className="flex items-center p-2 hover:bg-[#205223cc] transition duration-200 rounded-md"
           >
             <FaInfoCircle className="text-xl" />
             <span className={`ml-4 ${!isOpen && "hidden"}`}>About</span>
-          </a>
-          <a
-            href="#"
-            className="flex items-center p-2 hover:bg-[#388E3C] transition duration-200 rounded-md"
+          </Link>
+          <Link
+            to="/"
+            className="flex items-center p-2 hover:bg-[#205223cc] transition duration-200 rounded-md"
           >
             <FaUsers className="text-xl" />
             <span className={`ml-4 ${!isOpen && "hidden"}`}>Beneficiary</span>
-          </a>
+          </Link>
+          <Link
+            to="/"
+            className="flex items-center p-2 hover:bg-[#205223cc] transition duration-200 rounded-md"
+          >
+            <FaUsers className="text-xl" />
+            <span className={`ml-4 ${!isOpen && "hidden"}`}>Nominee</span>
+          </Link>
+
         </nav>
 
         {isOpen && (
@@ -179,7 +192,7 @@ function Sidebar() {
             <DropdownItem onClick={() => alert("Settings clicked")}>
               Settings
             </DropdownItem>
-            <DropdownItem onClick={() => alert("Logout clicked")}>
+            <DropdownItem onClick={logout}>
               Logout
             </DropdownItem>
           </DropdownMenu>
@@ -188,13 +201,10 @@ function Sidebar() {
 
       {/* Main Content */}
       <div
-        className="flex-grow bg-gray-100 p-6"
+        className="flex-grow bg-gray-100 p-16"
         style={{ marginLeft: isOpen ? `${sidebarWidth}px` : "64px" }}
       >
-        <h1 className="text-3xl font-semibold text-center">
-          Main Content Area
-        </h1>
-        <p>This area will adjust when the sidebar is resized or toggled.</p>
+     <NomineeForm className=""/>
       </div>
     </>
   );

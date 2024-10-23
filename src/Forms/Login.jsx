@@ -1,17 +1,30 @@
-import React, { useState } from "react";
-
+import React, { useState, useContext } from "react";
+import { useNavigate } from "react-router-dom";
+import axios from "axios";
+import { AuthContext } from "../Contexts/Context";
+import { toast, ToastContainer } from "react-toastify";
+import RegistrationForm from "../Forms/Registrationform"; 
+import sideimage from "../assets/images/bg.jpg"; 
+// import '../assets/css/Main.css'
 function LoginForm() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const navigate = useNavigate();
+  const { isLoggedIn, login } = useContext(AuthContext);
+  const [user, setUser] = useState({ email: "", password: "" });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [showSignup, setShowSignup] = useState(false); 
+
+  const handleInp = (e) => {
+    const { name, value } = e.target;
+    setUser({ ...user, [name]: value });
+  };
 
   const validateForm = () => {
-    if (!/\S+@\S+\.\S+/.test(email)) {
+    if (!/\S+@\S+\.\S+/.test(user.email)) {
       setError("Please enter a valid email address.");
       return false;
     }
-    if (password.length < 6) {
+    if (user.password.length < 6) {
       setError("Password must be at least 6 characters.");
       return false;
     }
@@ -19,72 +32,106 @@ function LoginForm() {
     return true;
   };
 
-  const handleSubmit = (e) => {
+  const postData = async (e) => {
     e.preventDefault();
     if (validateForm()) {
       setLoading(true);
-      // Simulate API call
-      setTimeout(() => {
+      try {
+        const response = await axios.post("http://localhost:3523/signin", user);
+        if (response.status === 200) {
+          localStorage.setItem("token", response.data.token);
+          login(response.data.token);
+          toast.success("Signin successful!");
+          setTimeout(() => {
+            navigate("/");
+          }, 1000);
+        } else {
+          toast.error(response?.data?.msg || "Details Not Match");
+        }
+      } catch (error) {
+        toast.error(error.response?.data?.msg || "Login failed");
+      } finally {
         setLoading(false);
-        alert("Logged in successfully");
-        // Redirect or further logic here
-      }, 2000);
+      }
     }
   };
 
+  if (isLoggedIn) {
+    setTimeout(() => {
+      navigate("/");
+    }, 1000);
+    return null;
+  }
+
   return (
-    <div className="min-h-screen flex flex-col lg:flex-row bg-white">
-      {/* Left side with logo */}
-      <div className="hidden lg:flex w-1/2 bg-[#182610] items-center justify-center">
-        <img
-          src="/path-to-your-logo.png"
-          alt="Plexify Logo"
-          className="h-24 w-auto"
-        />
+    <div className="min-h-screen flex relative overflow-hidden">
+    
+      <div className={`w-1/2 flex items-center justify-center p-10 transition-all duration-1000 ease-in-out 
+        ${showSignup ? 'w-[60%] bg-white' : 'w-1/2 bg-[#385723]'}`}>
+    
+        {showSignup && (
+          <div className="w-full max-w-xl">
+            <div className="shadow-2xl p-4 rounded-lg">
+              <RegistrationForm />
+              <p className="ms-6 text-sm text-black">
+                Already have an account?{" "}
+                <button onClick={() => setShowSignup(false)} className="text-[#203118] font-bold">
+                  Login here
+                </button>
+              </p>
+            </div>
+          </div>
+        )}
       </div>
 
-      {/* Right side with login form */}
-      <div className="flex items-center justify-center lg:w-1/2 w-full p-10 bg-white">
-        <div className="w-full max-w-md">
-          <h2 className="text-3xl font-bold text-black mb-6">Log in</h2>
-          <form onSubmit={handleSubmit}>
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="Email"
-              aria-label="Email"
-              className="p-3 border w-full mb-4 rounded-lg text-black focus:outline-none focus:ring-2 focus:ring-green-500"
-              required
-            />
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="Password"
-              aria-label="Password"
-              className="p-3 border w-full mb-6 rounded-lg text-black focus:outline-none focus:ring-2 focus:ring-green-500"
-              required
-            />
-            {error && <p className="text-red-500 mb-4">{error}</p>}
-            <button
-              type="submit"
-              disabled={loading}
-              className={`w-full bg-[#385723] text-white py-3 rounded-lg transition ${
-                loading ? "opacity-50 cursor-not-allowed" : "hover:bg-green-700"
-              }`}
-            >
-              {loading ? "Logging in..." : "LOGIN"}
-            </button>
-          </form>
-          <p className="mt-4 text-sm text-black">
-            Don't have an account?{" "}
-            <a href="/register" className="text-blue-500">
-              Register here
-            </a>
-          </p>
-        </div>
+    
+      <div className={`w-1/2 flex items-center justify-center p-10 transition-all duration-1000 ease-in-out 
+        ${showSignup ? 'w-1/2 bg-[#385723]' : 'w-[60%]  bg-slate-50'}`}>
+      
+        {!showSignup && (
+          <div className="w-full max-w-lg">
+            <h2 className="text-3xl font-bold text-black mb-6">Log in</h2>
+            <form onSubmit={postData}>
+              <input
+                type="email"
+                name="email"
+                value={user.email}
+                onChange={handleInp}
+                placeholder="Email"
+                aria-label="Email"
+                className="p-3 border w-full mb-4 shadow-md rounded-lg text-black focus:outline-none focus:ring-2 focus:ring-green-500"
+                required
+              />
+              <input
+                type="password"
+                name="password"
+                value={user.password}
+                onChange={handleInp}
+                placeholder="Password"
+                aria-label="Password"
+                className="p-3 border w-full mb-6 shadow-md rounded-lg text-black focus:outline-none focus:ring-2 focus:ring-green-500"
+                required
+              />
+              {error && <p className="text-red-500 mb-4">{error}</p>}
+              <button
+                type="submit"
+                disabled={loading}
+                className={`w-full bg-[#385723] text-white py-3 shadow-md rounded-lg transition ${loading ? "opacity-50 cursor-not-allowed" : "hover:bg-[#293f1a]"}`}
+              >
+                {loading ? "Logging in..." : "LOGIN"}
+              </button>
+            </form>
+            <p className="mt-4 text-sm text-black">
+              Don't have an account?{" "}
+              <button onClick={() => setShowSignup(true)} className="text-[#203118] font-bold">
+                Register here
+              </button>
+            </p>
+          </div>
+        )}
       </div>
+
+      <ToastContainer />
     </div>
   );
 }
