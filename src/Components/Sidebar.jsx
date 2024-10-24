@@ -118,7 +118,7 @@ function Sidebar() {
   };
   return (
     <>
-      {/* Sidebar */}
+    
       <div
         className="h-screen bg-[#446b2b] transition-all duration-300 flex flex-col items-center p-4 shadow-lg"
         style={{
@@ -140,38 +140,44 @@ function Sidebar() {
           </button>
         </div>
 
-        {/* Sidebar Links */}
         <nav className="flex flex-col space-y-6 text-white w-full">
-          <Link
-            to="/"
-            className="flex items-center p-2 hover:bg-[#205223cc] transition duration-200 rounded-md"
-          >
-            <FaHome className="text-xl" />
-            <span className={`ml-4 ${!isOpen && "hidden"}`}>Home</span>
-          </Link>
-          <Link
-            to="/"
-            className="flex items-center p-2 hover:bg-[#205223cc] transition duration-200 rounded-md"
-          >
-            <FaInfoCircle className="text-xl" />
-            <span className={`ml-4 ${!isOpen && "hidden"}`}>About</span>
-          </Link>
-          <Link
-            to="/"
-            className="flex items-center p-2 hover:bg-[#205223cc] transition duration-200 rounded-md"
-          >
-            <FaUsers className="text-xl" />
-            <span className={`ml-4 ${!isOpen && "hidden"}`}>Beneficiary</span>
-          </Link>
-          <Link
-            to="/"
-            className="flex items-center p-2 hover:bg-[#205223cc] transition duration-200 rounded-md"
-          >
-            <FaUsers className="text-xl" />
-            <span className={`ml-4 ${!isOpen && "hidden"}`}>Nominee</span>
-          </Link>
+  <Link
+    to="/"
+    className="flex items-center p-2 hover:bg-[#205223cc] transition duration-200 rounded-md"
+  >
+    <FaHome className="text-xl" />
+    <span className={`ml-4 ${!isOpen && "hidden"}`}>Home</span>
+  </Link>
+  <Link
+    to="/otp"
+    className="flex items-center p-2 hover:bg-[#205223cc] transition duration-200 rounded-md"
+  >
+    <FaInfoCircle className="text-xl" />
+    <span className={`ml-4 ${!isOpen && "hidden"}`}>OTP Verification</span>
+  </Link>
+  <Link
+    to="/aadhar"
+    className="flex items-center p-2 hover:bg-[#205223cc] transition duration-200 rounded-md"
+  >
+    <FaUsers className="text-xl" />
+    <span className={`ml-4 ${!isOpen && "hidden"}`}>Aadhaar OTP</span>
+  </Link>
+  <Link
+    to="/beneficiary" // Update this to the actual path for the Beneficiary page
+    className="flex items-center p-2 hover:bg-[#205223cc] transition duration-200 rounded-md"
+  >
+    <FaUsers className="text-xl" />
+    <span className={`ml-4 ${!isOpen && "hidden"}`}>Beneficiary</span>
+  </Link>
+  <Link
+    to="/nominee" // Update this to the actual path for the Nominee page
+    className="flex items-center p-2 hover:bg-[#205223cc] transition duration-200 rounded-md"
+  >
+    <FaUsers className="text-xl" />
+    <span className={`ml-4 ${!isOpen && "hidden"}`}>Nominee</span>
+  </Link>
+</nav>
 
-        </nav>
 
         {isOpen && (
           <div
@@ -181,11 +187,10 @@ function Sidebar() {
         )}
       </div>
 
-      {/* Navbar */}
+    
       <NavbarContainer sidebarWidth={isOpen ? sidebarWidth : 64}>
         <Logo>Plexify</Logo>
 
-        {/* Profile Dropdown */}
         <UserIcon ref={dropdownRef} onClick={toggleDropdown}>
           <FiUser /> Profile
           <DropdownMenu isOpen={isDropdownOpen}>
@@ -199,13 +204,7 @@ function Sidebar() {
         </UserIcon>
       </NavbarContainer>
 
-      {/* Main Content */}
-      <div
-        className="flex-grow bg-gray-100 p-16"
-        style={{ marginLeft: isOpen ? `${sidebarWidth}px` : "64px" }}
-      >
-     <NomineeForm className=""/>
-      </div>
+     
     </>
   );
 }

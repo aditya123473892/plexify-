@@ -29,13 +29,13 @@ const OTPVerification = () => {
   };
 
   return (
-    <div className="h-screen flex justify-center items-center bg-gradient-to-b from-gray-100 to-blue-100">
-      <div className="bg-white p-8 rounded-md shadow-lg animate__animated animate__fadeIn">
-        <h2 className="text-2xl font-bold text-center mb-6 text-gray-800">
+    <div className="h-screen flex justify-center items-center bg-gradient-to-b from-gray-[#3857239f] to-blue-[#3857239f]">
+      <div className="bg-[#3d5e27fd] p-8 rounded-md shadow-lg ">
+        <h2 className="text-2xl font-bold text-center mb-6 text-white">
           Verify your Mobile OTP
         </h2>
         <div className="flex justify-center mb-4">
-          <i className="fas fa-lock text-4xl text-green-500 animate__animated animate__pulse animate__infinite"></i>
+          <i className="fas fa-lock text-4xl text-[#385723] "></i>
         </div>
 
         {/* OTP Input Boxes with Transition Animation */}
@@ -60,17 +60,17 @@ const OTPVerification = () => {
         <div className="text-center mb-4">
           <button
             onClick={handleSubmit}
-            className="bg-green-500 text-white px-6 py-2 rounded-md hover:bg-green-600 transition transform hover:scale-105 active:scale-95 duration-150 shadow-md"
+            className="hover:bg-[#949c8f9f] hover:text-white px-6 py-2 rounded-md bg-white text-[#3857239f] transition transform hover:scale-105 active:scale-95 duration-150 shadow-md"
           >
             Verify
           </button>
         </div>
 
-        <div className="text-center text-gray-600">
+        <div className="text-center text-white">
           <p>
             OTP not received?{" "}
             <span
-              className="text-blue-500 cursor-pointer hover:underline hover:text-blue-700 transition"
+              className="text-[#61db109f] cursor-pointer hover:underline hover:text-[#3e80129f] transition"
               onClick={handleResend}
             >
               RESEND

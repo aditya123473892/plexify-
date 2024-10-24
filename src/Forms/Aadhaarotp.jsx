@@ -1,7 +1,8 @@
 // src/OTPVerificationForm.js
 
 import React, { useState } from "react";
-import "animate.css"; // Add animate.css for animations
+// import "animate.css"; // Add animate.css for animations
+import logo from "../assets/images/logo.png"; 
 
 const Aadhaarotp = () => {
   const [otp, setOtp] = useState(new Array(6).fill(""));
@@ -23,9 +24,9 @@ const Aadhaarotp = () => {
   };
 
   return (
-    <div className="relative flex min-h-screen bg-gradient-to-br from-green-900 to-green-700">
+    <div className="relative flex min-h-screen ">
       {/* Form on the left */}
-      <div className="flex-1 flex flex-col items-center justify-center animate__animated animate__fadeInLeft">
+      <div className="flex-1 flex flex-col items-center justify-center a">
         <div className="bg-white p-6 rounded-lg shadow-lg max-w-md w-full">
           <h2 className="text-center text-2xl font-semibold mb-4 text-black">
             Verify your Aadhaar OTP
@@ -47,7 +48,7 @@ const Aadhaarotp = () => {
 
             <button
               type="submit"
-              className="w-full py-2 px-4 bg-green-600 text-white font-semibold rounded-md shadow-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-transform transform hover:scale-105 active:scale-95 duration-150"
+              className="w-full py-2 px-4 bg-[#385723] text-white font-semibold rounded-md shadow-md hover:bg-[#2d461c] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-800 transition-transform transform hover:scale-105 active:scale-95 duration-150"
             >
               VERIFY
             </button>
@@ -56,7 +57,7 @@ const Aadhaarotp = () => {
               <p className="text-sm text-gray-500">OTP not received?</p>
               <button
                 type="button"
-                className="text-sm text-purple-600 hover:underline"
+                className="text-sm text-[#385723] hover:underline"
                 onClick={() => console.log("Resend OTP")}
               >
                 RESEND
@@ -74,16 +75,16 @@ const Aadhaarotp = () => {
       </div>
 
       {/* Cut-out with the logo on the right */}
-      <div className="flex-1 relative animate__animated animate__fadeInRight">
-        <div className="absolute inset-0 flex items-center justify-center bg-green-900">
+      <div className="flex-1 relative ">
+        <div className="absolute inset-0 flex items-center justify-center bg-[#385723]">
           {/* Cut-out effect */}
-          <div className="absolute right-0 top-0 bottom-0 w-2/3 bg-green-900 clip-path-custom"></div>
+          <div className="absolute right-0 top-0 bottom-0 w-2/3 bg-[#385723] clip-path-custom"></div>
           {/* Logo inside the cut */}
           <div className="absolute inset-0 flex items-center justify-center">
             <img
-              src="your-logo-url.png" // Replace with actual logo URL
+              src={logo} // Replace with actual logo URL
               alt="Logo"
-              className="w-40 animate__animated animate__bounceIn"
+              className="w-40 "
             />
           </div>
         </div>

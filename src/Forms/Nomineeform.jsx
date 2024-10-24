@@ -116,54 +116,54 @@ const NomineeForm = () => {
   };
 
   return (
-    <div className=" mx-auto p-6">
-      <h1 className="text-3xl font-bold mb-8">Nominee Information</h1>
+    <div className=" mx-auto p-6  rounded-2xl bg-[#3d5e27fd] min-h-96">
+      <h1 className="text-3xl font-bold mb-8 text-white">Nominee Information</h1>
       {nominees.map((nominee, index) => (
         <div key={index} className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
           <div>
-            <label className="block text-gray-700">Name</label>
+            <label className="block text-white">Name</label>
             <input
               type="text"
               name="name"
               value={nominee.name}
               onChange={(e) => handleNomineeChange(index, e)}
               placeholder="Enter name"
-              className="w-full p-3 border border-gray-300 rounded-md"
+              className="w-full p-3 border border-gray-300 rounded-md shadow-lg"
             />
             {nominee.errors.name && (
               <p className="text-red-500">{nominee.errors.name}</p>
             )}
           </div>
           <div>
-            <label className="block text-gray-700">Contact Number</label>
+            <label className="block text-white">Contact Number</label>
             <input
               type="text"
               name="contact"
               value={nominee.contact}
               onChange={(e) => handleNomineeChange(index, e)}
               placeholder="Enter contact number"
-              className="w-full p-3 border border-gray-300 rounded-md"
+              className="w-full p-3 border border-gray-300 rounded-md shadow-lg"
             />
             {nominee.errors.contact && (
               <p className="text-red-500">{nominee.errors.contact}</p>
             )}
           </div>
           <div>
-            <label className="block text-gray-700">Email Address</label>
+            <label className="block text-white">Email Address</label>
             <input
               type="email"
               name="email"
               value={nominee.email}
               onChange={(e) => handleNomineeChange(index, e)}
               placeholder="Enter email address"
-              className="w-full p-3 border border-gray-300 rounded-md"
+              className="w-full p-3 border border-gray-300 rounded-md shadow-lg"
             />
             {nominee.errors.email && (
               <p className="text-red-500">{nominee.errors.email}</p>
             )}
           </div>
           <div>
-            <label className="block text-gray-700">
+            <label className="block text-white">
               Percentage of Entitlement
             </label>
             <input
@@ -172,7 +172,7 @@ const NomineeForm = () => {
               value={nominee.percentage}
               onChange={(e) => handleNomineeChange(index, e)}
               placeholder="Enter percentage"
-              className="w-full p-3 border border-gray-300 rounded-md"
+              className="w-full p-3 border border-gray-300 rounded-md shadow-lg"
             />
             {nominee.errors.percentage && (
               <p className="text-red-500">{nominee.errors.percentage}</p>
@@ -183,12 +183,12 @@ const NomineeForm = () => {
 
       <button
         onClick={addNominee}
-        className="bg-[#446b2b] text-white px-6 py-2 rounded-md mb-8 hover:bg-[#263f16] transition"
+        className="bg-[#446b2b] text-white px-6 py-2 rounded-md mb-8 hover:bg-[#263f16] transition  shadow-lg"
       >
         Add Another Nominee
       </button>
 
-      <h2 className="text-2xl font-bold mb-4">Document Upload</h2>
+      <h2 className="text-2xl font-bold mb-4 text-white">Document Upload</h2>
       <div className="mb-6">
         <input
           type="file"
@@ -198,8 +198,8 @@ const NomineeForm = () => {
         />
         {uploadedFiles.length > 0 && (
           <div className="mt-4">
-            <h3 className="text-lg font-semibold mb-2">Uploaded Files:</h3>
-            <ul className="list-disc pl-5">
+            <h3 className="text-lg font-semibold mb-2 text-white">Uploaded Files:</h3>
+            <ul className="list-disc pl-5 text-white">
               {uploadedFiles.map((file, index) => (
                 <li key={index}>{file.name}</li>
               ))}
@@ -208,19 +208,18 @@ const NomineeForm = () => {
         )}
       </div>
 
-      <h2 className="text-2xl font-bold mb-4">Premium Calculator</h2>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-      </div>
+      <h2 className="text-2xl font-bold mb-4 text-white">Premium Calculator</h2>
+  
       {formError && <p className="text-red-500">{formError}</p>}
       <button
         onClick={calculatePremium}
-        className="bg-[#466d2c] text-white px-6 py-2 rounded-md hover:bg-[#233615] transition"
+        className="bg-[#466d2c] text-white px-6 py-2 rounded-md hover:bg-[#233615] transition text shadow-xl"
       >
         Calculate your Premium
       </button>
       <button
         onClick={handleFormSubmit}
-        className="bg-[#466d2b] text-white px-6 py-2 rounded-md hover:bg-[#233615] transition mx-5"
+        className="bg-[#466d2b] text-white px-6 py-2 rounded-md hover:bg-[#233615] transition mx-5 shadow-xl"
       >
         Submit Form
       </button>
