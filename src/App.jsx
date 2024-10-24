@@ -29,12 +29,12 @@ function App() {
         <Route path="/aadhar" element={<Aadhaarotp />} />
         <Route path="/beneficiary" element={<Beneficiary />} />
         <Route path="/nominee" element={<Nomineeform />} />
-        <Route path="/reset-password/:token" element={<NewPassword />} />
       </Route>
       <Route
         path="/signin"
         element={isLoggedIn ? <Navigate to="/" /> : <LoginForm />}
       />
+        <Route path="/reset-password/:token" element={<NewPassword />} />
       <Route path="/forgetpassword" element={<ForgotPassword />} />
     </Routes>
   );
