@@ -2,7 +2,7 @@
     position: relative; 
     height: 100vh;
     overflow: hidden; 
-    background: url('../images/bg1.webp') center/cover no-repeat;   
+    background: url('../images/bg.jpg') center/cover no-repeat;   
 }
 
 .background::before {

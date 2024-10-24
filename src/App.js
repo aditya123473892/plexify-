@@ -1,5 +1,6 @@
 import React, { useContext } from "react";
 import "./App.css";
+import "./assets/css/Main.css";
 import { Routes, Route, Navigate } from "react-router-dom";
 import { AuthContext } from "./Contexts/Context";
 import Home from "./Pages/Home";
@@ -9,9 +10,8 @@ import "react-toastify/dist/ReactToastify.css";
 import OTPVerification from "./Forms/otp-verification";
 import ForgotPassword from "./Forms/Forgetpass";
 import Aadhaarotp from "./Forms/Aadhaarotp";
-// import Navbar from "./Components/Navbar";
-// import Sidebar from "./Components/Sidebar";
-// import NomineeForm from "./Forms/Nomineeform";
+import NewPassword from "./Forms/NewPassword";
+
 function App() {
   const { isLoggedIn } = useContext(AuthContext);
   return (
@@ -24,11 +24,11 @@ function App() {
         path="/signin"
         element={isLoggedIn ? <Navigate to="/" /> : <LoginForm />}
       />
-      <Route path="/signup" element={<RegistrationForm />} />
       <Route path="/home" element={<Home />} />
       <Route path="/otp" element={<OTPVerification />} />
       <Route path="/aadhar" element={<Aadhaarotp />} />
       <Route path="/forgetpassword" element={<ForgotPassword />} />
+      <Route path="/reset-password/:token" element={<NewPassword />} />
     </Routes>
   );
 }
