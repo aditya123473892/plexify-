@@ -107,14 +107,14 @@ function Home() {
           <h3 className="text-xl font-semibold text-white">Entitlement Distribution</h3>
           <p className="text-white mt-2">Graphical representation of entitlement distribution</p>
           <div className="mt-6">
-            <BarChart width={1600} height={300} data={chartData}>
+            {/* <BarChart width={1600} height={300} data={chartData}>
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="name" stroke="#fff" />
               <YAxis stroke="#fff" />
               <Tooltip />
               <Legend />
               <Bar dataKey="entitlement" fill="#69c42c9f" />
-            </BarChart>
+            </BarChart> */}
           </div>
         </div>
       </div>
