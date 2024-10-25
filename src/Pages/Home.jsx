@@ -1,19 +1,27 @@
-import React from 'react';
-import { BarChart, Bar, XAxis, YAxis, Tooltip, Legend, CartesianGrid } from 'recharts';
+import React from "react";
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  Tooltip,
+  Legend,
+  CartesianGrid,
+} from "recharts";
 
 // Sample data for the chart
 const chartData = [
-  { name: 'Beneficiary 1', entitlement: 30 },
-  { name: 'Beneficiary 2', entitlement: 45 },
-  { name: 'Beneficiary 3', entitlement: 20 },
-  { name: 'Beneficiary 4', entitlement: 60 },
-  { name: 'Beneficiary 6', entitlement: 5 },
-  { name: 'Beneficiary 7', entitlement: 40 },
-  { name: 'Beneficiary 8', entitlement: 79 },
-  { name: 'Beneficiary 9', entitlement: 66 },
-  { name: 'Beneficiary 10', entitlement: 86 },
-  { name: 'Beneficiary 11', entitlement: 34 },
-  { name: 'Beneficiary 12', entitlement: 98 },
+  { name: "Beneficiary 1", entitlement: 30 },
+  { name: "Beneficiary 2", entitlement: 45 },
+  { name: "Beneficiary 3", entitlement: 20 },
+  { name: "Beneficiary 4", entitlement: 60 },
+  { name: "Beneficiary 6", entitlement: 5 },
+  { name: "Beneficiary 7", entitlement: 40 },
+  { name: "Beneficiary 8", entitlement: 79 },
+  { name: "Beneficiary 9", entitlement: 66 },
+  { name: "Beneficiary 10", entitlement: 86 },
+  { name: "Beneficiary 11", entitlement: 34 },
+  { name: "Beneficiary 12", entitlement: 98 },
 ];
 
 function Home() {
@@ -30,25 +38,33 @@ function Home() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {/* Total Beneficiaries */}
           <div className="bg-[#3d5e27fd] p-6 rounded-lg shadow-lg">
-            <h3 className="text-lg font-semibold text-white">Total Beneficiaries</h3>
+            <h3 className="text-lg font-semibold text-white">
+              Total Beneficiaries
+            </h3>
             <p className="text-3xl font-bold text-green-600 mt-4">42</p>
           </div>
 
           {/* Documents Uploaded */}
           <div className="bg-[#3d5e27fd] p-6 rounded-lg shadow-lg">
-            <h3 className="text-lg font-semibold text-white">Documents Uploaded</h3>
+            <h3 className="text-lg font-semibold text-white">
+              Documents Uploaded
+            </h3>
             <p className="text-3xl font-bold text-blue-600 mt-4">128</p>
           </div>
 
           {/* Pending Entitlements */}
           <div className="bg-[#3d5e27fd] p-6 rounded-lg shadow-lg">
-            <h3 className="text-lg font-semibold text-white">Pending Entitlements</h3>
+            <h3 className="text-lg font-semibold text-white">
+              Pending Entitlements
+            </h3>
             <p className="text-3xl font-bold text-red-600 mt-4">5</p>
           </div>
 
           {/* Percentage Distributed */}
           <div className="bg-[#3d5e27fd] p-6 rounded-lg shadow-lg">
-            <h3 className="text-lg font-semibold text-white">Entitlement Percentage Distributed</h3>
+            <h3 className="text-lg font-semibold text-white">
+              Entitlement Percentage Distributed
+            </h3>
             <p className="text-3xl font-bold text-purple-600 mt-4">78%</p>
           </div>
         </div>
@@ -57,7 +73,9 @@ function Home() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-10">
           {/* Recent Beneficiaries */}
           <div className="bg-[#3d5e27fd] p-6 rounded-lg shadow-lg">
-            <h3 className="text-xl font-semibold text-white">Recent Beneficiaries</h3>
+            <h3 className="text-xl font-semibold text-white">
+              Recent Beneficiaries
+            </h3>
             <ul className="mt-4 space-y-2">
               <li className="flex justify-between text-white">
                 <span>John Doe</span>
@@ -80,7 +98,9 @@ function Home() {
 
           {/* Recent Document Uploads */}
           <div className="bg-[#3d5e27fd] p-6 rounded-lg shadow-lg">
-            <h3 className="text-xl font-semibold text-white">Recent Document Uploads</h3>
+            <h3 className="text-xl font-semibold text-white">
+              Recent Document Uploads
+            </h3>
             <ul className="mt-4 space-y-2">
               <li className="flex justify-between text-white">
                 <span>Policy Document.pdf</span>
@@ -104,8 +124,12 @@ function Home() {
 
         {/* Entitlement Distribution Chart */}
         <div className=" p-6 rounded-lg shadow-lg mt-10">
-          <h3 className="text-xl font-semibold text-white">Entitlement Distribution</h3>
-          <p className="text-white mt-2">Graphical representation of entitlement distribution</p>
+          <h3 className="text-xl font-semibold text-white">
+            Entitlement Distribution
+          </h3>
+          <p className="text-white mt-2">
+            Graphical representation of entitlement distribution
+          </p>
           <div className="mt-6">
             {/* <BarChart width={1600} height={300} data={chartData}>
               <CartesianGrid strokeDasharray="3 3" />
