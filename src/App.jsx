@@ -11,15 +11,18 @@ import ForgotPassword from "./Forms/Forgetpass";
 import Aadhaarotp from "./Forms/Aadhaarotp";
 import NewPassword from "./Forms/NewPassword";
 import Nomineeform from "./Forms/Nomineeform";
-import Layout from "./layouts/Layout"; 
+import Layout from "./layouts/Layout";
 import Beneficiary from "./Forms/Beneficiary";
+import InsurancePolicies from "./Pages/Insurancepolicies";
+import BankAccounts from "./Pages/Bankaccount";
+import RealEstateManagement from "./Pages/RealEstate";
 
 function App() {
   const { isLoggedIn } = useContext(AuthContext);
 
   return (
     <Routes>
-      <Route element={<Layout />}> 
+      <Route element={<Layout />}>
         <Route
           path="/"
           element={isLoggedIn ? <Home /> : <Navigate to="/signin" />}
@@ -29,12 +32,15 @@ function App() {
         <Route path="/aadhar" element={<Aadhaarotp />} />
         <Route path="/beneficiary" element={<Beneficiary />} />
         <Route path="/nominee" element={<Nomineeform />} />
+        <Route path="/insurance" element={<InsurancePolicies />} />
+        <Route path="/bank" element={<BankAccounts />} />
+        <Route path="/realestate" element={<RealEstateManagement />} />
       </Route>
       <Route
         path="/signin"
         element={isLoggedIn ? <Navigate to="/" /> : <LoginForm />}
       />
-        <Route path="/reset-password/:token" element={<NewPassword />} />
+      <Route path="/reset-password/:token" element={<NewPassword />} />
       <Route path="/forgetpassword" element={<ForgotPassword />} />
     </Routes>
   );
