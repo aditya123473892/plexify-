@@ -1,125 +1,151 @@
 import React from 'react';
-import { BarChart, Bar, XAxis, YAxis, Tooltip, Legend, CartesianGrid } from 'recharts';
+import { CircularProgressbar, buildStyles } from 'react-circular-progressbar';
+import 'react-circular-progressbar/dist/styles.css';
+import picture_1 from "../assets/images/Picture_1.png";
+import video_pic from "../assets/images/video_pic.png";
+import { Link } from 'react-router-dom';
+import FeatureSwiper from '../Components/FeatureSwiper';
+import PaymentsSlider from '../Components/PaymentsSlider';
+import Accordion from '../Components/Accordion';
 
-// Sample data for the chart
-const chartData = [
-  { name: 'Beneficiary 1', entitlement: 30 },
-  { name: 'Beneficiary 2', entitlement: 45 },
-  { name: 'Beneficiary 3', entitlement: 20 },
-  { name: 'Beneficiary 4', entitlement: 60 },
-  { name: 'Beneficiary 6', entitlement: 5 },
-  { name: 'Beneficiary 7', entitlement: 40 },
-  { name: 'Beneficiary 8', entitlement: 79 },
-  { name: 'Beneficiary 9', entitlement: 66 },
-  { name: 'Beneficiary 10', entitlement: 86 },
-  { name: 'Beneficiary 11', entitlement: 34 },
-  { name: 'Beneficiary 12', entitlement: 98 },
-];
-
-function Home() {
+const CircularProgressBar = ({ percentage, title, color,moneytitle }) => {
   return (
-    <>
-      <div className="">
-        {/* Dashboard Header */}
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold text-white">Dashboard</h1>
-          <p className="text-white">Overview of key metrics and stats</p>
+    <div className="flex flex-col items-center w-20">
+      <CircularProgressbar
+        value={percentage}
+        text={`${percentage}%`}
+        styles={buildStyles({
+          pathColor: color || '#ff0000', // Use the provided color or default to red
+          textColor: '#000', 
+          trailColor: '#e6e6e6', // Background circle color
+        })}
+        strokeWidth={10}
+      />
+      <h3 className="text-xl text-black mt-2 font-semibold whitespace-nowrap">&#x20b9; {title}</h3>
+      <h3 className="text-md text-black whitespace-nowrap">{moneytitle}</h3>
+    </div>
+  );
+};
+
+const WealthManagement = () => {
+  return (
+    <div className="bg-[#3d5e27fd] text-white p-5 mt-8 rounded-xl">
+      <div className="flex justify-between">
+        <div className="text-center">
+          <img className="w-2/5 mx-auto" src={picture_1} alt="Manage, Grow, Pass On" />
+          <p>Manage, Grow, Pass On</p>
         </div>
 
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {/* Total Beneficiaries */}
-          <div className="bg-[#3d5e27fd] p-6 rounded-lg shadow-lg">
-            <h3 className="text-lg font-semibold text-white">Total Beneficiaries</h3>
-            <p className="text-3xl font-bold text-green-600 mt-4">42</p>
-          </div>
-
-          {/* Documents Uploaded */}
-          <div className="bg-[#3d5e27fd] p-6 rounded-lg shadow-lg">
-            <h3 className="text-lg font-semibold text-white">Documents Uploaded</h3>
-            <p className="text-3xl font-bold text-blue-600 mt-4">128</p>
-          </div>
-
-          {/* Pending Entitlements */}
-          <div className="bg-[#3d5e27fd] p-6 rounded-lg shadow-lg">
-            <h3 className="text-lg font-semibold text-white">Pending Entitlements</h3>
-            <p className="text-3xl font-bold text-red-600 mt-4">5</p>
-          </div>
-
-          {/* Percentage Distributed */}
-          <div className="bg-[#3d5e27fd] p-6 rounded-lg shadow-lg">
-            <h3 className="text-lg font-semibold text-white">Entitlement Percentage Distributed</h3>
-            <p className="text-3xl font-bold text-purple-600 mt-4">78%</p>
-          </div>
+        <div className="text-center flex flex-col justify-center">
+          <h2 className="text-lg text-center py-5">
+            Secure Wealth Management, Seamless Legacy Planning, and Transmission of Wealth to Your Loved Ones
+          </h2>
+          <h2 className="text-lg text-center">
+            चिंतामुक्त भविष्य, विरासत का सुखद सफर
+          </h2>
         </div>
 
-        {/* Additional Sections */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-10">
-          {/* Recent Beneficiaries */}
-          <div className="bg-[#3d5e27fd] p-6 rounded-lg shadow-lg">
-            <h3 className="text-xl font-semibold text-white">Recent Beneficiaries</h3>
-            <ul className="mt-4 space-y-2">
-              <li className="flex justify-between text-white">
-                <span>John Doe</span>
-                <span className="text-white">Beneficiary</span>
-              </li>
-              <li className="flex justify-between text-white">
-                <span>Jane Smith</span>
-                <span className="text-white">Beneficiary</span>
-              </li>
-              <li className="flex justify-between text-white">
-                <span>Michael Lee</span>
-                <span className="text-white">Beneficiary</span>
-              </li>
-              <li className="flex justify-between text-white">
-                <span>Sarah Davis</span>
-                <span className="text-white">Beneficiary</span>
-              </li>
-            </ul>
-          </div>
-
-          {/* Recent Document Uploads */}
-          <div className="bg-[#3d5e27fd] p-6 rounded-lg shadow-lg">
-            <h3 className="text-xl font-semibold text-white">Recent Document Uploads</h3>
-            <ul className="mt-4 space-y-2">
-              <li className="flex justify-between text-white">
-                <span>Policy Document.pdf</span>
-                <span className="text-white">1 day ago</span>
-              </li>
-              <li className="flex justify-between text-white">
-                <span>Identity Proof.pdf</span>
-                <span className="text-white">2 days ago</span>
-              </li>
-              <li className="flex justify-between text-white">
-                <span>Nomination Form.pdf</span>
-                <span className="text-white">3 days ago</span>
-              </li>
-              <li className="flex justify-between text-white">
-                <span>Address Proof.pdf</span>
-                <span className="text-white">4 days ago</span>
-              </li>
-            </ul>
-          </div>
-        </div>
-
-        {/* Entitlement Distribution Chart */}
-        <div className=" p-6 rounded-lg shadow-lg mt-10">
-          <h3 className="text-xl font-semibold text-white">Entitlement Distribution</h3>
-          <p className="text-white mt-2">Graphical representation of entitlement distribution</p>
-          <div className="mt-6">
-            {/* <BarChart width={1600} height={300} data={chartData}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="name" stroke="#fff" />
-              <YAxis stroke="#fff" />
-              <Tooltip />
-              <Legend />
-              <Bar dataKey="entitlement" fill="#69c42c9f" />
-            </BarChart> */}
-          </div>
+        <div className="text-center">
+          <img className="w-2/5 mx-auto rounded-full" src={video_pic} alt="Video Consultation Booking" />
+          <p>Video Consultation Booking</p>
         </div>
       </div>
-    </>
-  );
-}
 
-export default Home;
+      {/* Main Overview - Center Content */}
+      <div className="grid grid-cols-3 gap-5 mt-6">
+        {/* Flexbox wrapper to center the CircularProgressBar components */}
+        <div className="flex justify-center items-center col-span-1 shadow-2xl rounded-lg p-7 bg-white">
+          <CircularProgressBar percentage={100} title="10,00,000" color="#4caf50" moneytitle='Total Wealth' />
+        </div>
+        <div className="flex justify-center items-center col-span-1 shadow-2xl rounded-lg p-7 bg-white">
+          <CircularProgressBar percentage={25} title="2,500,000" color="#ff9800" moneytitle='Current Liablities'/>
+        </div>
+        <div className="flex justify-center items-center col-span-1 shadow-2xl rounded-lg p-7 bg-white">
+          <CircularProgressBar percentage={75} title="7,500,000" color="#2196f3" moneytitle='
+Net Worth'/>
+        </div>
+      </div>
+
+      {/* Beneficiary Content */}
+      <div className="mt-6 ">
+        <div className="text-4xl font-bold my-20 text-center">Beneficiary</div>
+
+<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 relative">
+  {/* Card 1 */}
+  <div className="bg-[#152f0afd] rounded-lg shadow-lg p-5  group ">
+  <div className="img-box mb-4">
+    <img
+      className="w-full rounded-full transition-transform duration-500 ease-in-out group-hover:-translate-y-24"
+      src="https://d2qp0siotla746.cloudfront.net/img/use-cases/profile-picture/template_0.jpg"
+      alt="Assets of Beneficiary 1"
+    />
+    <div className="absolute inset-0 flex flex-col justify-center items-center text-white opacity-0 transition-opacity duration-500 ease-in-out group-hover:opacity-100  bg-opacity-60 p-4">
+    </div>
+  </div>
+    <div className="text-2xl font-bold text-center">Assets of Beneficiary 1</div>  
+  <div className="max-h-0 opacity-0 transition-all duration-500 ease-in-out overflow-hidden group-hover:max-h-full group-hover:opacity-100 group-hover:mb-[-70px] text-white text-center mt-2 group-hover:-translate-y-28">
+   <div><span>Wealth: XXXX</span><br />
+    <span>Liabilities: XXXX</span>
+    </div> 
+    <Link to="#" className="text-blue-200 underline mt-2">Read More</Link>
+  </div>
+</div>
+
+
+
+
+  {/* Card 2 */}
+  <div className="bg-[#152f0afd] rounded-lg shadow-lg p-5 relative overflow-hidden group">
+  <div className="img-box mb-4 relative overflow-hidden">
+    <img
+      className="w-full rounded-full transition-transform duration-500 ease-in-out group-hover:-translate-y-24"
+      src="https://d2qp0siotla746.cloudfront.net/img/use-cases/profile-picture/template_0.jpg"
+      alt="Assets of Beneficiary 2"
+    />
+    <div className="absolute inset-0 flex flex-col justify-center items-center text-white opacity-0 transition-opacity duration-500 ease-in-out group-hover:opacity-100 bg-black bg-opacity-50 p-4">
+      <div className="text-white text-center">
+        <span>Wealth: XXXX</span><br />
+        <span>Liabilities: XXXX</span>
+      </div>
+      <Link to="#" className="text-blue-200 underline mt-2">Read More</Link>
+    </div>
+  </div>
+  <div className="text-2xl font-bold text-center text-white mt-2 opacity-0 transition-opacity duration-500 ease-in-out group-hover:opacity-100">
+    Assets of Beneficiary 2
+  </div>
+</div>
+
+
+  {/* Card 3 */}
+<div className="bg-[#152f0afd] rounded-lg shadow-lg p-5 relative overflow-hidden group">
+    <div className="img-box mb-4 relative overflow-hidden">
+      <img
+        className="w-full rounded transition-transform duration-300 "
+        src="https://d2qp0siotla746.cloudfront.net/img/use-cases/profile-picture/template_0.jpg"
+        alt="Assets of Beneficiary 3"
+      />
+      <div className="absolute inset-0 flex flex-col justify-center items-center text-white opacity-0 transition-opacity duration-300 group-hover:opacity-100 bg-black bg-opacity-50">
+        <div className="text-white text-center">
+          <span>Wealth: XXXX</span><br />
+          <span>Liabilities: XXXX</span>
+        </div>
+        <Link to="#" className="text-blue-200 underline mt-2">Read More</Link>
+      </div>
+    </div>
+    <div className="text-2xl font-bold text-white text-center mt-2 transition-opacity duration-300 ">
+      Assets of Beneficiary 3
+    </div>
+</div>
+</div>
+
+
+      </div>
+      <FeatureSwiper/>
+
+      <PaymentsSlider/> 
+      <Accordion/>
+    </div>
+  );
+};
+
+export default WealthManagement;
