@@ -143,17 +143,17 @@ const DropdownItem = styled.li`
   };
 
   return (
-    <div className={`sidebar ${isOpen ? "open" : "closed"}`}>
+    <div className={`sidebar ${isOpen ? "open" : "closed"} z-50`}>
       <div className="sidebar-header">
-        <button onClick={toggleSidebar} className="toggle-button">
+        <button onClick={toggleSidebar} className="toggle-button ms-1 mb-5">
           {isOpen ? <MdOutlineClose /> : <FaHome />}
         </button>
       </div>
 
-<nav className="sidebar-nav">
+<nav className="sidebar-nav z-50">
   <div className="sidebar-section">
     <h3 className="sidebar-section-title" onClick={toggleWealth}>
-      {isOpen ? 'Wealth' : ''} {isWealthOpen ? '' : <RiMoneyRupeeCircleFill />}
+      {isOpen ? 'Wealth' : ''} {isWealthOpen ? <RiMoneyRupeeCircleFill /> : <RiMoneyRupeeCircleFill />}
     </h3>
     <div className={`sidebar-section-content ${isWealthOpen ? "open" : "closed"}`}>
       <Link to="/insurance-policies" className="sidebar-link"><FaFileAlt /> {isOpen ? 'Insurance Policies' : ''}</Link>
@@ -178,7 +178,7 @@ const DropdownItem = styled.li`
   {/* Liabilities Section */}
   <div className="sidebar-section">
     <h3 className="sidebar-section-title" onClick={toggleLiabilities}>
-      {isOpen ? 'Liabilities' : ''} {isLiabilitiesOpen ? '' : <FaHandsHelping  />}
+      {isOpen ? 'Liabilities' : ''} {isLiabilitiesOpen ? <FaHandsHelping  /> : <FaHandsHelping  />}
     </h3>
     <div className={`sidebar-section-content ${isLiabilitiesOpen ? "open" : "closed"}`}>
       <Link to="/home-loan" className="sidebar-link"><FaCar /> {isOpen ? 'Home Loan' : ''}</Link>
@@ -203,7 +203,7 @@ const DropdownItem = styled.li`
   {/* Post Demise Services Section */}
   <div className="sidebar-section">
     <h3 className="sidebar-section-title" onClick={togglePostDemise}>
-      {isOpen ? 'Post Demise Services' : ''} {isPostDemiseOpen ? '' : <FaChartLine />}
+      {isOpen ? 'Post Demise Services' : ''} {isPostDemiseOpen ? <FaChartLine /> : <FaChartLine />}
     </h3>
     <div className={`sidebar-section-content ${isPostDemiseOpen ? "open" : "closed"}`}>
       <Link to="/legal-documentation" className="sidebar-link"><FaFileAlt /> {isOpen ? 'Legal Documentation' : ''}</Link>
@@ -220,7 +220,7 @@ const DropdownItem = styled.li`
   {/* Suggestions Section */}
   <div className="sidebar-section">
     <h3 className="sidebar-section-title" onClick={toggleSuggestions}>
-      {isOpen ? 'Suggestions' : ''} {isSuggestionsOpen ? '' : <FaChartLine />}
+      {isOpen ? 'Suggestions' : ''} {isSuggestionsOpen ? <FaChartLine /> : <FaChartLine />}
     </h3>
     <div className={`sidebar-section-content ${isSuggestionsOpen ? "open" : "closed"}`}>
       <Link to="/insurance-renewal-suggestions" className="sidebar-link"><FaFileAlt /> {isOpen ? 'Insurance Renewal' : ''}</Link>
