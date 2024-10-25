@@ -16,6 +16,9 @@ import Beneficiary from "./Forms/Beneficiary";
 import InsurancePolicies from "./Pages/Insurancepolicies";
 import BankAccounts from "./Pages/Bankaccount";
 import RealEstateManagement from "./Pages/RealEstate";
+import DematAccountManagement from "./Pages/Demat";
+import MutualFundsManagement from "./Pages/Mutualfunds";
+import ProvidentFundsManagement from "./Pages/Providentfund";
 
 function App() {
   const { isLoggedIn } = useContext(AuthContext);
@@ -35,6 +38,9 @@ function App() {
         <Route path="/insurance" element={<InsurancePolicies />} />
         <Route path="/bank" element={<BankAccounts />} />
         <Route path="/realestate" element={<RealEstateManagement />} />
+        <Route path="/demat" element={<DematAccountManagement />} />
+        <Route path="/mf" element={<MutualFundsManagement />} />
+        <Route path="/pf" element={<ProvidentFundsManagement />} />
       </Route>
       <Route
         path="/signin"
