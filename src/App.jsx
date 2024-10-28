@@ -24,6 +24,11 @@ import Ip from "./Pages/Ip";
 import Liabilites from "./Pages/Liabilites";
 import WillForm from "./Pages/Willform";
 import Deposit from "./Pages/Deposit";
+import BusinessInheritanceManagement from "./Pages/Businessinheritance";
+import PreciousMetalsInheritanceManagement from "./Pages/Preciousmetal";
+import VehicleInheritanceManagement from "./Pages/Vehicleinheritance";
+import DigitalAssetsInheritanceManagement from "./Pages/Digitalassets";
+import SafetyDepositsInheritanceManagement from "./Pages/Safetydeposits";
 
 function App() {
   const { isLoggedIn } = useContext(AuthContext);
@@ -46,13 +51,27 @@ function App() {
         <Route path="/demat" element={<DematAccountManagement />} />
         <Route path="/mutual-funds" element={<MutualFundsManagement />} />
         <Route path="/pf" element={<ProvidentFundsManagement />} />
-        {/* ajit */}
         <Route path="/esops" element={<Esops />} />
         <Route path="/ip" element={<Ip />} />
         <Route path="/liabilites" element={<Liabilites />} />
         <Route path="/willform" element={<WillForm />} />
         <Route path="/fixed-deposit" element={<Deposit />} />
+        <Route path="/business" element={<BusinessInheritanceManagement />} />
+        <Route
+          path="/preciousmetal"
+          element={<PreciousMetalsInheritanceManagement />}
+        />
+        <Route path="/vehicle" element={<VehicleInheritanceManagement />} />
+        <Route
+          path="/digitalassets"
+          element={<DigitalAssetsInheritanceManagement />}
+        />
+        <Route
+          path="/safetydeposits"
+          element={<SafetyDepositsInheritanceManagement />}
+        />
       </Route>
+
       <Route
         path="/signin"
         element={isLoggedIn ? <Navigate to="/" /> : <LoginForm />}
