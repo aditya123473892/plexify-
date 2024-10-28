@@ -22,7 +22,7 @@ function InsurancePage() {
       </div>
 
       {/* Policy Types */}
-      <section className="mb-10 bg-[#3d5e27fd] p-6 rounded-lg shadow-md">
+      <section className="mb-10 bg-[#4e7a30fd] p-6 rounded-lg shadow-md">
         <h2 className="text-xl font-semibold text-white mb-4">
           Select Policy Type
         </h2>
@@ -35,7 +35,7 @@ function InsurancePage() {
       </section>
 
       {/* Policy Details */}
-      <section className="mb-10 bg-[#3d5e27fd] p-6 rounded-lg shadow-md">
+      <section className="mb-10 bg-[#4e7a30fd] p-6 rounded-lg shadow-md">
         <h2 className="text-xl font-semibold text-white mb-4">
           Policy Details
         </h2>
@@ -81,7 +81,7 @@ function InsurancePage() {
       {/* Additional Information */}
       <section className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
         {/* Renewal Reminders */}
-        <div className="bg-[#3d5e27fd] p-6 rounded-lg shadow-md">
+        <div className="bg-[#4e7a30fd] p-6 rounded-lg shadow-md">
           <h3 className="text-lg font-semibold text-white">
             Renewal Reminders
           </h3>
@@ -94,7 +94,7 @@ function InsurancePage() {
         </div>
 
         {/* Nominee Information */}
-        <div className="bg-[#3d5e27fd] p-6 rounded-lg shadow-md">
+        <div className="bg-[#4e7a30fd] p-6 rounded-lg shadow-md">
           <h3 className="text-lg font-semibold text-white">
             Nominee Information
           </h3>
@@ -108,7 +108,7 @@ function InsurancePage() {
       </section>
 
       {/* Upload Documents */}
-      <section className="mb-10 bg-[#3d5e27fd] p-6 rounded-lg shadow-md">
+      <section className="mb-10 bg-[#4e7a30fd] p-6 rounded-lg shadow-md">
         <h2 className="text-xl font-semibold text-white mb-4">
           Document Upload
         </h2>
@@ -122,7 +122,7 @@ function InsurancePage() {
 
       {/* Educational Resources and Calculator */}
       <section className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
-        <div className="bg-[#3d5e27fd] p-6 rounded-lg shadow-md">
+        <div className="bg-[#4e7a30fd] p-6 rounded-lg shadow-md">
           <h3 className="text-lg font-semibold text-white">
             Educational Resources
           </h3>
@@ -134,7 +134,7 @@ function InsurancePage() {
           </button>
         </div>
 
-        <div className="bg-[#3d5e27fd] p-6 rounded-lg shadow-md">
+        <div className="bg-[#4e7a30fd] p-6 rounded-lg shadow-md">
           <h3 className="text-lg font-semibold text-white">
             Insurance Calculator
           </h3>
@@ -149,7 +149,7 @@ function InsurancePage() {
 
       {/* Save Button */}
       <div className="text-right">
-        <button className="bg-green-500 text-white py-2 px-6 rounded-md shadow-md hover:bg-[#4c7033fd]">
+        <button className="bg-[#538d2dfd] text-white py-2 px-6 rounded-md shadow-md hover:bg-[#4c7033fd]">
           Save Changes
         </button>
       </div>
