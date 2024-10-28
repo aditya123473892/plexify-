@@ -1,6 +1,6 @@
 import React from "react";
 import { Swiper, SwiperSlide } from "swiper/react";
-import { Pagination } from "swiper/modules"; 
+import { Pagination,Autoplay } from "swiper/modules"; 
 import image1 from "../assets/images/corausal/1.jpg"; 
 import image2 from "../assets/images/corausal/2.jpg"; 
 import image3 from "../assets/images/corausal/3.webp"; 
@@ -100,10 +100,14 @@ const FeatureSwiper = () => {
    <div class="text-3xl font-bold text-center my-20">Grow your Investment</div>
 
       <Swiper
-        modules={[Pagination]} // Ensure Pagination is included in the modules array
+        modules={[Pagination,Autoplay]} // Ensure Pagination is included in the modules array
         pagination={{ clickable: true }} // Enable pagination
         spaceBetween={30}
         slidesPerView={4}
+        autoplay={{
+          delay: 1500, 
+          disableOnInteraction: false, 
+        }}
         className="mySwiper2"
         
       >

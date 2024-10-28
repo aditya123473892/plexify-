@@ -8,6 +8,7 @@
     position: fixed;
     top: 0;
     left: 0;
+    z-index: 10000;
   }
   
   .sidebar.open {
@@ -64,7 +65,10 @@
   }
   
   .sidebar-section-content.open {
+    margin-top: 5px;
+    background-color: #34532c;
     max-height: 650px; 
+    border-radius: 4px;
   }
   
   .sidebar-link {

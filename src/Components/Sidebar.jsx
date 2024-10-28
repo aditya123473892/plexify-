@@ -181,7 +181,7 @@ const DropdownItem = styled.li`
       {isOpen ? 'Liabilities' : ''} {isLiabilitiesOpen ? <FaHandsHelping /> : <FaHandsHelping />}
     </h3>
     <div className={`sidebar-section-content ${isLiabilitiesOpen ? "open" : "closed"}`}>
-      <Link to="/home-loan" className="sidebar-link"><FaCar className={isOpen ? 'mr-3' : ''} /> {isOpen ? 'Home Loan' : ''}</Link>
+      <Link to="/liabilites" className="sidebar-link"><FaCar className={isOpen ? 'mr-3' : ''} /> {isOpen ? 'Home Loan' : ''}</Link>
       <Link to="/car-loan" className="sidebar-link"><FaCar className={isOpen ? 'mr-3' : ''} /> {isOpen ? 'Car Loan' : ''}</Link>
       <Link to="/personal-loan" className="sidebar-link"><FaHandsHelping className={isOpen ? 'mr-3' : ''} /> {isOpen ? 'Personal Loan' : ''}</Link>
       <Link to="/education-loan" className="sidebar-link"><FaHandsHelping className={isOpen ? 'mr-3' : ''} /> {isOpen ? 'Education Loan' : ''}</Link>
@@ -198,7 +198,7 @@ const DropdownItem = styled.li`
   <Link to="/net-worth" className="sidebar-link"><FaChartLine className={isOpen ? 'mr-3' : ''} /> {isOpen ? 'Net Worth' : ''}</Link>
 
   {/* Will/Vasiyat Section */}
-  <Link to="/will" className="sidebar-link mb-3"><FaFileAlt className={isOpen ? 'mr-3' : ''} /> {isOpen ? 'Will/Vasiyat' : ''}</Link>
+  <Link to="/willform" className="sidebar-link mb-3"><FaFileAlt className={isOpen ? 'mr-3' : ''} /> {isOpen ? 'Will/Vasiyat' : ''}</Link>
 
   {/* Post Demise Services Section */}
   <div className="sidebar-section">

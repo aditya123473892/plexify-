@@ -1,5 +1,6 @@
 import React from 'react';
 import { Swiper, SwiperSlide } from 'swiper/react';
+import { Pagination,Autoplay } from "swiper/modules"; 
 import 'swiper/swiper-bundle.css';
 import { FaHandshake, FaFileInvoiceDollar, FaBitcoin, FaBuilding, FaChartLine } from 'react-icons/fa';
 
@@ -30,7 +31,7 @@ const PaymentsSlider = () => {
       id: 4,
       icon: <FaBuilding />,
       title: 'Property',
-      description: 'Real estate assets including land and physical structures for investment.',
+      description: 'Real estate assets including land and physical structures for investment structures for investment.',
       color: 'border-[#0166b4] text-[#0166b4]',
     },
     {
@@ -45,7 +46,13 @@ const PaymentsSlider = () => {
   return (
     <div className="payments_content mx-6">
       <div className="text-2xl font-bold text-center my-12">Your Payments</div>
-      <Swiper className="mySwiper1 mt-10" style={{ height: '300px' }} spaceBetween={20} slidesPerView={3} 
+      <Swiper className="mySwiper1 mt-10" style={{ height: '300px' }} 
+        modules={[Pagination,Autoplay]}
+        spaceBetween={20} slidesPerView={3} 
+        autoplay={{
+          delay: 4500, 
+          disableOnInteraction: false, 
+        }}
   loop={true}>
         {payments.map(({ id, icon, title, description, color }) => (
           <SwiperSlide key={id} style={{ background: 'transparent', height: '230px' }}>

@@ -29,7 +29,7 @@ const CircularProgressBar = ({ percentage, title, color,moneytitle }) => {
 
 const WealthManagement = () => {
   return (
-    <div className="bg-[#3d5e27fd] text-white p-5 mt-8 rounded-xl">
+    <div className="bg-[#3d5e27fd] text-white p-5 mt-4 rounded-xl">
       <div className="flex justify-between">
         <div className="text-center">
           <img className="w-2/5 mx-auto" src={picture_1} alt="Manage, Grow, Pass On" />

@@ -19,6 +19,11 @@ import RealEstateManagement from "./Pages/RealEstate";
 import DematAccountManagement from "./Pages/Demat";
 import MutualFundsManagement from "./Pages/Mutualfunds";
 import ProvidentFundsManagement from "./Pages/Providentfund";
+import Esops from "./Pages/Esops";
+import Ip from "./Pages/Ip";
+import Liabilites from "./Pages/Liabilites";
+import WillForm from "./Pages/Willform";
+import Deposit from "./Pages/Deposit";
 
 function App() {
   const { isLoggedIn } = useContext(AuthContext);
@@ -41,6 +46,12 @@ function App() {
         <Route path="/demat" element={<DematAccountManagement />} />
         <Route path="/mutual-funds" element={<MutualFundsManagement />} />
         <Route path="/pf" element={<ProvidentFundsManagement />} />
+        {/* ajit */}
+        <Route path="/esops" element={<Esops />} />
+        <Route path="/ip" element={<Ip />} />
+        <Route path="/liabilites" element={<Liabilites />} />
+        <Route path="/willform" element={<WillForm />} />
+        <Route path="/fixed-deposit" element={<Deposit />} />
       </Route>
       <Route
         path="/signin"
