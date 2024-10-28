@@ -19,6 +19,11 @@ import RealEstateManagement from "./Pages/RealEstate";
 import DematAccountManagement from "./Pages/Demat";
 import MutualFundsManagement from "./Pages/Mutualfunds";
 import ProvidentFundsManagement from "./Pages/Providentfund";
+import BusinessInheritanceManagement from "./Pages/Businessinheritance";
+import PreciousMetalsInheritanceManagement from "./Pages/Preciousmetal";
+import VehicleInheritanceManagement from "./Pages/Vehicleinheritance";
+import DigitalAssetsInheritanceManagement from "./Pages/Digitalassets";
+import SafetyDepositsInheritanceManagement from "./Pages/Safetydeposits";
 
 function App() {
   const { isLoggedIn } = useContext(AuthContext);
@@ -41,7 +46,22 @@ function App() {
         <Route path="/demat" element={<DematAccountManagement />} />
         <Route path="/mutual-funds" element={<MutualFundsManagement />} />
         <Route path="/pf" element={<ProvidentFundsManagement />} />
+        <Route path="/business" element={<BusinessInheritanceManagement />} />
+        <Route
+          path="/preciousmetal"
+          element={<PreciousMetalsInheritanceManagement />}
+        />
+        <Route path="/vehicle" element={<VehicleInheritanceManagement />} />
+        <Route
+          path="/digitalassets"
+          element={<DigitalAssetsInheritanceManagement />}
+        />
+        <Route
+          path="/safetydeposits"
+          element={<SafetyDepositsInheritanceManagement />}
+        />
       </Route>
+
       <Route
         path="/signin"
         element={isLoggedIn ? <Navigate to="/" /> : <LoginForm />}
