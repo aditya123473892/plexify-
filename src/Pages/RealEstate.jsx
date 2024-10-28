@@ -54,20 +54,19 @@ function RealEstateManagement() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 p-10">
-      <header className="mb-8 text-center">
+    <div className="min-h-screen bg-[#3d5e27fd] text-white p-6 rounded-xl">
+      <header className="mb-8 ">
         <h1 className="text-3xl font-bold text-gray-800 mb-2">
           Manage Your Real Estate
         </h1>
-        <p className="text-gray-600 max-w-md mx-auto">
+        <p className="text-gray-600 ">
           Effortlessly manage your real estate properties with a user-friendly
           interface.
         </p>
       </header>
 
-      <div className="max-w-5xl mx-auto space-y-10">
         {/* Property Section */}
-        <section className="bg-white p-6 rounded-lg shadow-md">
+        <section className="mb-10 bg-[#4e7a30fd] p-6 rounded-lg shadow-md">
           <h2 className="text-2xl font-semibold text-gray-800 mb-4">
             Properties
           </h2>
@@ -144,7 +143,7 @@ function RealEstateManagement() {
         </section>
 
         {/* Beneficiary Information */}
-        <section className="bg-white p-6 rounded-lg shadow-md">
+        <section className="mb-10 bg-[#4e7a30fd] p-6 rounded-lg shadow-md">
           <h2 className="text-2xl font-semibold text-gray-800 mb-4">
             Beneficiary Information
           </h2>
@@ -227,7 +226,7 @@ function RealEstateManagement() {
         </section>
 
         {/* Document Upload */}
-        <section className="bg-white p-6 rounded-lg shadow-md">
+        <section className="mb-10 bg-[#4e7a30fd] p-6 rounded-lg shadow-md">
           <h2 className="text-2xl font-semibold text-gray-800 mb-4">
             Document Upload
           </h2>
@@ -237,7 +236,7 @@ function RealEstateManagement() {
         </section>
 
         {/* Educational Resources */}
-        <section className="bg-white p-6 rounded-lg shadow-md flex flex-col items-center">
+        <section className="mb-10 bg-[#4e7a30fd] p-6 rounded-lg shadow-md flex flex-col items-center">
           <h3 className="text-xl font-semibold text-gray-800 mb-2">
             Educational Resources
           </h3>
@@ -256,7 +255,6 @@ function RealEstateManagement() {
           </button>
         </div>
       </div>
-    </div>
   );
 }
 

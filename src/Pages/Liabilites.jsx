@@ -64,7 +64,7 @@ function Liabilities() {
       )}
 
       {selectedType === "Personal Loan" && (
-        <section className="mb-10 bg-[#4e7a30fd] p-6 rounded-lg shadow-md">
+        <section className="mb-10 bg-[#4e7a31fd] p-6 rounded-lg shadow-md">
           <h2 className="text-xl font-semibold text-white mb-4">Assign Personal Loan</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>

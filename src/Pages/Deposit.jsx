@@ -76,7 +76,7 @@ const Deposit = () => {
           </div>
         )}
 
-        {/* Description for ProsperityPlus Deposit */}
+        {/* Description for  fProsperityPlus Deposit */}
         {selectedDeposit === 'description2' && (
           <div className="description mb-4">
             <h2 className="text-2xl font-bold">ProsperityPlus Deposit</h2>
@@ -129,7 +129,6 @@ const Deposit = () => {
           </div>
         )}
 
-        {/* Form Section */}
         {showForm && (
           <form onSubmit={handleSubmit} className="mt-8">
             <h2 className="text-2xl font-bold mb-4">Application Form</h2>

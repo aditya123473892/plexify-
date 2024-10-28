@@ -29,6 +29,7 @@ import PreciousMetalsInheritanceManagement from "./Pages/Preciousmetal";
 import VehicleInheritanceManagement from "./Pages/Vehicleinheritance";
 import DigitalAssetsInheritanceManagement from "./Pages/Digitalassets";
 import SafetyDepositsInheritanceManagement from "./Pages/Safetydeposits";
+import RecurringDepositManagement from "./Pages/RecurringDepositManagement";
 
 function App() {
   const { isLoggedIn } = useContext(AuthContext);
@@ -57,6 +58,8 @@ function App() {
         <Route path="/willform" element={<WillForm />} />
         <Route path="/fixed-deposit" element={<Deposit />} />
         <Route path="/business" element={<BusinessInheritanceManagement />} />
+        <Route path="/recurring-deposit" element={<RecurringDepositManagement />} />
+        
         <Route
           path="/preciousmetal"
           element={<PreciousMetalsInheritanceManagement />}
