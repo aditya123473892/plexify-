@@ -52,7 +52,7 @@ const PaymentsSlider = () => {
             <div className={`flex flex-col justify-center items-center ${color} border-10 w-full h-230 p-6 bg-gray-100 rounded-lg shadow-lg transition-all duration-200 ease-in-out hover:translate-y-1 border-8 relative` }>
               <div className="text-3xl mb-4">{icon}</div>
               <h5 className="text-2xl font-bold mb-2">{title}</h5>
-              <h6 className="text-sm font-normal mb-8">{description}</h6>
+              <h6 className="text-sm font-normal mb-8 text-center">{description}</h6>
               <div className="number-box text-xl font-bold mt-4 rounded-s-3xl absolute bottom-3">0{id}</div>
             </div>
           </SwiperSlide>

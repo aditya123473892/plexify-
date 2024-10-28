@@ -87,7 +87,7 @@ Net Worth'/>
    <div><span>Wealth: XXXX</span><br />
     <span>Liabilities: XXXX</span>
     </div> 
-    <Link to="#" className="text-blue-200 underline mt-2">Read More</Link>
+    <Link to="#" className="text-green-200 underline mt-2">Read More</Link>
   </div>
 </div>
 
@@ -107,7 +107,7 @@ Net Worth'/>
         <span>Wealth: XXXX</span><br />
         <span>Liabilities: XXXX</span>
       </div>
-      <Link to="#" className="text-blue-200 underline mt-2">Read More</Link>
+      <Link to="#" className="text-green-200 underline mt-2">Read More</Link>
     </div>
   </div>
   <div className="text-2xl font-bold text-center text-white mt-2 opacity-0 transition-opacity duration-500 ease-in-out group-hover:opacity-100">
@@ -129,7 +129,7 @@ Net Worth'/>
           <span>Wealth: XXXX</span><br />
           <span>Liabilities: XXXX</span>
         </div>
-        <Link to="#" className="text-blue-200 underline mt-2">Read More</Link>
+        <Link to="#" className="text-green-200 underline mt-2">Read More</Link>
       </div>
     </div>
     <div className="text-2xl font-bold text-white text-center mt-2 transition-opacity duration-300 ">

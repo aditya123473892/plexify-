@@ -150,55 +150,55 @@ const DropdownItem = styled.li`
         </button>
       </div>
 
-<nav className="sidebar-nav z-50">
+      <nav className="sidebar-nav z-50">
   <div className="sidebar-section">
     <h3 className="sidebar-section-title" onClick={toggleWealth}>
       {isOpen ? 'Wealth' : ''} {isWealthOpen ? <RiMoneyRupeeCircleFill /> : <RiMoneyRupeeCircleFill />}
     </h3>
     <div className={`sidebar-section-content ${isWealthOpen ? "open" : "closed"}`}>
-      <Link to="/insurance-policies" className="sidebar-link"><FaFileAlt /> {isOpen ? 'Insurance Policies' : ''}</Link>
-      <Link to="/fixed-deposit" className="sidebar-link"><FaPiggyBank /> {isOpen ? 'Fixed Deposit' : ''}</Link>
-      <Link to="/recurring-deposit" className="sidebar-link"><FaCoins /> {isOpen ? 'Recurring Deposit' : ''}</Link>
-      <Link to="/property" className="sidebar-link"><FaBuilding /> {isOpen ? 'Property/ Real Estate' : ''}</Link>
-      <Link to="/stocks" className="sidebar-link"><FaChartLine /> {isOpen ? 'Stocks' : ''}</Link>
-      <Link to="/bonds" className="sidebar-link"><FaDollarSign /> {isOpen ? 'Bonds' : ''}</Link>
-      <Link to="/mutual-funds" className="sidebar-link"><FaFileAlt /> {isOpen ? 'Mutual Funds' : ''}</Link>
-      <Link to="/precious-metals" className="sidebar-link"><FaCoins /> {isOpen ? 'Precious Metals' : ''}</Link>
-      <Link to="/cryptocurrencies" className="sidebar-link"><FaFileAlt /> {isOpen ? 'Cryptocurrencies' : ''}</Link>
-      <Link to="/nps" className="sidebar-link"><FaHandsHelping /> {isOpen ? 'NPS' : ''}</Link>
-      <Link to="/ppf" className="sidebar-link"><FaHandsHelping /> {isOpen ? 'PPF' : ''}</Link>
-      <Link to="/eps" className="sidebar-link"><FaHandsHelping /> {isOpen ? 'EPS' : ''}</Link>
-      <Link to="/bank-accounts" className="sidebar-link"><FaHandsHelping /> {isOpen ? 'Bank A/C' : ''}</Link>
-      <Link to="/retirement-accounts" className="sidebar-link"><FaHandsHelping /> {isOpen ? 'Retirement Accounts' : ''}</Link>
-      <Link to="/commodities" className="sidebar-link"><FaHandsHelping /> {isOpen ? 'Commodities' : ''}</Link>
-      <Link to="/other-investments" className="sidebar-link"><FaHandsHelping /> {isOpen ? 'Other Investments' : ''}</Link>
+      <Link to="/insurance-policies" className="sidebar-link"><FaFileAlt className={isOpen ? 'mr-3' : ''} /> {isOpen ? 'Insurance Policies' : ''}</Link>
+      <Link to="/fixed-deposit" className="sidebar-link"><FaPiggyBank className={isOpen ? 'mr-3' : ''} /> {isOpen ? 'Fixed Deposit' : ''}</Link>
+      <Link to="/recurring-deposit" className="sidebar-link"><FaCoins className={isOpen ? 'mr-3' : ''} /> {isOpen ? 'Recurring Deposit' : ''}</Link>
+      <Link to="/property" className="sidebar-link"><FaBuilding className={isOpen ? 'mr-3' : ''} /> {isOpen ? 'Property/ Real Estate' : ''}</Link>
+      <Link to="/stocks" className="sidebar-link"><FaChartLine className={isOpen ? 'mr-3' : ''} /> {isOpen ? 'Stocks' : ''}</Link>
+      <Link to="/bonds" className="sidebar-link"><FaDollarSign className={isOpen ? 'mr-3' : ''} /> {isOpen ? 'Bonds' : ''}</Link>
+      <Link to="/mutual-funds" className="sidebar-link"><FaFileAlt className={isOpen ? 'mr-3' : ''} /> {isOpen ? 'Mutual Funds' : ''}</Link>
+      <Link to="/precious-metals" className="sidebar-link"><FaCoins className={isOpen ? 'mr-3' : ''} /> {isOpen ? 'Precious Metals' : ''}</Link>
+      <Link to="/cryptocurrencies" className="sidebar-link"><FaFileAlt className={isOpen ? 'mr-3' : ''} /> {isOpen ? 'Cryptocurrencies' : ''}</Link>
+      <Link to="/nps" className="sidebar-link"><FaHandsHelping className={isOpen ? 'mr-3' : ''} /> {isOpen ? 'NPS' : ''}</Link>
+      <Link to="/ppf" className="sidebar-link"><FaHandsHelping className={isOpen ? 'mr-3' : ''} /> {isOpen ? 'PPF' : ''}</Link>
+      <Link to="/eps" className="sidebar-link"><FaHandsHelping className={isOpen ? 'mr-3' : ''} /> {isOpen ? 'EPS' : ''}</Link>
+      <Link to="/bank-accounts" className="sidebar-link"><FaHandsHelping className={isOpen ? 'mr-3' : ''} /> {isOpen ? 'Bank A/C' : ''}</Link>
+      <Link to="/retirement-accounts" className="sidebar-link"><FaHandsHelping className={isOpen ? 'mr-3' : ''} /> {isOpen ? 'Retirement Accounts' : ''}</Link>
+      <Link to="/commodities" className="sidebar-link"><FaHandsHelping className={isOpen ? 'mr-3' : ''} /> {isOpen ? 'Commodities' : ''}</Link>
+      <Link to="/other-investments" className="sidebar-link"><FaHandsHelping className={isOpen ? 'mr-3' : ''} /> {isOpen ? 'Other Investments' : ''}</Link>
     </div>
   </div>
 
   {/* Liabilities Section */}
   <div className="sidebar-section">
     <h3 className="sidebar-section-title" onClick={toggleLiabilities}>
-      {isOpen ? 'Liabilities' : ''} {isLiabilitiesOpen ? <FaHandsHelping  /> : <FaHandsHelping  />}
+      {isOpen ? 'Liabilities' : ''} {isLiabilitiesOpen ? <FaHandsHelping /> : <FaHandsHelping />}
     </h3>
     <div className={`sidebar-section-content ${isLiabilitiesOpen ? "open" : "closed"}`}>
-      <Link to="/home-loan" className="sidebar-link"><FaCar /> {isOpen ? 'Home Loan' : ''}</Link>
-      <Link to="/car-loan" className="sidebar-link"><FaCar /> {isOpen ? 'Car Loan' : ''}</Link>
-      <Link to="/personal-loan" className="sidebar-link"><FaHandsHelping /> {isOpen ? 'Personal Loan' : ''}</Link>
-      <Link to="/education-loan" className="sidebar-link"><FaHandsHelping /> {isOpen ? 'Education Loan' : ''}</Link>
-      <Link to="/credit-card-debt" className="sidebar-link"><FaHandsHelping /> {isOpen ? 'Credit Card Debt' : ''}</Link>
-      <Link to="/agri-loan" className="sidebar-link"><FaHandsHelping /> {isOpen ? 'Agri Loan' : ''}</Link>
-      <Link to="/business-loan" className="sidebar-link"><FaHandsHelping /> {isOpen ? 'Business Loan' : ''}</Link>
+      <Link to="/home-loan" className="sidebar-link"><FaCar className={isOpen ? 'mr-3' : ''} /> {isOpen ? 'Home Loan' : ''}</Link>
+      <Link to="/car-loan" className="sidebar-link"><FaCar className={isOpen ? 'mr-3' : ''} /> {isOpen ? 'Car Loan' : ''}</Link>
+      <Link to="/personal-loan" className="sidebar-link"><FaHandsHelping className={isOpen ? 'mr-3' : ''} /> {isOpen ? 'Personal Loan' : ''}</Link>
+      <Link to="/education-loan" className="sidebar-link"><FaHandsHelping className={isOpen ? 'mr-3' : ''} /> {isOpen ? 'Education Loan' : ''}</Link>
+      <Link to="/credit-card-debt" className="sidebar-link"><FaHandsHelping className={isOpen ? 'mr-3' : ''} /> {isOpen ? 'Credit Card Debt' : ''}</Link>
+      <Link to="/agri-loan" className="sidebar-link"><FaHandsHelping className={isOpen ? 'mr-3' : ''} /> {isOpen ? 'Agri Loan' : ''}</Link>
+      <Link to="/business-loan" className="sidebar-link"><FaHandsHelping className={isOpen ? 'mr-3' : ''} /> {isOpen ? 'Business Loan' : ''}</Link>
     </div>
   </div>
 
   {/* Beneficiary Section */}
-  <Link to="/beneficiary" className="sidebar-link"><FaUsers /> {isOpen ? 'Beneficiary' : ''}</Link>
+  <Link to="/beneficiary" className="sidebar-link"><FaUsers className={isOpen ? 'mr-3' : ''} /> {isOpen ? 'Beneficiary' : ''}</Link>
 
   {/* Net Worth Section */}
-  <Link to="/net-worth" className="sidebar-link"><FaChartLine /> {isOpen ? 'Net Worth' : ''}</Link>
+  <Link to="/net-worth" className="sidebar-link"><FaChartLine className={isOpen ? 'mr-3' : ''} /> {isOpen ? 'Net Worth' : ''}</Link>
 
   {/* Will/Vasiyat Section */}
-  <Link to="/will" className="sidebar-link mb-3"><FaFileAlt /> {isOpen ? 'Will/Vasiyat' : ''}</Link>
+  <Link to="/will" className="sidebar-link mb-3"><FaFileAlt className={isOpen ? 'mr-3' : ''} /> {isOpen ? 'Will/Vasiyat' : ''}</Link>
 
   {/* Post Demise Services Section */}
   <div className="sidebar-section">
@@ -206,14 +206,14 @@ const DropdownItem = styled.li`
       {isOpen ? 'Post Demise Services' : ''} {isPostDemiseOpen ? <FaChartLine /> : <FaChartLine />}
     </h3>
     <div className={`sidebar-section-content ${isPostDemiseOpen ? "open" : "closed"}`}>
-      <Link to="/legal-documentation" className="sidebar-link"><FaFileAlt /> {isOpen ? 'Legal Documentation' : ''}</Link>
-      <Link to="/financial-account-closure" className="sidebar-link"><FaFileAlt /> {isOpen ? 'Financial Account Closure' : ''}</Link>
-      <Link to="/investment-transmission" className="sidebar-link"><FaFileAlt /> {isOpen ? 'Investment Transmission' : ''}</Link>
-      <Link to="/misc-asset-transfer" className="sidebar-link"><FaFileAlt /> {isOpen ? 'Miscellaneous Asset Transfer' : ''}</Link>
-      <Link to="/real-estate-registration" className="sidebar-link"><FaFileAlt /> {isOpen ? 'Real Estate Registration' : ''}</Link>
-      <Link to="/insurance-pension-claims" className="sidebar-link"><FaFileAlt /> {isOpen ? 'Insurance & Pension Claims' : ''}</Link>
-      <Link to="/vehicle-utility-transfer" className="sidebar-link"><FaFileAlt /> {isOpen ? 'Vehicle & Utility Transfer' : ''}</Link>
-      <Link to="/digital-identity-management" className="sidebar-link"><FaFileAlt /> {isOpen ? 'Digital Identity Management' : ''}</Link>
+      <Link to="/legal-documentation" className="sidebar-link"><FaFileAlt className={isOpen ? 'mr-3' : ''} /> {isOpen ? 'Legal Documentation' : ''}</Link>
+      <Link to="/financial-account-closure" className="sidebar-link"><FaFileAlt className={isOpen ? 'mr-3' : ''} /> {isOpen ? 'Financial Account Closure' : ''}</Link>
+      <Link to="/investment-transmission" className="sidebar-link"><FaFileAlt className={isOpen ? 'mr-3' : ''} /> {isOpen ? 'Investment Transmission' : ''}</Link>
+      <Link to="/misc-asset-transfer" className="sidebar-link"><FaFileAlt className={isOpen ? 'mr-3' : ''} /> {isOpen ? 'Miscellaneous Asset Transfer' : ''}</Link>
+      <Link to="/real-estate-registration" className="sidebar-link"><FaFileAlt className={isOpen ? 'mr-3' : ''} /> {isOpen ? 'Real Estate Registration' : ''}</Link>
+      <Link to="/insurance-pension-claims" className="sidebar-link"><FaFileAlt className={isOpen ? 'mr-3' : ''} /> {isOpen ? 'Insurance & Pension Claims' : ''}</Link>
+      <Link to="/vehicle-utility-transfer" className="sidebar-link"><FaFileAlt className={isOpen ? 'mr-3' : ''} /> {isOpen ? 'Vehicle & Utility Transfer' : ''}</Link>
+      <Link to="/digital-identity-management" className="sidebar-link"><FaFileAlt className={isOpen ? 'mr-3' : ''} /> {isOpen ? 'Digital Identity Management' : ''}</Link>
     </div>
   </div>
 
@@ -223,12 +223,12 @@ const DropdownItem = styled.li`
       {isOpen ? 'Suggestions' : ''} {isSuggestionsOpen ? <FaChartLine /> : <FaChartLine />}
     </h3>
     <div className={`sidebar-section-content ${isSuggestionsOpen ? "open" : "closed"}`}>
-      <Link to="/insurance-renewal-suggestions" className="sidebar-link"><FaFileAlt /> {isOpen ? 'Insurance Renewal' : ''}</Link>
-      <Link to="/indian-stock-investment-suggestions" className="sidebar-link"><FaFileAlt /> {isOpen ? 'Indian Stock Investment' : ''}</Link>
-      <Link to="/cryptocurrencies-investment-suggestions" className="sidebar-link"><FaFileAlt /> {isOpen ? 'Cryptocurrencies Investment' : ''}</Link>
+      <Link to="/insurance-renewal-suggestions" className="sidebar-link"><FaFileAlt className={isOpen ? 'mr-3' : ''} /> {isOpen ? 'Insurance Renewal Suggestions' : ''}</Link>
+      <Link to="/fd-rd-renewal-suggestions" className="sidebar-link"><FaFileAlt className={isOpen ? 'mr-3' : ''} /> {isOpen ? 'FD/RD Renewal Suggestions' : ''}</Link>
     </div>
   </div>
 </nav>
+
 
       <NavbarContainer sidebarWidth={isOpen ? sidebarWidth : 64}>
         <Logo>Plexify</Logo>

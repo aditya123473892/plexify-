@@ -35,11 +35,11 @@ function App() {
         <Route path="/aadhar" element={<Aadhaarotp />} />
         <Route path="/beneficiary" element={<Beneficiary />} />
         <Route path="/nominee" element={<Nomineeform />} />
-        <Route path="/insurance" element={<InsurancePolicies />} />
+        <Route path="/insurance-policies" element={<InsurancePolicies />} />
         <Route path="/bank" element={<BankAccounts />} />
-        <Route path="/realestate" element={<RealEstateManagement />} />
+        <Route path="/property" element={<RealEstateManagement />} />
         <Route path="/demat" element={<DematAccountManagement />} />
-        <Route path="/mf" element={<MutualFundsManagement />} />
+        <Route path="/mutual-funds" element={<MutualFundsManagement />} />
         <Route path="/pf" element={<ProvidentFundsManagement />} />
       </Route>
       <Route
