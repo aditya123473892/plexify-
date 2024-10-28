@@ -37,10 +37,8 @@ function App() {
   return (
     <Routes>
       <Route element={<Layout />}>
-        <Route
-          path="/"
-          element={isLoggedIn ? <Home /> : <Navigate to="/signin" />}
-        />
+        <Route path="/" element={<Home />}/>
+       {/* <Route path="/" element={isLoggedIn ? <Home /> : <Navigate to="/signin" />}/> */}
         <Route path="/home" element={<Home />} />
         <Route path="/otp" element={<OTPVerification />} />
         <Route path="/aadhar" element={<Aadhaarotp />} />
@@ -75,10 +73,8 @@ function App() {
         />
       </Route>
 
-      <Route
-        path="/signin"
-        element={isLoggedIn ? <Navigate to="/" /> : <LoginForm />}
-      />
+     <Route path="/signin" element={ <LoginForm />}/> 
+     {/*   <Route path="/signin" element={isLoggedIn ? <Navigate to="/" /> : <LoginForm />}/> */}
       <Route path="/reset-password/:token" element={<NewPassword />} />
       <Route path="/forgetpassword" element={<ForgotPassword />} />
     </Routes>
