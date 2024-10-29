@@ -7,7 +7,7 @@ const Layout = () => {
     <div className="flex h-screen">
       <Sidebar />
 
-      <div className="flex-grow bg-[#3857239f] p-16 h-screen overflow-y-auto ms-12 mt-12">
+      <div className="flex-grow bg1 p-16 h-screen overflow-y-auto ms-12 mt-12">
         <Outlet />
       </div>
     </div>

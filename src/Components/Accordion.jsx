@@ -40,13 +40,13 @@ const Accordion = () => {
       {faqs.map((faq, index) => (
         <div key={index} className="accordion-item  rounded-xl mb-2 shadow-sm">
           <button
-            className="accordion-header bg-[#152f0afd] text-white py-4 px-6 flex justify-between w-full rounded-md shadow-lg"
+            className="accordion-header bg-[#f8f8f8fd]  py-4 px-6 flex justify-between w-full rounded-md shadow-lg"
             onClick={() => toggleAccordion(index)}
           >
             {faq.question}
             <span className={`icon transition-transform ${activeIndex === index ? 'transform rotate-45' : ''}`}>+</span>
           </button>
-          <div className={`accordion-content rounded-lg bg-[#152f0a80] overflow-hidden transition-max-height duration-300 ease-in-out ${activeIndex === index ? 'max-h-40' : 'max-h-0'}`}>
+          <div className={`accordion-content rounded-lg bg-[#dddddd80] overflow-hidden transition-max-height duration-300 ease-in-out ${activeIndex === index ? 'max-h-40' : 'max-h-0'}`}>
             <p className="p-4">{faq.answer}</p>
           </div>
         </div>

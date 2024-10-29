@@ -76,3 +76,12 @@
     transform: translateX(-100%); 
   }
   
+
+  .bg1 {
+
+    background: radial-gradient(circle, rgba(255, 253, 253, 0.644) 0%, rgba(253, 253, 253, 0.801) 100%), url('./assets/images/bg.jpg');
+    background-attachment: fixed;
+    background-size: cover;
+    background-position: center;
+  }
+  
