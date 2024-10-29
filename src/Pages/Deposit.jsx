@@ -1,19 +1,19 @@
-import React, { useState } from 'react';
+import React, { useState } from "react";
 
 const Deposit = () => {
-  const [selectedDeposit, setSelectedDeposit] = useState('');
+  const [selectedDeposit, setSelectedDeposit] = useState("");
   const [showForm, setShowForm] = useState(false);
   const [formData, setFormData] = useState({
-    name: '',
-    amount: '',
-    duration: '',
+    name: "",
+    amount: "",
+    duration: "",
   });
 
   const handleSelectionChange = (e) => {
     const value = e.target.value;
     setSelectedDeposit(value);
     setShowForm(false);
-    setFormData({ name: '', amount: '', duration: '' });
+    setFormData({ name: "", amount: "", duration: "" });
   };
 
   const acceptDescription = () => {
@@ -22,7 +22,7 @@ const Deposit = () => {
 
   const rejectDescription = () => {
     alert("You disagreed with the terms.");
-    setSelectedDeposit('');
+    setSelectedDeposit("");
   };
 
   const handleChange = (e) => {
@@ -43,12 +43,15 @@ const Deposit = () => {
           Adding Fixed Deposit Management
         </h1>
         <p className="text-white mt-2">
-          Easily add your Fixed Deposit Management details with helpful features.
+          Easily add your Fixed Deposit Management details with helpful
+          features.
         </p>
       </header>
 
-      <div className='mb-10 bg-[#4e7a30fd] p-6 rounded-lg shadow-md text-white'>
-        <label htmlFor="depositSelect" className="block mb-2 font-semibold ">Select a Fixed Deposit:</label>
+      <div className="mb-10 bg-[#4e7a30fd] p-6 rounded-lg shadow-md text-white">
+        <label htmlFor="depositSelect" className="block mb-2 font-semibold ">
+          Select a Fixed Deposit:
+        </label>
         <select
           id="depositSelect"
           value={selectedDeposit}
@@ -59,60 +62,126 @@ const Deposit = () => {
           <option value="description1">Wealth Builder Deposit</option>
           <option value="description2">ProsperityPlus Deposit</option>
           <option value="description3">SafeGuarded Growth Fund</option>
-          <option value="healthInsurance">Enhanced Health Insurance Coverage</option>
+          <option value="healthInsurance">
+            Enhanced Health Insurance Coverage
+          </option>
         </select>
       </div>
 
-      <div className='mb-10 bg-[#4e7a30fd] p-6 rounded-lg shadow-md text-white'>
+      <div className="mb-10 bg-[#4e7a30fd] p-6 rounded-lg shadow-md text-white">
         {/* Description for Wealth Builder Deposit */}
-        {selectedDeposit === 'description1' && (
+        {selectedDeposit === "description1" && (
           <div className="description mb-4">
             <h2 className="text-2xl font-bold">Wealth Builder Deposit</h2>
-            <p>This deposit helps you accumulate wealth with competitive interest rates and flexibility.</p>
+            <p>
+              This deposit helps you accumulate wealth with competitive interest
+              rates and flexibility.
+            </p>
             <div className="action-buttons mt-4">
-              <button onClick={acceptDescription} className="accept bg-[#3a5e22fd] text-white py-2 px-4 shadow-lg rounded hover:bg-[#2f4b1dfd]">I Agree</button>
-              <button onClick={rejectDescription} className="reject bg-[#3d5e27fd] text-white py-2 px-4 rounded shadow-lg ml-2 hover:bg-[#2f4b1dfd]">I Disagree</button>
+              <button
+                onClick={acceptDescription}
+                className="accept bg-[#3a5e22fd] text-white py-2 px-4 shadow-lg rounded hover:bg-[#2f4b1dfd]"
+              >
+                I Agree
+              </button>
+              <button
+                onClick={rejectDescription}
+                className="reject bg-[#3d5e27fd] text-white py-2 px-4 rounded shadow-lg ml-2 hover:bg-[#2f4b1dfd]"
+              >
+                I Disagree
+              </button>
             </div>
           </div>
         )}
 
         {/* Description for  fProsperityPlus Deposit */}
-        {selectedDeposit === 'description2' && (
+        {selectedDeposit === "description2" && (
           <div className="description mb-4">
             <h2 className="text-2xl font-bold">ProsperityPlus Deposit</h2>
-            <p>ProsperityPlus Deposit is designed to help you achieve your financial goals with high interest rates and flexible terms.</p>
+            <p>
+              ProsperityPlus Deposit is designed to help you achieve your
+              financial goals with high interest rates and flexible terms.
+            </p>
             <div className="action-buttons mt-4">
-              <button onClick={acceptDescription} className="accept bg-[#3a5e22fd] text-white py-2 px-4 shadow-lg rounded hover:bg-[#2f4b1dfd]">I Agree</button>
-              <button onClick={rejectDescription} className="reject bg-[#3d5e27fd] text-white py-2 px-4 rounded shadow-lg ml-2 hover:bg-[#2f4b1dfd]">I Disagree</button>
+              <button
+                onClick={acceptDescription}
+                className="accept bg-[#3a5e22fd] text-white py-2 px-4 shadow-lg rounded hover:bg-[#2f4b1dfd]"
+              >
+                I Agree
+              </button>
+              <button
+                onClick={rejectDescription}
+                className="reject bg-[#3d5e27fd] text-white py-2 px-4 rounded shadow-lg ml-2 hover:bg-[#2f4b1dfd]"
+              >
+                I Disagree
+              </button>
             </div>
           </div>
         )}
 
         {/* Description for SafeGuarded Growth Fund */}
-        {selectedDeposit === 'description3' && (
+        {selectedDeposit === "description3" && (
           <div className="description mb-4">
             <h2 className="text-2xl font-bold">SafeGuarded Growth Fund</h2>
-            <p>SafeGuarded Growth Fund offers you the perfect balance of risk and return with a range of investment options.</p>
+            <p>
+              SafeGuarded Growth Fund offers you the perfect balance of risk and
+              return with a range of investment options.
+            </p>
             <div className="action-buttons mt-4">
-              <button onClick={acceptDescription} className="accept bg-[#3a5e22fd] text-white py-2 px-4 shadow-lg rounded hover:bg-[#2f4b1dfd]">I Agree</button>
-              <button onClick={rejectDescription} className="reject bg-[#3d5e27fd] hover:bg-[#2f4b1dfd] text-white py-2 px-4 rounded shadow-lg ml-2 ">I Disagree</button>
+              <button
+                onClick={acceptDescription}
+                className="accept bg-[#3a5e22fd] text-white py-2 px-4 shadow-lg rounded hover:bg-[#2f4b1dfd]"
+              >
+                I Agree
+              </button>
+              <button
+                onClick={rejectDescription}
+                className="reject bg-[#3d5e27fd] hover:bg-[#2f4b1dfd] text-white py-2 px-4 rounded shadow-lg ml-2 "
+              >
+                I Disagree
+              </button>
             </div>
           </div>
         )}
 
         {/* Description for Enhanced Health Insurance Coverage */}
-        {selectedDeposit === 'healthInsurance' && (
+        {selectedDeposit === "healthInsurance" && (
           <div className="description mb-4">
-            <h2 className="text-2xl font-bold">Enhanced Health Insurance Coverage</h2>
-            <p>Our Enhanced Health Insurance Coverage policy offers comprehensive protection for you and your family's healthcare needs. With a focus on both preventative care and treatment, this policy provides peace of mind knowing that you are covered for a wide range of medical expenses.</p>
+            <h2 className="text-2xl font-bold">
+              Enhanced Health Insurance Coverage
+            </h2>
+            <p>
+              Our Enhanced Health Insurance Coverage policy offers comprehensive
+              protection for you and your family's healthcare needs. With a
+              focus on both preventative care and treatment, this policy
+              provides peace of mind knowing that you are covered for a wide
+              range of medical expenses.
+            </p>
             <ul className="list-disc ml-5">
-              <li>Access to a vast network of healthcare providers and hospitals</li>
-              <li>Coverage for routine check-ups, vaccinations, and screenings</li>
-              <li>Financial protection against unexpected medical emergencies and hospitalizations</li>
-              <li>Options for additional benefits such as dental and vision care</li>
-              <li>Flexible plans tailored to your specific healthcare needs and budget</li>
+              <li>
+                Access to a vast network of healthcare providers and hospitals
+              </li>
+              <li>
+                Coverage for routine check-ups, vaccinations, and screenings
+              </li>
+              <li>
+                Financial protection against unexpected medical emergencies and
+                hospitalizations
+              </li>
+              <li>
+                Options for additional benefits such as dental and vision care
+              </li>
+              <li>
+                Flexible plans tailored to your specific healthcare needs and
+                budget
+              </li>
             </ul>
-            <p>With our Enhanced Health Insurance Coverage, you can focus on your health and well-being without worrying about the financial burden of medical expenses. Take control of your healthcare journey today!</p>
+            <p>
+              With our Enhanced Health Insurance Coverage, you can focus on your
+              health and well-being without worrying about the financial burden
+              of medical expenses. Take control of your healthcare journey
+              today!
+            </p>
             <h3 className="font-bold mt-4">Policy Details:</h3>
             <ul className="list-disc ml-5">
               <li>✔ Name of FD: SecureSave Fixed Deposit</li>
@@ -123,8 +192,18 @@ const Deposit = () => {
               <li>✔ Maturity Amount: 5,00,000/-</li>
             </ul>
             <div className="action-buttons mt-4">
-              <button onClick={acceptDescription} className="accept bg-[#3a5e22fd] text-white py-2 px-4 shadow-lg rounded hover:bg-[#2f4b1dfd]">I Agree</button>
-              <button onClick={rejectDescription} className="reject bg-[#3d5e27fd] text-white py-2 px-4 rounded shadow-lg ml-2 hover:bg-[#2f4b1dfd]">I Disagree</button>
+              <button
+                onClick={acceptDescription}
+                className="accept bg-[#3a5e22fd] text-white py-2 px-4 shadow-lg rounded hover:bg-[#2f4b1dfd]"
+              >
+                I Agree
+              </button>
+              <button
+                onClick={rejectDescription}
+                className="reject bg-[#3d5e27fd] text-white py-2 px-4 rounded shadow-lg ml-2 hover:bg-[#2f4b1dfd]"
+              >
+                I Disagree
+              </button>
             </div>
           </div>
         )}
@@ -133,7 +212,9 @@ const Deposit = () => {
           <form onSubmit={handleSubmit} className="mt-8">
             <h2 className="text-2xl font-bold mb-4">Application Form</h2>
             <div className="mb-4">
-              <label htmlFor="name" className="block mb-1">Name:</label>
+              <label htmlFor="name" className="block mb-1">
+                Name:
+              </label>
               <input
                 type="text"
                 id="name"
@@ -145,7 +226,9 @@ const Deposit = () => {
               />
             </div>
             <div className="mb-4">
-              <label htmlFor="amount" className="block mb-1">Deposit Amount:</label>
+              <label htmlFor="amount" className="block mb-1">
+                Deposit Amount:
+              </label>
               <input
                 type="number"
                 id="amount"
@@ -157,7 +240,9 @@ const Deposit = () => {
               />
             </div>
             <div className="mb-4">
-              <label htmlFor="duration" className="block mb-1">Duration (in years):</label>
+              <label htmlFor="duration" className="block mb-1">
+                Duration (in years):
+              </label>
               <input
                 type="number"
                 id="duration"
@@ -168,7 +253,12 @@ const Deposit = () => {
                 className="border border-gray-300 rounded p-2 w-full"
               />
             </div>
-            <button type="submit" className="bg-[#3d5e27fd] hover:bg-[#2f4b1dfd] text-white py-2 px-4 rounded ">Submit</button>
+            <button
+              type="submit"
+              className="bg-[#3d5e27fd] hover:bg-[#2f4b1dfd] text-white py-2 px-4 rounded "
+            >
+              Submit
+            </button>
           </form>
         )}
       </div>

@@ -37,8 +37,8 @@ function App() {
   return (
     <Routes>
       <Route element={<Layout />}>
-        <Route path="/" element={<Home />}/>
-       {/* <Route path="/" element={isLoggedIn ? <Home /> : <Navigate to="/signin" />}/> */}
+        <Route path="/" element={<Home />} />
+        {/* <Route path="/" element={isLoggedIn ? <Home /> : <Navigate to="/signin" />}/> */}
         <Route path="/home" element={<Home />} />
         <Route path="/otp" element={<OTPVerification />} />
         <Route path="/aadhar" element={<Aadhaarotp />} />
@@ -56,10 +56,13 @@ function App() {
         <Route path="/willform" element={<WillForm />} />
         <Route path="/fixed-deposit" element={<Deposit />} />
         <Route path="/business" element={<BusinessInheritanceManagement />} />
-        <Route path="/recurring-deposit" element={<RecurringDepositManagement />} />
-        
         <Route
-          path="/preciousmetal"
+          path="/recurring-deposit"
+          element={<RecurringDepositManagement />}
+        />
+
+        <Route
+          path="/precious-metals"
           element={<PreciousMetalsInheritanceManagement />}
         />
         <Route path="/vehicle" element={<VehicleInheritanceManagement />} />
@@ -73,8 +76,8 @@ function App() {
         />
       </Route>
 
-     <Route path="/signin" element={ <LoginForm />}/> 
-     {/*   <Route path="/signin" element={isLoggedIn ? <Navigate to="/" /> : <LoginForm />}/> */}
+      <Route path="/signin" element={<LoginForm />} />
+      {/*   <Route path="/signin" element={isLoggedIn ? <Navigate to="/" /> : <LoginForm />}/> */}
       <Route path="/reset-password/:token" element={<NewPassword />} />
       <Route path="/forgetpassword" element={<ForgotPassword />} />
     </Routes>
