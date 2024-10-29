@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import axios from "axios";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
-
+import logo from "../assets/images/logo.png"; 
 const RegistrationForm = () => {
     const [formData, setFormData] = useState({
         firstName: "",
@@ -77,10 +77,15 @@ const RegistrationForm = () => {
     };
 
     return (
-        <div className="bg-white   p-6 rounded-lg w-full max-w-4xl">
+        <div className=" p-6 rounded-lg w-full max-w-4xl">
+                <img
+              src={logo}
+              alt="Logo"
+              className="mx-auto md:mb-[-60px] ms-6 block" // Hides logo below md
+            />
             <h2 className="text-xl font-semibold text-center mb-4">Registration Form</h2>
             <form onSubmit={postData}>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                         <label className="block text-sm font-semibold mb-1">First Name</label>
                         <input

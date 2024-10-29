@@ -64,27 +64,41 @@ function LoginForm() {
   const handleRememberMe = async (e) => {
   }
 
-  if (isLoggedIn) {
-    setTimeout(() => {
-      navigate("/");
-    }, 1000);
-    return null;
-  }
+  // if (isLoggedIn) {
+  //   setTimeout(() => {
+  //     navigate("/");
+  //   }, 1000);
+  //   return null;
+  // }
 
+  console.log('✌️return --->', showSignup);
   return (
-    <div className="min-h-screen flex relative overflow-hidden">
-         <BubbleContainer />
-    <div
-      className={`w-1/2 flex items-center justify-center p-10 transition-all duration-1000 ease-in-out ${
-        showSignup ? "w-[60%] bg-white" : "w-1/2 bg-[#385723]"
-      }`}
-    >
-      <img src={logo} alt="Logo" srcset=""  className={` ${showSignup ? "hidden" : " "}`}/>
-      {showSignup && (
-        <div className="w-full max-w-xl z-30">
-          
-          <div className="shadow-2xl p-4 rounded-lg">
-          {/* <BubbleContainer /> */}
+<div className="min-h-screen flex relative overflow-hidden">
+  <BubbleContainer />
+  
+  {showSignup ? (
+  <div className="hidden md:flex w-1/2 items-center justify-center p-10 transition-all duration-1000 ease-in-out bg-[#385723]">
+    {/* Registration Logo or Content */}
+    <img src={logo} alt="Logo for Signup" />
+  </div>
+) : (
+  <div className="hidden md:flex w-1/2 items-center justify-center p-10 transition-all duration-1000 ease-in-out bg-[#385723]">
+    {/* Login Logo or Content */}
+    <img src={logo} alt="Logo for Login" />
+  </div>
+)}
+
+ 
+  <div
+    className={`w-full md:w-1/2 flex items-center justify-center p-2 md:p-10 transition-all duration-1000 ease-in-out  ${
+      showSignup ? "" : "bg-slate-50"
+    }`}
+  >
+    <div className="w-full max-w-lg text-center z-30 md:bg-white rounded-lg">
+      <div className="shadow-2xl p-4 rounded-lg">
+        {showSignup ? (
+          <>
+            {/* Registration Form */}
             <RegistrationForm />
             <p className="ms-6 text-sm text-black">
               Already have an account?{" "}
@@ -95,100 +109,84 @@ function LoginForm() {
                 Login here
               </button>
             </p>
-          </div>
-        </div>
-      )}
-    </div>
- 
-    <div
-      className={`w-1/2 flex items-center justify-center p-10 transition-all duration-1000 ease-in-out bg ${
-        showSignup ? "w-1/2 bg-[#385723]" : "w-[60%] bg-slate-50"
-      }`}
-    >
-     <img src={logo} alt="Logo" srcset=""  className={` ${showSignup ? "" : "hidden"}`}/>
-      {!showSignup && (
-        <div className="w-full max-w-lg text-center z-30">
-          <div className="shadow-2xl p-4 rounded-lg">
-          
-          <img
-            src={logo} 
-            alt="Logo"
-            className="mx-auto mb-[-60px] ms-6"
-          />
-  
-          <h2 className="text-2xl font-bold text-black mb-6">Hello! Welcome back</h2>
-  
-          <form onSubmit={postData}>
-            <input
-              type="email"
-              name="email"
-              value={user.email}
-              onChange={handleInp}
-              placeholder="Email"
-              aria-label="Email"
-              className="p-3 border w-full mb-4 shadow-md rounded-lg text-black focus:outline-none focus:ring-2 focus:ring-green-500"
-              required
+          </>
+        ) : (
+          <>
+            {/* Login Form */}
+            <img
+              src={logo}
+              alt="Logo"
+              className="mx-auto mb-[-60px] ms-6 block" // Hides logo below md
             />
-            <input
-              type="password"
-              name="password"
-              value={user.password}
-              onChange={handleInp}
-              placeholder="Password"
-              aria-label="Password"
-              className="p-3 border w-full mb-2 shadow-md rounded-lg text-black focus:outline-none focus:ring-2 focus:ring-green-500"
-              required
-            />
-  
-            <div className="flex justify-between items-center mb-6">
-              <label className="flex items-center text-sm text-gray-600">
-                <input
-                  type="checkbox"
-                  name="rememberMe"
-                  onChange={handleRememberMe} 
-                  className="mr-2"
-                />
-                Remember Me
-              </label>
-  
+            <h2 className="text-2xl font-bold text-black mb-6">Hello! Welcome back</h2>
+            <form onSubmit={postData}>
+              <input
+                type="email"
+                name="email"
+                value={user.email}
+                onChange={handleInp}
+                placeholder="Email"
+                aria-label="Email"
+                className="p-3 border w-full mb-4 shadow-md rounded-lg text-black focus:outline-none focus:ring-2 focus:ring-green-500"
+                required
+              />
+              <input
+                type="password"
+                name="password"
+                value={user.password}
+                onChange={handleInp}
+                placeholder="Password"
+                aria-label="Password"
+                className="p-3 border w-full mb-2 shadow-md rounded-lg text-black focus:outline-none focus:ring-2 focus:ring-green-500"
+                required
+              />
+              <div className="flex justify-between items-center mb-6">
+                <label className="flex items-center text-sm text-gray-600">
+                  <input
+                    type="checkbox"
+                    name="rememberMe"
+                    onChange={handleRememberMe}
+                    className="mr-2"
+                  />
+                  Remember Me
+                </label>
+                <button
+                  type="button"
+                  onClick={() => navigate('/forgetpassword')}
+                  className="text-sm text-[#203118] hover:underline"
+                >
+                  Forgot password?
+                </button>
+              </div>
+              {error && <p className="text-red-500 mb-4">{error}</p>}
               <button
-                type="button"
-                onClick={()=>navigate('/forgetpassword')} 
-                className="text-sm text-[#203118] hover:underline"
+                type="submit"
+                disabled={loading}
+                className={`w-full bg-[#385723] text-white py-3 shadow-md rounded-lg transition ${
+                  loading ? "opacity-50 cursor-not-allowed" : "hover:bg-[#293f1a]"
+                }`}
               >
-                Forgot password?
+                {loading ? "Logging in..." : "LOGIN"}
               </button>
-            </div>
-  
-            {error && <p className="text-red-500 mb-4">{error}</p>}
-            <button
-              type="submit"
-              disabled={loading}
-              className={`w-full bg-[#385723] text-white py-3 shadow-md rounded-lg transition ${
-                loading ? "opacity-50 cursor-not-allowed" : "hover:bg-[#293f1a]"
-              }`}
-            >
-              {loading ? "Logging in..." : "LOGIN"}
-            </button>
-          </form>
-  
-          <p className="mt-4 text-sm text-black">
-            Don't have an account?{" "}
-            <button
-              onClick={() => setShowSignup(true)}
-              className="text-[#203118] font-bold"
-            >
-              Register here
-            </button>
-          </p>
-        </div>
-        </div>
-      )}
-      
+            </form>
+            <p className="mt-4 text-sm text-black">
+              Don't have an account?{" "}
+              <button
+                onClick={() => setShowSignup(true)}
+                className="text-[#203118] font-bold"
+              >
+                Register here
+              </button>
+            </p>
+          </>
+        )}
+      </div>
     </div>
-  
-    <ToastContainer />
   </div>
+
+  <ToastContainer />
+</div>
+
   
   
   );

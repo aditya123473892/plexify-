@@ -153,6 +153,7 @@ function RecurringDepositManagement() {
             </div>
           </div>
         ))}
+        
         <button
           onClick={addBeneficiary}
           className="bg-[#3d5e27fd] hover:bg-[#2f4b1dfd] text-white py-2 px-4 rounded-md shadow-md  mt-4"
