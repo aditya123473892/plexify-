@@ -1,47 +1,116 @@
-import React from 'react';
+import React, { useState } from 'react';
+import InputWithIcon from '../Components/InputWithIcon'; // Adjust the import path as needed
+import FieldSection from '../Components/FieldSection'; // Adjust the import path as needed
+import { FaUser, FaHome, FaCar, FaFileAlt, FaMoneyBill } from 'react-icons/fa'; // Example icons
 
 const WillForm = () => {
-  return (
-    <div className="min-h-screen bg-[#3d5e27fd] text-white p-6 rounded-xl">
+  const [formData, setFormData] = useState({
+    fullName: '',
+    address: '',
+    fatherName: '',
+    motherName: '',
+    insurancePolicies: '',
+    fixedDeposit: '',
+    homeLoan: '',
+    carLoan: '',
+    signatureName: '',
+    signatureDate: '',
+  });
 
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData({
+      ...formData,
+      [name]: value,
+    });
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    console.log("Form Data Submitted: ", formData);
+    setFormData({
+      fullName: '',
+      address: '',
+      fatherName: '',
+      motherName: '',
+      insurancePolicies: '',
+      fixedDeposit: '',
+      homeLoan: '',
+      carLoan: '',
+      signatureName: '',
+      signatureDate: '',
+    });
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="min-h-screen bg-white  p-6 rounded-xl">
       <h1 className="text-3xl font-bold text-center mb-6">Last Will and Testament</h1>
 
-      <div className="bg-[#4e7a30fd] shadow-md rounded-lg p-6 space-y-6">
         {/* Personal Information Section */}
         <section>
-          <h2 className="text-2xl font-semibold mb-4">Personal Information</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block font-medium">Full Name</label>
-              <input type="text" className="border rounded-lg w-full p-2" placeholder="Your Full Name" />
-            </div>
-            <div>
-              <label className="block font-medium">Address</label>
-              <input type="text" className="border rounded-lg w-full p-2" placeholder="Your Address" />
-            </div>
-            <div>
-              <label className="block font-medium">Father's Full Name</label>
-              <input type="text" className="border rounded-lg w-full p-2" placeholder="Father's Full Name" />
-            </div>
-            <div>
-              <label className="block font-medium">Mother's Full Name</label>
-              <input type="text" className="border rounded-lg w-full p-2" placeholder="Mother's Full Name" />
-            </div>
-          </div>
+          <h2 className="text-2xl font-semibold ">Personal Information</h2>
+            <FieldSection label="Full Name">
+              <InputWithIcon
+                icon={<FaUser />}
+                name="fullName"
+                value={formData.fullName}
+                onChange={handleChange}
+                placeholder="Your Full Name"
+                required
+              />
+         
+              <InputWithIcon
+                icon={<FaHome />}
+                name="address"
+                value={formData.address}
+                onChange={handleChange}
+                placeholder="Your Address"
+                required
+              />
+     
+              <InputWithIcon
+                icon={<FaUser />}
+                name="fatherName"
+                value={formData.fatherName}
+                onChange={handleChange}
+                placeholder="Father's Full Name"
+                required
+              />
+         
+              <InputWithIcon
+                icon={<FaUser />}
+                name="motherName"
+                value={formData.motherName}
+                onChange={handleChange}
+                placeholder="Mother's Full Name"
+                required
+              />
+            </FieldSection>
         </section>
 
         {/* Assets Section */}
         <section>
-          <h2 className="text-2xl font-semibold mb-4">Assets</h2>
+          <h2 className="text-2xl font-semibold ">Assets</h2>
           <div className="grid grid-cols-1 gap-4">
-            <div>
-              <label className="block font-medium">Insurance Policies</label>
-              <input type="text" className="border rounded-lg w-full p-2" placeholder="Details like Account No." />
-            </div>
-            <div>
-              <label className="block font-medium">Fixed Deposit</label>
-              <input type="text" className="border rounded-lg w-full p-2" placeholder="Details like Account No." />
-            </div>
+            <FieldSection label="Insurance Policies">
+              <InputWithIcon
+                icon={<FaFileAlt />}
+                name="insurancePolicies"
+                value={formData.insurancePolicies}
+                onChange={handleChange}
+                placeholder="Details like Account No."
+                required
+              />
+        
+              <InputWithIcon
+                icon={<FaMoneyBill />}
+                name="fixedDeposit"
+                value={formData.fixedDeposit}
+                onChange={handleChange}
+                placeholder="Details like Account No."
+                required
+              />
+            </FieldSection>
             {/* Add more fields as necessary */}
           </div>
         </section>
@@ -50,14 +119,25 @@ const WillForm = () => {
         <section>
           <h2 className="text-2xl font-semibold mb-4">Liabilities</h2>
           <div className="grid grid-cols-1 gap-4">
-            <div>
-              <label className="block font-medium">Home Loan</label>
-              <input type="text" className="border rounded-lg w-full p-2" placeholder="Details like Account No." />
-            </div>
-            <div>
-              <label className="block font-medium">Car Loan</label>
-              <input type="text" className="border rounded-lg w-full p-2" placeholder="Details like Account No." />
-            </div>
+            <FieldSection label="Home Loan">
+              <InputWithIcon
+                icon={<FaHome />}
+                name="homeLoan"
+                value={formData.homeLoan}
+                onChange={handleChange}
+                placeholder="Details like Account No."
+                required
+              />
+   
+              <InputWithIcon
+                icon={<FaCar />}
+                name="carLoan"
+                value={formData.carLoan}
+                onChange={handleChange}
+                placeholder="Details like Account No."
+                required
+              />
+            </FieldSection>
             {/* Add more fields as necessary */}
           </div>
         </section>
@@ -66,25 +146,35 @@ const WillForm = () => {
         <section>
           <h2 className="text-2xl font-semibold mb-4">Signature and Witnesses</h2>
           <div className="grid grid-cols-1 gap-4">
-            <div>
-              <label className="block font-medium">Your Full Name</label>
-              <input type="text" className="border rounded-lg w-full p-2" placeholder="Your Full Name" />
-            </div>
-            <div>
-              <label className="block font-medium">Date</label>
-              <input type="date" className="border rounded-lg w-full p-2" />
-            </div>
+            <FieldSection label="Your Full Name">
+              <InputWithIcon
+                icon={<FaUser />}
+                name="signatureName"
+                value={formData.signatureName}
+                onChange={handleChange}
+                placeholder="Your Full Name"
+                required
+              />
+     
+              <InputWithIcon
+                icon={<FaFileAlt />} // Use appropriate icon
+                name="signatureDate"
+                value={formData.signatureDate}
+                onChange={handleChange}
+                type="date"
+                required
+              />
+            </FieldSection>
           </div>
         </section>
 
         {/* Submit Button */}
         <div className="text-center">
-        <button className="bg-[#538d2dfd] text-white py-2 px-6 rounded-md shadow-md hover:bg-[#4c7033fd]">
-          Save Changes
-        </button>
-      </div>
-      </div>
-    </div>
+          <button className="bg-[#538d2dfd] text-white py-2 px-6 rounded-md shadow-md hover:bg-[#4c7033fd]">
+            Save Changes
+          </button>
+        </div>
+    </form>
   );
 };
 

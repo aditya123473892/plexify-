@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { FaCheckCircle, FaTimesCircle, FaUser, FaMoneyBillWave, FaCalendarAlt } from "react-icons/fa";
 
 const Deposit = () => {
   const [selectedDeposit, setSelectedDeposit] = useState("");
@@ -37,26 +38,26 @@ const Deposit = () => {
   };
 
   return (
-    <main className="bg-[#3d5e27fd] p-8 rounded shadow-md">
+    <main className="min-h-screen shadow-2xl bg-white p-6 rounded-lg md:mt-10 mt-20">
       <header className="mb-8">
-        <h1 className="text-3xl font-bold text-white">
+        <h1 className="text-3xl font-bold ">
           Adding Fixed Deposit Management
         </h1>
-        <p className="text-white mt-2">
+        <p className=" mt-2">
           Easily add your Fixed Deposit Management details with helpful
           features.
         </p>
       </header>
 
-      <div className="mb-10 bg-[#4e7a30fd] p-6 rounded-lg shadow-md text-white">
-        <label htmlFor="depositSelect" className="block mb-2 font-semibold ">
+      <div className="mb-10 border-l-2 border-[#538d2dfd] p-6 rounded-lg shadow">
+        <label htmlFor="depositSelect" className="block mb-2 font-semibold">
           Select a Fixed Deposit:
         </label>
         <select
           id="depositSelect"
           value={selectedDeposit}
           onChange={handleSelectionChange}
-          className="border border-[#2f7004fd] p-2 rounded-md w-full bg-[#3d5e27fd] outline-0"
+          className="border border-[#2f7004fd] p-2 rounded-md w-full bg-[#3d5e27fd] outline-0 text-white"
         >
           <option value="">--Select a deposit--</option>
           <option value="description1">Wealth Builder Deposit</option>
@@ -68,8 +69,7 @@ const Deposit = () => {
         </select>
       </div>
 
-      <div className="mb-10 bg-[#4e7a30fd] p-6 rounded-lg shadow-md text-white">
-        {/* Description for Wealth Builder Deposit */}
+      <div className="mb-10 border-l-2 border-[#538d2dfd] p-6 rounded-lg shadow">
         {selectedDeposit === "description1" && (
           <div className="description mb-4">
             <h2 className="text-2xl font-bold">Wealth Builder Deposit</h2>
@@ -77,24 +77,25 @@ const Deposit = () => {
               This deposit helps you accumulate wealth with competitive interest
               rates and flexibility.
             </p>
-            <div className="action-buttons mt-4">
+            <div className="action-buttons mt-4 flex">
               <button
                 onClick={acceptDescription}
-                className="accept bg-[#3a5e22fd] text-white py-2 px-4 shadow-lg rounded hover:bg-[#2f4b1dfd]"
+                className="accept bg-[#3a5e22fd] text-white py-2 px-4 shadow-lg rounded hover:bg-[#2f4b1dfd] flex items-center"
               >
+                <FaCheckCircle className="mr-2" />
                 I Agree
               </button>
               <button
                 onClick={rejectDescription}
-                className="reject bg-[#3d5e27fd] text-white py-2 px-4 rounded shadow-lg ml-2 hover:bg-[#2f4b1dfd]"
+                className="reject bg-[#3d5e27fd] text-white py-2 px-4 rounded shadow-lg ml-2 hover:bg-[#2f4b1dfd] flex items-center border-r border-[#2f7004fd]"
               >
+                <FaTimesCircle className="mr-2" />
                 I Disagree
               </button>
             </div>
           </div>
         )}
 
-        {/* Description for  fProsperityPlus Deposit */}
         {selectedDeposit === "description2" && (
           <div className="description mb-4">
             <h2 className="text-2xl font-bold">ProsperityPlus Deposit</h2>
@@ -102,24 +103,25 @@ const Deposit = () => {
               ProsperityPlus Deposit is designed to help you achieve your
               financial goals with high interest rates and flexible terms.
             </p>
-            <div className="action-buttons mt-4">
+            <div className="action-buttons mt-4 flex">
               <button
                 onClick={acceptDescription}
-                className="accept bg-[#3a5e22fd] text-white py-2 px-4 shadow-lg rounded hover:bg-[#2f4b1dfd]"
+                className="accept bg-[#3a5e22fd] text-white py-2 px-4 shadow-lg rounded hover:bg-[#2f4b1dfd] flex items-center"
               >
+                <FaCheckCircle className="mr-2" />
                 I Agree
               </button>
               <button
                 onClick={rejectDescription}
-                className="reject bg-[#3d5e27fd] text-white py-2 px-4 rounded shadow-lg ml-2 hover:bg-[#2f4b1dfd]"
+                className="reject bg-[#3d5e27fd] text-white py-2 px-4 rounded shadow-lg ml-2 hover:bg-[#2f4b1dfd] flex items-center border-r border-[#2f7004fd]"
               >
+                <FaTimesCircle className="mr-2" />
                 I Disagree
               </button>
             </div>
           </div>
         )}
 
-        {/* Description for SafeGuarded Growth Fund */}
         {selectedDeposit === "description3" && (
           <div className="description mb-4">
             <h2 className="text-2xl font-bold">SafeGuarded Growth Fund</h2>
@@ -127,24 +129,25 @@ const Deposit = () => {
               SafeGuarded Growth Fund offers you the perfect balance of risk and
               return with a range of investment options.
             </p>
-            <div className="action-buttons mt-4">
+            <div className="action-buttons mt-4 flex">
               <button
                 onClick={acceptDescription}
-                className="accept bg-[#3a5e22fd] text-white py-2 px-4 shadow-lg rounded hover:bg-[#2f4b1dfd]"
+                className="accept bg-[#3a5e22fd] text-white py-2 px-4 shadow-lg rounded hover:bg-[#2f4b1dfd] flex items-center"
               >
+                <FaCheckCircle className="mr-2" />
                 I Agree
               </button>
               <button
                 onClick={rejectDescription}
-                className="reject bg-[#3d5e27fd] hover:bg-[#2f4b1dfd] text-white py-2 px-4 rounded shadow-lg ml-2 "
+                className="reject bg-[#3d5e27fd] text-white py-2 px-4 rounded shadow-lg ml-2 hover:bg-[#2f4b1dfd] flex items-center border-r border-[#2f7004fd]"
               >
+                <FaTimesCircle className="mr-2" />
                 I Disagree
               </button>
             </div>
           </div>
         )}
 
-        {/* Description for Enhanced Health Insurance Coverage */}
         {selectedDeposit === "healthInsurance" && (
           <div className="description mb-4">
             <h2 className="text-2xl font-bold">
@@ -191,17 +194,19 @@ const Deposit = () => {
               <li>✔ Premiums: 2,00,000/-</li>
               <li>✔ Maturity Amount: 5,00,000/-</li>
             </ul>
-            <div className="action-buttons mt-4">
+            <div className="action-buttons mt-4 flex">
               <button
                 onClick={acceptDescription}
-                className="accept bg-[#3a5e22fd] text-white py-2 px-4 shadow-lg rounded hover:bg-[#2f4b1dfd]"
+                className="accept bg-[#3a5e22fd] text-white py-2 px-4 shadow-lg rounded hover:bg-[#2f4b1dfd] flex items-center"
               >
+                <FaCheckCircle className="mr-2" />
                 I Agree
               </button>
               <button
                 onClick={rejectDescription}
-                className="reject bg-[#3d5e27fd] text-white py-2 px-4 rounded shadow-lg ml-2 hover:bg-[#2f4b1dfd]"
+                className="reject bg-[#3d5e27fd] text-white py-2 px-4 rounded shadow-lg ml-2 hover:bg-[#2f4b1dfd] flex items-center border-r border-[#2f7004fd]"
               >
+                <FaTimesCircle className="mr-2" />
                 I Disagree
               </button>
             </div>
@@ -212,51 +217,64 @@ const Deposit = () => {
           <form onSubmit={handleSubmit} className="mt-8">
             <h2 className="text-2xl font-bold mb-4">Application Form</h2>
             <div className="mb-4">
-              <label htmlFor="name" className="block mb-1">
+              <label htmlFor="name" className="block mb-1 text-white">
                 Name:
               </label>
-              <input
-                type="text"
-                id="name"
-                name="name"
-                value={formData.name}
-                onChange={handleChange}
-                required
-                className="border border-gray-300 rounded p-2 w-full"
-              />
+              <div className="flex items-center border-l-2 border-[#538d2dfd] shadow-lg rounded p-2 w-full ">
+                <FaUser className="text-[#2f7004fd] mx-2" />
+                <input
+                  type="text"
+                  id="name"
+                  placeholder="Applicante Name"
+                  name="name"
+                  value={formData.name}
+                  onChange={handleChange}
+                  required
+                  className="bg-transparent text-white outline-none flex-1"
+                />
+              </div>
             </div>
             <div className="mb-4">
-              <label htmlFor="amount" className="block mb-1">
-                Deposit Amount:
+              <label htmlFor="amount" className="block mb-1 text-white">
+                Amount (in ₹):
               </label>
-              <input
-                type="number"
-                id="amount"
-                name="amount"
-                value={formData.amount}
-                onChange={handleChange}
-                required
-                className="border border-gray-300 rounded p-2 w-full"
-              />
+              <div className="flex items-center border-l-2 border-[#538d2dfd] shadow-lg rounded p-2 w-full ">
+                <FaMoneyBillWave className="text-[#2f7004fd] mx-2" />
+                <input
+                  type="number"
+                  id="amount"
+                  name="amount"
+                 placeholder="Amount"
+                  value={formData.amount}
+                  onChange={handleChange}
+                  required
+                  className="bg-transparent text-white outline-none flex-1"
+                />
+              </div>
             </div>
             <div className="mb-4">
-              <label htmlFor="duration" className="block mb-1">
+              <label htmlFor="duration" className="block mb-1 text-white">
                 Duration (in years):
               </label>
-              <input
-                type="number"
-                id="duration"
-                name="duration"
-                value={formData.duration}
-                onChange={handleChange}
-                required
-                className="border border-gray-300 rounded p-2 w-full"
-              />
+              <div className="flex items-center border-l-2 border-[#538d2dfd] shadow-lg rounded p-2 w-full ">
+                <FaCalendarAlt className="text-[#2f7004fd] mx-2" />
+                <input
+                  type="number"
+                  id="duration"
+                  name="duration"
+                  placeholder="Duration"
+                  value={formData.duration}
+                  onChange={handleChange}
+                  required
+                  className="bg-transparent text-white outline-none flex-1"
+                />
+              </div>
             </div>
             <button
               type="submit"
-              className="bg-[#3d5e27fd] hover:bg-[#2f4b1dfd] text-white py-2 px-4 rounded "
+              className="bg-[#3a5e22fd] text-white py-2 px-4 rounded hover:bg-[#2f4b1dfd] flex items-center"
             >
+              <FaCheckCircle className="mr-2" />
               Submit
             </button>
           </form>

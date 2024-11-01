@@ -3,6 +3,8 @@ import axios from "axios";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
 import logo from "../assets/images/logo.png"; 
+import { FaUser, FaEnvelope, FaLock, FaIdCard, FaPhone } from "react-icons/fa";
+
 const RegistrationForm = () => {
     const [formData, setFormData] = useState({
         firstName: "",
@@ -84,179 +86,185 @@ const RegistrationForm = () => {
               className="mx-auto md:mb-[-60px] ms-6 block" // Hides logo below md
             />
             <h2 className="text-xl font-semibold text-center mb-4">Registration Form</h2>
-            <form onSubmit={postData}>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                        <label className="block text-sm font-semibold mb-1">First Name</label>
-                        <input
-                            type="text"
-                            name="firstName"
-                            placeholder="First name"
-                            className="w-full p-2 border rounded-md shadow-md"
-                            value={formData.firstName}
-                            onChange={handleChange}
-                            required
-                        />
-                        {errors.firstName && (
-                            <p className="text-red-500 text-sm">{errors.firstName}</p>
-                        )}
-                    </div>
-                    <div>
-                        <label className="block text-sm font-semibold mb-1">Last Name</label>
-                        <input
-                            type="text"
-                            name="lastName"
-                            placeholder="Last name"
-                            className="w-full p-2 border rounded-md shadow-md"
-                            value={formData.lastName}
-                            onChange={handleChange}
-                            required
-                        />
-                        {errors.lastName && (
-                            <p className="text-red-500 text-sm">{errors.lastName}</p>
-                        )}
-                    </div>
-                </div>
-                <div className="mt-4">
-                    <label className="block text-sm font-semibold mb-1">Email</label>
-                    <input
-                        type="email"
-                        name="email"
-                        placeholder="email@example.com"
-                        className="w-full p-2 border rounded-md shadow-md"
-                        value={formData.email}
-                        onChange={handleChange}
-                        required
-                    />
-                    {errors.email && (
-                        <p className="text-red-500 text-sm">{errors.email}</p>
-                    )}
-                </div>
-                <div className="mt-4 grid grid-cols-2 gap-4">
-                    <div>
-                        <label className="block text-sm font-semibold mb-1">Password</label>
-                        <input
-                            type="password"
-                            name="password"
-                            placeholder="Password"
-                            className="w-full p-2 border rounded-md shadow-md"
-                            value={formData.password}
-                            onChange={handleChange}
-                            required
-                        />
-                        {errors.password && (
-                            <p className="text-red-500 text-sm">{errors.password}</p>
-                        )}
-                    </div>
-                    <div>
-                        <label className="block text-sm font-semibold mb-1">Confirm Password</label>
-                        <input
-                            type="password"
-                            name="confirmPassword"
-                            placeholder="Confirm password"
-                            className="w-full p-2 border rounded-md shadow-md"
-                            value={formData.confirmPassword}
-                            onChange={handleChange}
-                            required
-                        />
-                        {errors.confirmPassword && (
-                            <p className="text-red-500 text-sm">{errors.confirmPassword}</p>
-                        )}
-                    </div>
-                </div>
-                <div className="mt-4">
-                    <label className="block text-sm font-semibold mb-1">Aadhaar Number</label>
-                    <input
-                        type="text"
-                        name="aadharNumber"
-                        placeholder="012345678912"
-                        className="w-full p-2 border rounded-md shadow-md"
-                        value={formData.aadharNumber}
-                        onChange={handleChange}
-                        required
-                    />
-                    {errors.aadharNumber && (
-                        <p className="text-red-500 text-sm">{errors.aadharNumber}</p>
-                    )}
-                </div>
-                <div className="mt-4">
-                    <label className="block text-sm font-semibold mb-1">Phone Number</label>
-                    <input
-                        type="text"
-                        name="phoneNumber"
-                        placeholder="9876543210"
-                        className="w-full p-2 border rounded-md shadow-md"
-                        value={formData.phoneNumber}
-                        onChange={handleChange}
-                        required
-                    />
-                    {errors.phoneNumber && (
-                        <p className="text-red-500 text-sm">{errors.phoneNumber}</p>
-                    )}
-                </div>
-                <div className="mt-4">
-                    <label className="block text-sm font-semibold mb-1">Gender</label>
-                    <div className="flex space-x-4">
-                        <label className="inline-flex items-center">
-                            <input
-                                type="radio"
-                                name="gender"
-                                value="Male"
-                                onChange={handleChange}
-                                required
-                            />
-                            <span className="ml-2">Male</span>
-                        </label>
-                        <label className="inline-flex items-center">
-                            <input
-                                type="radio"
-                                name="gender"
-                                value="Female"
-                                onChange={handleChange}
-                                required
-                            />
-                            <span className="ml-2">Female</span>
-                        </label>
-                    </div>
-                    {errors.gender && (
-                        <p className="text-red-500 text-sm">{errors.gender}</p>
-                    )}
-                </div>
-                <div className="mt-4">
-                    <label className="block text-sm font-semibold mb-1">Beneficiary</label>
-                    <div className="flex space-x-4">
-                        <label className="inline-flex items-center">
-                            <input
-                                type="radio"
-                                name="beneficiary"
-                                value="Yes"
-                                onChange={handleChange}
-                                required
-                            />
-                            <span className="ml-2">Yes</span>
-                        </label>
-                        <label className="inline-flex items-center">
-                            <input
-                                type="radio"
-                                name="beneficiary"
-                                value="No"
-                                onChange={handleChange}
-                                required
-                            />
-                            <span className="ml-2">No</span>
-                        </label>
-                    </div>
-                    {errors.beneficiary && (
-                        <p className="text-red-500 text-sm">{errors.beneficiary}</p>
-                    )}
-                </div>
-                <button
-                    type="submit"
-                    className="w-full mt-6 py-2 bg-[#385723]  shadow-md text-white rounded-md hover:bg-[#263b18] transition"
-                >
-                    Register
-                </button>
-            </form>
+
+
+<form onSubmit={postData}>
+  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <div>
+      <label className="block text-sm font-semibold mb-1">First Name</label>
+      <div className="flex items-center border rounded-md shadow-md">
+        <div className=" p-3 flex items-center justify-center rounded-l-md">
+          <FaUser className="text-[#385723]" />
+        </div>
+        <input
+          type="text"
+          name="firstName"
+          placeholder="First name"
+          className="w-full p-2 text-black focus:outline-none focus:ring-2 focus:ring-green-500 rounded-r-md"
+          value={formData.firstName}
+          onChange={handleChange}
+          required
+        />
+      </div>
+      {errors.firstName && <p className="text-red-500 text-sm">{errors.firstName}</p>}
+    </div>
+
+    <div>
+      <label className="block text-sm font-semibold mb-1">Last Name</label>
+      <div className="flex items-center border rounded-md shadow-md">
+        <div className=" p-3 flex items-center justify-center rounded-l-md">
+          <FaUser className="text-[#385723]" />
+        </div>
+        <input
+          type="text"
+          name="lastName"
+          placeholder="Last name"
+          className="w-full p-2 text-black focus:outline-none focus:ring-2 focus:ring-green-500 rounded-r-md"
+          value={formData.lastName}
+          onChange={handleChange}
+          required
+        />
+      </div>
+      {errors.lastName && <p className="text-red-500 text-sm">{errors.lastName}</p>}
+    </div>
+  </div>
+
+  <div className="mt-4">
+    <label className="block text-sm font-semibold mb-1">Email</label>
+    <div className="flex items-center border rounded-md shadow-md">
+      <div className=" p-3 flex items-center justify-center rounded-l-md">
+        <FaEnvelope className="text-[#385723]" />
+      </div>
+      <input
+        type="email"
+        name="email"
+        placeholder="email@example.com"
+        className="w-full p-2 text-black focus:outline-none focus:ring-2 focus:ring-green-500 rounded-r-md"
+        value={formData.email}
+        onChange={handleChange}
+        required
+      />
+    </div>
+    {errors.email && <p className="text-red-500 text-sm">{errors.email}</p>}
+  </div>
+
+  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+    <div>
+      <label className="block text-sm font-semibold mb-1">Password</label>
+      <div className="flex items-center border rounded-md shadow-md">
+        <div className=" p-3 flex items-center justify-center rounded-l-md">
+          <FaLock className="text-[#385723]" />
+        </div>
+        <input
+          type="password"
+          name="password"
+          placeholder="Password"
+          className="w-full p-2 text-black focus:outline-none focus:ring-2 focus:ring-green-500 rounded-r-md"
+          value={formData.password}
+          onChange={handleChange}
+          required
+        />
+      </div>
+      {errors.password && <p className="text-red-500 text-sm">{errors.password}</p>}
+    </div>
+
+    <div>
+      <label className="block text-sm font-semibold mb-1">Confirm Password</label>
+      <div className="flex items-center border rounded-md shadow-md">
+        <div className=" p-3 flex items-center justify-center rounded-l-md">
+          <FaLock className="text-[#385723]" />
+        </div>
+        <input
+          type="password"
+          name="confirmPassword"
+          placeholder="Confirm password"
+          className="w-full p-2 text-black focus:outline-none focus:ring-2 focus:ring-green-500 rounded-r-md"
+          value={formData.confirmPassword}
+          onChange={handleChange}
+          required
+        />
+      </div>
+      {errors.confirmPassword && <p className="text-red-500 text-sm">{errors.confirmPassword}</p>}
+    </div>
+  </div>
+
+  <div className="mt-4">
+    <label className="block text-sm font-semibold mb-1">Aadhaar Number</label>
+    <div className="flex items-center border rounded-md shadow-md">
+      <div className=" p-3 flex items-center justify-center rounded-l-md">
+        <FaIdCard className="text-[#385723]" />
+      </div>
+      <input
+        type="text"
+        name="aadharNumber"
+        placeholder="012345678912"
+        className="w-full p-2 text-black focus:outline-none focus:ring-2 focus:ring-green-500 rounded-r-md"
+        value={formData.aadharNumber}
+        onChange={handleChange}
+        required
+      />
+    </div>
+    {errors.aadharNumber && <p className="text-red-500 text-sm">{errors.aadharNumber}</p>}
+  </div>
+
+  <div className="mt-4">
+    <label className="block text-sm font-semibold mb-1">Phone Number</label>
+    <div className="flex items-center border rounded-md shadow-md">
+      <div className=" p-3 flex items-center justify-center rounded-l-md">
+        <FaPhone className="text-[#385723]" />
+      </div>
+      <input
+        type="text"
+        name="phoneNumber"
+        placeholder="9876543210"
+        className="w-full p-2 text-black focus:outline-none focus:ring-2 focus:ring-green-500 rounded-r-md"
+        value={formData.phoneNumber}
+        onChange={handleChange}
+        required
+      />
+    </div>
+    {errors.phoneNumber && <p className="text-red-500 text-sm">{errors.phoneNumber}</p>}
+  </div>
+  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+  <div className="mt-4">
+    <label className="block text-sm font-semibold mb-1">Gender</label>
+    <div className="flex space-x-4">
+      <label className="inline-flex items-center">
+        <input type="radio" name="gender" value="Male" onChange={handleChange} required />
+        <span className="ml-2">Male</span>
+      </label>
+      <label className="inline-flex items-center">
+        <input type="radio" name="gender" value="Female" onChange={handleChange} required />
+        <span className="ml-2">Female</span>
+      </label>
+    </div>
+    {errors.gender && <p className="text-red-500 text-sm">{errors.gender}</p>}
+  </div>
+
+  <div className="mt-4">
+    <label className="block text-sm font-semibold mb-1">Beneficiary</label>
+    <div className="flex space-x-4">
+      <label className="inline-flex items-center">
+        <input type="radio" name="beneficiary" value="Yes" onChange={handleChange} required />
+        <span className="ml-2">Yes</span>
+      </label>
+      <label className="inline-flex items-center">
+        <input type="radio" name="beneficiary" value="No" onChange={handleChange} required />
+        <span className="ml-2">No</span>
+      </label>
+    </div>
+    {errors.beneficiary && <p className="text-red-500 text-sm">{errors.beneficiary}</p>}
+  </div>
+</div>
+  <button
+    type="submit"
+    className="w-full mt-6 py-2  shadow-md text-white bg-[#263d17] rounded-md hover:bg-[#263b18] transition"
+  >
+    Register
+  </button>
+</form>
+
+
         </div>
     );
 };

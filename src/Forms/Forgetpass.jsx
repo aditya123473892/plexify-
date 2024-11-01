@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { toast, ToastContainer } from "react-toastify";
 import '../assets/css/Bubbles.css'; 
-
+import { FaEnvelope } from "react-icons/fa";
 function ForgotPassword() {
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
@@ -83,28 +83,33 @@ function ForgotPassword() {
       <div className="flex items-center justify-center p-10 relative z-10 h-screen">
         <div className="w-full max-w-lg bg-slate-50 p-8 rounded-lg shadow-lg">
           <h2 className="text-3xl font-bold text-black mb-6">Forgot Password</h2>
-          <form onSubmit={postData}>
-            <input
-              type="email"
-              name="email"
-              value={email}
-              onChange={handleInp}
-              placeholder="Email"
-              aria-label="Email"
-              className="p-3 border w-full mb-4 shadow-md rounded-lg text-black focus:outline-none focus:ring-2 focus:ring-green-500"
-              required
-            />
-            {error && <p className="text-red-500 mb-4">{error}</p>}
-            <button
-              type="submit"
-              disabled={loading}
-              className={`w-full bg-[#385723] text-white py-3 shadow-md rounded-lg transition ${
-                loading ? "opacity-50 cursor-not-allowed" : "hover:bg-[#293f1a]"
-              }`}
-            >
-              {loading ? "Sending..." : "Send Reset Link"}
-            </button>
-          </form>
+        
+
+<form onSubmit={postData}>
+  <div className="flex items-center border w-full mb-4 shadow-md rounded-lg">
+    <FaEnvelope className="mx-3 text-gray-500" />
+    <input
+      type="email"
+      name="email"
+      value={email}
+      onChange={handleInp}
+      placeholder="Email"
+      aria-label="Email"
+      className="p-3 w-full text-black focus:outline-none focus:ring-2 focus:ring-green-500 rounded-r-lg"
+      required
+    />
+  </div>
+  {error && <p className="text-red-500 mb-4">{error}</p>}
+  <button
+    type="submit"
+    disabled={loading}
+    className={`w-full bg-[#385723] text-white py-3 shadow-md rounded-lg transition ${
+      loading ? "opacity-50 cursor-not-allowed" : "hover:bg-[#293f1a]"
+    }`}
+  >
+    {loading ? "Sending..." : "Send Reset Link"}
+  </button>
+</form>
           <p className="mt-4 text-sm text-black">
             Remember your password?{" "}
             <button

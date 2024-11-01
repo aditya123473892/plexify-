@@ -85,3 +85,13 @@
     background-position: center;
   }
   
+
+  input[type="checkbox"] {
+    accent-color: #4e7a30; 
+}
+
+
+input[type="radio"] {
+    accent-color: #4e7a30; 
+}
+

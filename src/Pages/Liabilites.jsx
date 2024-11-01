@@ -1,188 +1,94 @@
-import React, { useState } from "react";
+import React, { useState } from 'react';
+import { FaHome, FaUser, FaCar, FaGraduationCap, FaBusinessTime, FaFileUpload } from 'react-icons/fa';
+import InputWithIcon from '../Components/InputWithIcon';
+import FieldSection from '../Components/FieldSection';
 
-function Liabilities() {
-  const [selectedType, setSelectedType] = useState("Home Loan");
+const ManageLiabilities = () => {
+  const [selectedType, setSelectedType] = useState("");
 
-  const handleTypeChange = (event) => {
-    setSelectedType(event.target.value);
-  };
+  const handleTypeChange = (e) => setSelectedType(e.target.value);
 
   return (
-    <div className="min-h-screen bg-[#3d5e27fd] text-white p-6 rounded-xl">
+    <div className="min-h-screen shadow-2xl bg-white p-6 rounded-lg md:mt-10 mt-20">
       {/* Header Section */}
       <header className="mb-8">
-        <h1 className="text-3xl font-bold text-white">Manage Your Liabilities</h1>
-        <p className="text-white mt-2">
-          Easily add, view, and manage your liabilities with helpful features.
-        </p>
+        <h1 className="text-3xl font-bold">Manage Your Liabilities</h1>
+        <p className="mt-2">Easily add, view, and manage your liabilities with helpful features.</p>
       </header>
 
       {/* Liability Types */}
-      <section className="mb-10 bg-[#4e7a30fd] p-6 rounded-lg shadow-md">
-        <h2 className="text-xl font-semibold text-white mb-4">Select Liability Type</h2>
+      <section className="mb-10 border-l-2 border-[#538d2dfd] p-6 rounded-lg shadow">
+        <h2 className="text-xl font-semibold mb-4">Select Liability Type</h2>
         <select
-          className="border border-[#2f7004fd] p-2 rounded-md w-full bg-[#3d5e27fd] outline-0"
+          className="border border-[#2f7004fd] p-2 text-white rounded-md w-full bg-[#3d5e27fd] outline-0"
           value={selectedType}
           onChange={handleTypeChange}
         >
-          <option>Home Loan</option>
-          <option>Personal Loan</option>
-          <option>Vehicle Loan</option>
-          <option>Education Loan</option>
-          <option>Business Loan</option>
-          <option>Other Liabilities</option>
+          <option value="">Choose a Type</option>
+          <option value="Home Loan">Home Loan</option>
+          <option value="Personal Loan">Personal Loan</option>
+          <option value="Vehicle Loan">Vehicle Loan</option>
+          <option value="Education Loan">Education Loan</option>
+          <option value="Business Loan">Business Loan</option>
         </select>
       </section>
 
       {/* Dynamic Form Sections */}
       {selectedType === "Home Loan" && (
-        <section className="mb-10 bg-[#4e7a30fd] p-6 rounded-lg shadow-md">
-          <h2 className="text-xl font-semibold text-white mb-4">Assign Home Loan</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <label className="block mb-1">Bank/Institution Name</label>
-              <input type="text" placeholder="Bank/Institution Name" className="border border-gray-300 p-2 rounded-md w-full" />
-            </div>
-            <div>
-              <label className="block mb-1">Loan Amount</label>
-              <input type="number" placeholder="Loan Amount" className="border border-gray-300 p-2 rounded-md w-full" />
-            </div>
-            <div>
-              <label className="block mb-1">Account Number</label>
-              <input type="text" placeholder="Account Number" className="border border-gray-300 p-2 rounded-md w-full" />
-            </div>
-            <div>
-              <label className="block mb-1">Loan Tenure (Years)</label>
-              <input type="number" placeholder="Loan Tenure (Years)" className="border border-gray-300 p-2 rounded-md w-full" />
-            </div>
-            <div>
-              <label className="block mb-1">Interest Rate (%)</label>
-              <input type="number" placeholder="Interest Rate (%)" className="border border-gray-300 p-2 rounded-md w-full" />
-            </div>
-          </div>
-        </section>
+        <FieldSection title="Assign Home Loan" icon={<FaHome />}>
+          <InputWithIcon icon={<FaHome />} placeholder="Bank/Institution Name" />
+          <InputWithIcon icon={<FaFileUpload />} placeholder="Loan Amount" type="number" />
+          <InputWithIcon icon={<FaFileUpload />} placeholder="Account Number" />
+          <InputWithIcon icon={<FaFileUpload />} placeholder="Loan Tenure (Years)" type="number" />
+          <InputWithIcon icon={<FaFileUpload />} placeholder="Interest Rate (%)" type="number" />
+        </FieldSection>
       )}
 
       {selectedType === "Personal Loan" && (
-        <section className="mb-10 bg-[#4e7a31fd] p-6 rounded-lg shadow-md">
-          <h2 className="text-xl font-semibold text-white mb-4">Assign Personal Loan</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <label className="block mb-1">Bank/Institution Name</label>
-              <input type="text" placeholder="Bank/Institution Name" className="border border-gray-300 p-2 rounded-md w-full" />
-            </div>
-            <div>
-              <label className="block mb-1">Loan Amount</label>
-              <input type="number" placeholder="Loan Amount" className="border border-gray-300 p-2 rounded-md w-full" />
-            </div>
-            <div>
-              <label className="block mb-1">Loan Purpose</label>
-              <input type="text" placeholder="Loan Purpose" className="border border-gray-300 p-2 rounded-md w-full" />
-            </div>
-            <div>
-              <label className="block mb-1">Interest Rate (%)</label>
-              <input type="number" placeholder="Interest Rate (%)" className="border border-gray-300 p-2 rounded-md w-full" />
-            </div>
-          </div>
-        </section>
+        <FieldSection title="Assign Personal Loan" icon={<FaUser />}>
+          <InputWithIcon icon={<FaUser />} placeholder="Bank/Institution Name" />
+          <InputWithIcon icon={<FaFileUpload />} placeholder="Loan Amount" type="number" />
+          <InputWithIcon icon={<FaFileUpload />} placeholder="Loan Purpose" />
+          <InputWithIcon icon={<FaFileUpload />} placeholder="Interest Rate (%)" type="number" />
+        </FieldSection>
       )}
 
       {selectedType === "Vehicle Loan" && (
-        <section className="mb-10 bg-[#4e7a30fd] p-6 rounded-lg shadow-md">
-          <h2 className="text-xl font-semibold text-white mb-4">Assign Vehicle Loan</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <label className="block mb-1">Bank/Institution Name</label>
-              <input type="text" placeholder="Bank/Institution Name" className="border border-gray-300 p-2 rounded-md w-full" />
-            </div>
-            <div>
-              <label className="block mb-1">Loan Amount</label>
-              <input type="number" placeholder="Loan Amount" className="border border-gray-300 p-2 rounded-md w-full" />
-            </div>
-            <div>
-              <label className="block mb-1">Vehicle Type/Model</label>
-              <input type="text" placeholder="Vehicle Type/Model" className="border border-gray-300 p-2 rounded-md w-full" />
-            </div>
-            <div>
-              <label className="block mb-1">Loan Tenure (Years)</label>
-              <input type="number" placeholder="Loan Tenure (Years)" className="border border-gray-300 p-2 rounded-md w-full" />
-            </div>
-          </div>
-        </section>
+        <FieldSection title="Assign Vehicle Loan" icon={<FaCar />}>
+          <InputWithIcon icon={<FaCar />} placeholder="Bank/Institution Name" />
+          <InputWithIcon icon={<FaFileUpload />} placeholder="Loan Amount" type="number" />
+          <InputWithIcon icon={<FaFileUpload />} placeholder="Vehicle Type/Model" />
+          <InputWithIcon icon={<FaFileUpload />} placeholder="Loan Tenure (Years)" type="number" />
+        </FieldSection>
       )}
 
       {selectedType === "Education Loan" && (
-        <section className="mb-10 bg-[#4e7a30fd] p-6 rounded-lg shadow-md">
-          <h2 className="text-xl font-semibold text-white mb-4">Assign Education Loan</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <label className="block mb-1">Bank/Institution Name</label>
-              <input type="text" placeholder="Bank/Institution Name" className="border border-gray-300 p-2 rounded-md w-full" />
-            </div>
-            <div>
-              <label className="block mb-1">Loan Amount</label>
-              <input type="number" placeholder="Loan Amount" className="border border-gray-300 p-2 rounded-md w-full" />
-            </div>
-            <div>
-              <label className="block mb-1">Course/Institution</label>
-              <input type="text" placeholder="Course/Institution" className="border border-gray-300 p-2 rounded-md w-full" />
-            </div>
-            <div>
-              <label className="block mb-1">Interest Rate (%)</label>
-              <input type="number" placeholder="Interest Rate (%)" className="border border-gray-300 p-2 rounded-md w-full" />
-            </div>
-          </div>
-        </section>
+        <FieldSection title="Assign Education Loan" icon={<FaGraduationCap />}>
+          <InputWithIcon icon={<FaGraduationCap />} placeholder="Bank/Institution Name" />
+          <InputWithIcon icon={<FaFileUpload />} placeholder="Loan Amount" type="number" />
+          <InputWithIcon icon={<FaFileUpload />} placeholder="Course/Institution" />
+          <InputWithIcon icon={<FaFileUpload />} placeholder="Interest Rate (%)" type="number" />
+        </FieldSection>
       )}
 
       {selectedType === "Business Loan" && (
-        <section className="mb-10 bg-[#4e7a30fd] p-6 rounded-lg shadow-md">
-          <h2 className="text-xl font-semibold text-white mb-4">Assign Business Loan</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <label className="block mb-1">Bank/Financial Institution</label>
-              <input type="text" placeholder="Bank/Financial Institution" className="border border-gray-300 p-2 rounded-md w-full" />
-            </div>
-            <div>
-              <label className="block mb-1">Loan Amount</label>
-              <input type="number" placeholder="Loan Amount" className="border border-gray-300 p-2 rounded-md w-full" />
-            </div>
-            <div>
-              <label className="block mb-1">Loan Details</label>
-              <input type="text" placeholder="Loan Details" className="border border-gray-300 p-2 rounded-md w-full" />
-            </div>
-            <div>
-              <label className="block mb-1">Loan Period (Years)</label>
-              <input type="text" placeholder="Loan Period (Years)" className="border border-gray-300 p-2 rounded-md w-full" />
-            </div>
-          </div>
-        </section>
+        <FieldSection title="Assign Business Loan" icon={<FaBusinessTime />}>
+          <InputWithIcon icon={<FaBusinessTime />} placeholder="Bank/Financial Institution" />
+          <InputWithIcon icon={<FaFileUpload />} placeholder="Loan Amount" type="number" />
+          <InputWithIcon icon={<FaFileUpload />} placeholder="Loan Details" />
+          <InputWithIcon icon={<FaFileUpload />} placeholder="Interest Rate (%)" type="number" />
+        </FieldSection>
       )}
 
-      {selectedType === "Other Liabilities" && (
-        <section className="mb-10 bg-[#4e7a30fd] p-6 rounded-lg shadow-md">
-          <h2 className="text-xl font-semibold text-white mb-4">Other Liabilities</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <label className="block mb-1">Liability Description</label>
-              <input type="text" placeholder="Description of Other Liability" className="border border-gray-300 p-2 rounded-md w-full" />
-            </div>
-            <div>
-              <label className="block mb-1">Amount</label>
-              <input type="number" placeholder="Amount" className="border border-gray-300 p-2 rounded-md w-full" />
-            </div>
-          </div>
-        </section>
-      )}
-
-      {/* Submit Button */}
-      <div className="flex justify-end mt-6">
-        <button className="bg-[#4e7a30fd] text-white py-2 px-4 rounded hover:bg-[#345220fd] transition duration-300">
-          Submit Liabilities
+      {/* Save Button */}
+      <div className="mt-10">
+        <button className="bg-[#457525fd] text-white p-2 rounded-md hover:bg-[#4c7033fd] transition duration-200">
+          <FaFileUpload className="inline mr-2" /> Save Liabilities
         </button>
       </div>
     </div>
   );
-}
+};
 
-export default Liabilities;
+
+export default ManageLiabilities;
