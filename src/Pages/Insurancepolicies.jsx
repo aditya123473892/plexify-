@@ -42,11 +42,9 @@ function InsurancePage() {
             placeholder="Provider (e.g. LIC)"
           />
           <InputWithIcon icon={<FaClipboard />} placeholder="Policy Period" />
-<<<<<<< HEAD
           <InputWithIcon icon={'₹'} placeholder="Premium Amount" />
           <InputWithIcon icon={'₹'} placeholder="Coverage Limit" />
           <InputWithIcon className='col-span-2' icon={<FaCheckCircle />} placeholder="Maturity Amount"/>
-=======
           <InputWithIcon icon={<FaDollarSign />} placeholder="Premium Amount" />
           <InputWithIcon icon={<FaDollarSign />} placeholder="Coverage Limit" />
           <InputWithIcon
@@ -54,7 +52,6 @@ function InsurancePage() {
             icon={<FaCheckCircle />}
             placeholder="Maturity Amount"
           />
->>>>>>> 39b1eb9170ace7280ba46888fbe7db35233820ca
         </div>
       </Section>
 
