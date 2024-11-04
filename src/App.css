@@ -77,14 +77,22 @@
   }
   
 
-  .bg1 {
+  /* .bg1 {
 
     background: radial-gradient(circle, rgba(255, 253, 253, 0.644) 0%, rgba(253, 253, 253, 0.801) 100%), url('./assets/images/bg.jpg');
     background-attachment: fixed;
     background-size: cover;
     background-position: center;
   }
-  
+   */
+
+
+   .bg1 {
+    background: radial-gradient(circle, #538d2d 0%, rgba(253, 253, 253, 0.801) 100%), url('./assets/images/bg.jpg');
+    background-attachment: fixed;
+    background-size: cover;
+    background-position: center;
+}
 
   input[type="checkbox"] {
     accent-color: #4e7a30; 
@@ -95,3 +103,24 @@ input[type="radio"] {
     accent-color: #4e7a30; 
 }
 
+.glass{background: rgba(255, 255, 255, 0.2);
+  border-radius: 16px;
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(5px);
+  -webkit-backdrop-filter: blur(5px);
+  border: 1px solid rgba(255, 255, 255, 0.3);}
+
+
+  .bground{ position: absolute;
+    z-index: -1;
+    width: 70%;
+    height: 79%;
+    background-color: rgb(24, 94, 15);
+    border-radius: 63% 37% 88% 12% / 71% 39% 61% 29%;}
+
+    .bground2{ position: absolute;
+      z-index: -1;
+      width: 70%;
+      height: 79%;
+     
+      border-radius: 63% 37% 88% 12% / 71% 39% 61% 29%;}

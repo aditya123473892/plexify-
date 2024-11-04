@@ -7,7 +7,7 @@ const FieldSection = ({ title, icon, children }) => (
       <span className="inline mr-3 text-[#538d2dfd] mt-1">{icon}</span>
       {title}
     </h2>
-    <div className="grid grid-cols-2 gap-6">
+    <div className="grid md:grid-cols-2 grid-cols-1 gap-6">
       {children}
     </div>
   </section>

@@ -12,11 +12,12 @@ import {
   FaHome,
 } from "react-icons/fa";
 import { FiUser } from "react-icons/fi";
-import { MdOutlineClose, MdExpandMore } from "react-icons/md";
+import { MdOutlineClose, MdDashboardCustomize  } from "react-icons/md";
 import { Link, useNavigate } from "react-router-dom";
 import { RiMoneyRupeeCircleFill } from "react-icons/ri";
 import "../assets/css/Sidebar.css";
 import styled from "styled-components";
+import wealthlogo from '../assets/images/Picture_1.png'
 function Sidebar() {
   const NavbarContainer = styled.nav`
     background-color: #446b2b; /* Green color */
@@ -156,6 +157,22 @@ function Sidebar() {
       </div>
 
       <nav className="sidebar-nav z-50">
+
+     <div className="flex justify-center">
+
+
+
+
+
+
+     <img src={wealthlogo} alt="Wealth Logo" className={`${isOpen ?"size-20" : ''} filter brightness-[20.5]`} />
+     </div>
+
+      <Link to="/" className="sidebar-link my-3">
+          <MdDashboardCustomize  className={isOpen ? "mr-3" : ""} />{" "}
+          {isOpen ? "Dashboard" : ""}
+        </Link>
+
         <div className="sidebar-section">
           <h3 className="sidebar-section-title" onClick={toggleWealth}>
             {isOpen ? "Wealth" : ""}{" "}
@@ -191,7 +208,7 @@ function Sidebar() {
               {isOpen ? "Stocks" : ""}
             </Link>
             <Link to="/bonds" className="sidebar-link">
-              <FaDollarSign className={isOpen ? "mr-3" : ""} />{" "}
+            ₹ <span className={isOpen ? "mr-3" : ""} />{" "}
               {isOpen ? "Bonds" : ""}
             </Link>
             <Link to="/mutual-funds" className="sidebar-link">
@@ -367,7 +384,10 @@ function Sidebar() {
       </nav>
 
       <NavbarContainer sidebarWidth={isOpen ? sidebarWidth : 64}>
-        <Logo>Plexify</Logo>
+        <Logo className="flex"><img src={wealthlogo} alt="Wealth Logo" className="size-5 mt-1  filter brightness-[20.5]" />
+       <span className="ms-1"> Wealth Guard</span>
+        
+        </Logo>
 
         <UserIcon ref={dropdownRef} onClick={toggleDropdown}>
           <FiUser /> Profile

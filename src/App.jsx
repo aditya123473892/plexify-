@@ -30,6 +30,25 @@ import VehicleInheritanceManagement from "./Pages/Vehicleinheritance";
 import DigitalAssetsInheritanceManagement from "./Pages/Digitalassets";
 import SafetyDepositsInheritanceManagement from "./Pages/Safetydeposits";
 import RecurringDepositManagement from "./Pages/RecurringDepositManagement";
+import StockManagement from "./Pages/StockManagement";
+import BondManagement from "./Pages/BondManagement";
+import CryptoManagement from "./Pages/CryptoManagement";
+import BankAccountManagement from "./Pages/BankAccountManagement";
+import RetirementAccountManagement from "./Pages/RetirementAccountManagement";
+import CommodityManagement from "./Pages/CommodityManagement";
+import OtherInvestments from "./Pages/OtherInvestments";
+import NetWorth from "./Pages/NetWorth";
+import LegalDocumentation from "./Pages/LegalDocumentation";
+import FinancialAccountClosure from "./Pages/FinancialAccountClosure";
+import InvestmentTransmission from "./Pages/InvestmentTransmission";
+import MiscellaneousAssetTransfer from "./Pages/MiscellaneousAssetTransfer";
+import RealEstateRegistration from "./Pages/RealEstateRegistration";
+import InsurancePensionClaims from "./Pages/InsurancePensionClaims";
+import VehicleUtilityTransfer from "./Pages/VehicleUtilityTransfer";
+import DigitalIdentityManagement from "./Pages/DigitalIdentityManagement";
+import NPSManagement from "./Pages/NPSManagement";
+import PPFManagement from "./Pages/PPFManagement";
+import EPFManagement from "./Pages/EPFManagement";
 
 function App() {
   const { isLoggedIn } = useContext(AuthContext);
@@ -56,26 +75,35 @@ function App() {
         <Route path="/willform" element={<WillForm />} />
         <Route path="/fixed-deposit" element={<Deposit />} />
         <Route path="/business" element={<BusinessInheritanceManagement />} />
-        <Route
-          path="/recurring-deposit"
-          element={<RecurringDepositManagement />}
-        />
-
-        <Route
-          path="/precious-metals"
-          element={<PreciousMetalsInheritanceManagement />}
-        />
+        <Route path="/stocks" element={<StockManagement />} />
+        <Route path="/bonds" element={<BondManagement />} />
+        <Route path="/cryptocurrencies" element={<CryptoManagement  />} />
+        <Route path="/bank-accounts" element={<BankAccountManagement  />} />
+        <Route path="/commodities" element={<CommodityManagement  />} />
+        <Route path="/retirement-accounts" element={<RetirementAccountManagement  />} />
+        <Route path="/other-investments" element={<OtherInvestments   />} />
+        <Route path="/net-worth" element={<NetWorth   />} />
+        <Route path="/recurring-deposit" element={<RecurringDepositManagement />}/>
+        <Route path="/precious-metals" element={<PreciousMetalsInheritanceManagement />}/>
         <Route path="/vehicle" element={<VehicleInheritanceManagement />} />
-        <Route
-          path="/digitalassets"
-          element={<DigitalAssetsInheritanceManagement />}
-        />
-        <Route
-          path="/safetydeposits"
-          element={<SafetyDepositsInheritanceManagement />}
-        />
+        <Route path="/digitalassets" element={<DigitalAssetsInheritanceManagement />}/>
+        <Route  path="/safetydeposits" element={<SafetyDepositsInheritanceManagement />}/>
+        
+        
+        <Route  path="/legal-documentation" element={<LegalDocumentation />}/>
+        <Route  path="/financial-account-closure" element={<FinancialAccountClosure />}/>
+        <Route  path="/investment-transmission" element={<InvestmentTransmission />}/>
+        <Route  path="/misc-asset-transfer" element={<MiscellaneousAssetTransfer  />}/>
+        <Route  path="/real-estate-registration" element={<RealEstateRegistration />}/>
+        <Route  path="/insurance-pension-claims" element={<InsurancePensionClaims  />}/>
+        <Route  path="/vehicle-utility-transfer" element={<VehicleUtilityTransfer />}/>
+        <Route  path="/digital-identity-management" element={<DigitalIdentityManagement />}/>
+        <Route  path="/nps" element={<NPSManagement />}/>
+        <Route  path="/ppf" element={<PPFManagement  />}/>
+        <Route  path="/eps" element={<EPFManagement  />}/>
+        
       </Route>
-
+      
       <Route path="/signin" element={<LoginForm />} />
       {/*   <Route path="/signin" element={isLoggedIn ? <Navigate to="/" /> : <LoginForm />}/> */}
       <Route path="/reset-password/:token" element={<NewPassword />} />

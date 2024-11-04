@@ -89,14 +89,14 @@ const RealEstateManagement = () => {
                 onChange={(e) => handlePropertyChange(index, 'size', e.target.value)}
               />
               <InputWithIcon
-                icon={<FaDollarSign className="text-[#538d2dfd] mx-2" />}
+                  icon={<span className="text-[#538d2dfd] mx-2 font-extrabold text-xl" >₹ </span>}
                 type="number"
                 placeholder="Purchase Value"
                 value={property.purchaseValue}
                 onChange={(e) => handlePropertyChange(index, 'purchaseValue', e.target.value)}
               />
               <InputWithIcon
-                icon={<FaDollarSign className="text-[#538d2dfd] mx-2" />}
+                  icon={<span className="text-[#538d2dfd] mx-2 font-extrabold text-xl" >₹ </span>}
                 type="number"
                 placeholder="Current Value"
                 value={property.currentValue}
