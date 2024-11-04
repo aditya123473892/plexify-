@@ -35,7 +35,8 @@ const BubbleContainer = () => {
   const generateBubbles = () => {
     const newBubbles = [];
     const bubbleCount = window.innerWidth > 700 ? 7 : 4; // Adjust bubble count based on screen width
-    const bubbleColor = window.innerWidth > 700 ? "rgba(255, 255, 255, 0.8)" : "#385723"; // Change color based on screen width
+    const bubbleColor =
+      window.innerWidth > 700 ? "rgba(255, 255, 255, 0.8)" : "#385723"; // Change color based on screen width
 
     for (let i = 0; i < bubbleCount; i++) {
       const size = Math.random() * 200 + 130; // Random size between 130px and 330px

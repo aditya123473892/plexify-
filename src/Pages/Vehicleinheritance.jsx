@@ -131,7 +131,7 @@ function VehicleInheritanceManagement() {
                 />
                 <input
                   type="number"
-                  placeholder="Estimated Value ($)"
+                  placeholder="Estimated Value (₹)"
                   className="border border-gray-300 p-3 rounded-md w-full"
                   value={vehicle.value}
                   onChange={(e) =>

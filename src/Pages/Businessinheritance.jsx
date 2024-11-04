@@ -9,6 +9,7 @@ function BusinessInheritanceManagement() {
       industry: "",
       value: "",
       ownershipPercentage: "",
+      type: "",
     },
   ]);
   const [beneficiaries, setBeneficiaries] = useState([
@@ -22,7 +23,6 @@ function BusinessInheritanceManagement() {
     },
   ]);
 
-  // Add a new business
   const addBusiness = () => {
     setBusinesses([
       ...businesses,
@@ -32,11 +32,11 @@ function BusinessInheritanceManagement() {
         industry: "",
         value: "",
         ownershipPercentage: "",
+        type: "",
       },
     ]);
   };
 
-  // Add a new beneficiary
   const addBeneficiary = () => {
     setBeneficiaries([
       ...beneficiaries,
@@ -51,14 +51,12 @@ function BusinessInheritanceManagement() {
     ]);
   };
 
-  // Handle changes for business fields
   const handleBusinessChange = (index, field, value) => {
     const updatedBusinesses = [...businesses];
     updatedBusinesses[index][field] = value;
     setBusinesses(updatedBusinesses);
   };
 
-  // Handle changes for beneficiary fields
   const handleBeneficiaryChange = (index, field, value) => {
     const updatedBeneficiaries = [...beneficiaries];
     updatedBeneficiaries[index][field] = value;
@@ -77,7 +75,6 @@ function BusinessInheritanceManagement() {
       </header>
 
       <div className="max-w-5xl mx-auto space-y-10">
-        {/* Business Section */}
         <section className="bg-white p-6 rounded-lg shadow-md">
           <h2 className="text-2xl font-semibold text-gray-800 mb-4">
             Businesses
@@ -85,15 +82,23 @@ function BusinessInheritanceManagement() {
           {businesses.map((business, index) => (
             <div key={index} className="mb-4 border-b pb-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                <input
-                  type="text"
-                  placeholder="Business Name"
+                <select
                   className="border border-gray-300 p-3 rounded-md w-full"
-                  value={business.name}
+                  value={business.type}
                   onChange={(e) =>
-                    handleBusinessChange(index, "name", e.target.value)
+                    handleBusinessChange(index, "type", e.target.value)
                   }
-                />
+                >
+                  <option value="">Select Business Type</option>
+                  <option value="Public">Public</option>
+                  <option value="Private">Private</option>
+                  <option value="LLP">LLP</option>
+                  <option value="Partnership">Partnership</option>
+                  <option value="Sole Proprietorship">
+                    Sole Proprietorship
+                  </option>
+                  <option value="Others">Others</option>
+                </select>
                 <input
                   type="text"
                   placeholder="Location"
@@ -145,7 +150,6 @@ function BusinessInheritanceManagement() {
           </button>
         </section>
 
-        {/* Beneficiary Information */}
         <section className="bg-white p-6 rounded-lg shadow-md">
           <h2 className="text-2xl font-semibold text-gray-800 mb-4">
             Beneficiary Information
@@ -228,7 +232,6 @@ function BusinessInheritanceManagement() {
           </button>
         </section>
 
-        {/* Document Upload */}
         <section className="bg-white p-6 rounded-lg shadow-md">
           <h2 className="text-2xl font-semibold text-gray-800 mb-4">
             Document Upload
@@ -238,7 +241,6 @@ function BusinessInheritanceManagement() {
           </button>
         </section>
 
-        {/* Educational Resources */}
         <section className="bg-white p-6 rounded-lg shadow-md flex flex-col items-center">
           <h3 className="text-xl font-semibold text-gray-800 mb-2">
             Educational Resources
@@ -251,7 +253,6 @@ function BusinessInheritanceManagement() {
           </button>
         </section>
 
-        {/* Save Button */}
         <div className="flex justify-end">
           <button className="bg-green-600 text-white py-3 px-8 rounded-md shadow-md hover:bg-green-700 transition-all">
             Save Changes
