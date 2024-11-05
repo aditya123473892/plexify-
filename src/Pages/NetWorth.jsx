@@ -1,12 +1,12 @@
-import React, { useState } from 'react';
-import { FaMoneyBillWave, FaPlus, FaCheckCircle } from 'react-icons/fa';
-import InputWithIcon from '../Components/InputWithIcon';
-import FieldSection from '../Components/FieldSection';
-import Section from '../Components/Section';
+import React, { useState } from "react";
+import { FaMoneyBillWave, FaPlus, FaCheckCircle } from "react-icons/fa";
+import InputWithIcon from "../Components/InputWithIcon";
+import FieldSection from "../Components/FieldSection";
+import Section from "../Components/Section";
 
 const NetWorth = () => {
-  const [assets, setAssets] = useState([{ name: '', value: '' }]);
-  const [liabilities, setLiabilities] = useState([{ name: '', value: '' }]);
+  const [assets, setAssets] = useState([{ name: "", value: "" }]);
+  const [liabilities, setLiabilities] = useState([{ name: "", value: "" }]);
 
   const handleAssetChange = (index, field, value) => {
     const newAssets = [...assets];
@@ -21,21 +21,29 @@ const NetWorth = () => {
   };
 
   const addAsset = () => {
-    setAssets([...assets, { name: '', value: '' }]);
+    setAssets([...assets, { name: "", value: "" }]);
   };
 
   const addLiability = () => {
-    setLiabilities([...liabilities, { name: '', value: '' }]);
+    setLiabilities([...liabilities, { name: "", value: "" }]);
   };
 
-  const totalAssets = assets.reduce((acc, asset) => acc + (parseFloat(asset.value) || 0), 0);
-  const totalLiabilities = liabilities.reduce((acc, liability) => acc + (parseFloat(liability.value) || 0), 0);
+  const totalAssets = assets.reduce(
+    (acc, asset) => acc + (parseFloat(asset.value) || 0),
+    0
+  );
+  const totalLiabilities = liabilities.reduce(
+    (acc, liability) => acc + (parseFloat(liability.value) || 0),
+    0
+  );
   const netWorth = totalAssets - totalLiabilities;
 
   return (
     <div className="min-h-screen shadow-2xl bg-white p-6 rounded-lg md:mt-10 mt-20">
       <header className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-800 mb-2">Manage Your Net Worth</h1>
+        <h1 className="text-3xl font-bold text-gray-800 mb-2">
+          Manage Your Net Worth
+        </h1>
         <p className="text-gray-600">
           Keep track of your assets and liabilities to calculate your net worth.
         </p>
@@ -50,14 +58,16 @@ const NetWorth = () => {
               type="text"
               placeholder="Asset Name"
               value={asset.name}
-              onChange={(e) => handleAssetChange(index, 'name', e.target.value)}
+              onChange={(e) => handleAssetChange(index, "name", e.target.value)}
             />
             <InputWithIcon
               icon={<FaMoneyBillWave className="text-[#538d2dfd] mx-2" />}
               type="number"
               placeholder="Value"
               value={asset.value}
-              onChange={(e) => handleAssetChange(index, 'value', e.target.value)}
+              onChange={(e) =>
+                handleAssetChange(index, "value", e.target.value)
+              }
             />
           </div>
         ))}
@@ -78,14 +88,18 @@ const NetWorth = () => {
               type="text"
               placeholder="Liability Name"
               value={liability.name}
-              onChange={(e) => handleLiabilityChange(index, 'name', e.target.value)}
+              onChange={(e) =>
+                handleLiabilityChange(index, "name", e.target.value)
+              }
             />
             <InputWithIcon
               icon={<FaMoneyBillWave className="text-[#538d2dfd] mx-2" />}
               type="number"
               placeholder="Value"
               value={liability.value}
-              onChange={(e) => handleLiabilityChange(index, 'value', e.target.value)}
+              onChange={(e) =>
+                handleLiabilityChange(index, "value", e.target.value)
+              }
             />
           </div>
         ))}
@@ -106,7 +120,7 @@ const NetWorth = () => {
           Total Liabilities: ${totalLiabilities.toFixed(2)}
         </p>
         <p className="text-gray-800 font-bold">
-          <span className={netWorth >= 0 ? 'text-green-600' : 'text-red-600'}>
+          <span className={netWorth >= 0 ? "text-green-600" : "text-red-600"}>
             Net Worth: ${netWorth.toFixed(2)}
           </span>
         </p>

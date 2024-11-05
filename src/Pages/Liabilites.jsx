@@ -1,7 +1,14 @@
-import React, { useState } from 'react';
-import { FaHome, FaUser, FaCar, FaGraduationCap, FaBusinessTime, FaFileUpload } from 'react-icons/fa';
-import InputWithIcon from '../Components/InputWithIcon';
-import FieldSection from '../Components/FieldSection';
+import React, { useState } from "react";
+import {
+  FaHome,
+  FaUser,
+  FaCar,
+  FaGraduationCap,
+  FaBusinessTime,
+  FaFileUpload,
+} from "react-icons/fa";
+import InputWithIcon from "../Components/InputWithIcon";
+import FieldSection from "../Components/FieldSection";
 
 const ManageLiabilities = () => {
   const [selectedType, setSelectedType] = useState("");
@@ -13,7 +20,9 @@ const ManageLiabilities = () => {
       {/* Header Section */}
       <header className="mb-8">
         <h1 className="text-3xl font-bold">Manage Your Liabilities</h1>
-        <p className="mt-2">Easily add, view, and manage your liabilities with helpful features.</p>
+        <p className="mt-2">
+          Easily add, view, and manage your liabilities with helpful features.
+        </p>
       </header>
 
       {/* Liability Types */}
@@ -30,53 +39,116 @@ const ManageLiabilities = () => {
           <option value="Vehicle Loan">Vehicle Loan</option>
           <option value="Education Loan">Education Loan</option>
           <option value="Business Loan">Business Loan</option>
+          <option value="other">other</option>
         </select>
       </section>
 
       {/* Dynamic Form Sections */}
       {selectedType === "Home Loan" && (
         <FieldSection title="Assign Home Loan" icon={<FaHome />}>
-          <InputWithIcon icon={<FaHome />} placeholder="Bank/Institution Name" />
-          <InputWithIcon icon={<FaFileUpload />} placeholder="Loan Amount" type="number" />
+          <InputWithIcon
+            icon={<FaHome />}
+            placeholder="Bank/Institution Name"
+          />
+          <InputWithIcon
+            icon={<FaFileUpload />}
+            placeholder="Loan Amount"
+            type="number"
+          />
           <InputWithIcon icon={<FaFileUpload />} placeholder="Account Number" />
-          <InputWithIcon icon={<FaFileUpload />} placeholder="Loan Tenure (Years)" type="number" />
-          <InputWithIcon icon={<FaFileUpload />} placeholder="Interest Rate (%)" type="number" />
+          <InputWithIcon
+            icon={<FaFileUpload />}
+            placeholder="Loan Tenure (Years)"
+            type="number"
+          />
+          <InputWithIcon
+            icon={<FaFileUpload />}
+            placeholder="Interest Rate (%)"
+            type="number"
+          />
         </FieldSection>
       )}
 
       {selectedType === "Personal Loan" && (
         <FieldSection title="Assign Personal Loan" icon={<FaUser />}>
-          <InputWithIcon icon={<FaUser />} placeholder="Bank/Institution Name" />
-          <InputWithIcon icon={<FaFileUpload />} placeholder="Loan Amount" type="number" />
+          <InputWithIcon
+            icon={<FaUser />}
+            placeholder="Bank/Institution Name"
+          />
+          <InputWithIcon
+            icon={<FaFileUpload />}
+            placeholder="Loan Amount"
+            type="number"
+          />
           <InputWithIcon icon={<FaFileUpload />} placeholder="Loan Purpose" />
-          <InputWithIcon icon={<FaFileUpload />} placeholder="Interest Rate (%)" type="number" />
+          <InputWithIcon
+            icon={<FaFileUpload />}
+            placeholder="Interest Rate (%)"
+            type="number"
+          />
         </FieldSection>
       )}
 
       {selectedType === "Vehicle Loan" && (
         <FieldSection title="Assign Vehicle Loan" icon={<FaCar />}>
           <InputWithIcon icon={<FaCar />} placeholder="Bank/Institution Name" />
-          <InputWithIcon icon={<FaFileUpload />} placeholder="Loan Amount" type="number" />
-          <InputWithIcon icon={<FaFileUpload />} placeholder="Vehicle Type/Model" />
-          <InputWithIcon icon={<FaFileUpload />} placeholder="Loan Tenure (Years)" type="number" />
+          <InputWithIcon
+            icon={<FaFileUpload />}
+            placeholder="Loan Amount"
+            type="number"
+          />
+          <InputWithIcon
+            icon={<FaFileUpload />}
+            placeholder="Vehicle Type/Model"
+          />
+          <InputWithIcon
+            icon={<FaFileUpload />}
+            placeholder="Loan Tenure (Years)"
+            type="number"
+          />
         </FieldSection>
       )}
 
       {selectedType === "Education Loan" && (
         <FieldSection title="Assign Education Loan" icon={<FaGraduationCap />}>
-          <InputWithIcon icon={<FaGraduationCap />} placeholder="Bank/Institution Name" />
-          <InputWithIcon icon={<FaFileUpload />} placeholder="Loan Amount" type="number" />
-          <InputWithIcon icon={<FaFileUpload />} placeholder="Course/Institution" />
-          <InputWithIcon icon={<FaFileUpload />} placeholder="Interest Rate (%)" type="number" />
+          <InputWithIcon
+            icon={<FaGraduationCap />}
+            placeholder="Bank/Institution Name"
+          />
+          <InputWithIcon
+            icon={<FaFileUpload />}
+            placeholder="Loan Amount"
+            type="number"
+          />
+          <InputWithIcon
+            icon={<FaFileUpload />}
+            placeholder="Course/Institution"
+          />
+          <InputWithIcon
+            icon={<FaFileUpload />}
+            placeholder="Interest Rate (%)"
+            type="number"
+          />
         </FieldSection>
       )}
 
       {selectedType === "Business Loan" && (
         <FieldSection title="Assign Business Loan" icon={<FaBusinessTime />}>
-          <InputWithIcon icon={<FaBusinessTime />} placeholder="Bank/Financial Institution" />
-          <InputWithIcon icon={<FaFileUpload />} placeholder="Loan Amount" type="number" />
+          <InputWithIcon
+            icon={<FaBusinessTime />}
+            placeholder="Bank/Financial Institution"
+          />
+          <InputWithIcon
+            icon={<FaFileUpload />}
+            placeholder="Loan Amount"
+            type="number"
+          />
           <InputWithIcon icon={<FaFileUpload />} placeholder="Loan Details" />
-          <InputWithIcon icon={<FaFileUpload />} placeholder="Interest Rate (%)" type="number" />
+          <InputWithIcon
+            icon={<FaFileUpload />}
+            placeholder="Interest Rate (%)"
+            type="number"
+          />
         </FieldSection>
       )}
 
@@ -89,6 +161,5 @@ const ManageLiabilities = () => {
     </div>
   );
 };
-
 
 export default ManageLiabilities;
