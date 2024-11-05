@@ -27,8 +27,8 @@ function InsurancePage() {
           <option>Car Insurance</option>
           <option>Home Insurance</option>
           <option> Term Insurance </option>
-          <option>Indemtity Information </option>
-          <options>Others </options>
+          <option>Indentity Information </option>
+          <option value="">Others</option>
         </select>
       </Section>
 
@@ -45,8 +45,8 @@ function InsurancePage() {
           <InputWithIcon icon={'₹'} placeholder="Premium Amount" />
           <InputWithIcon icon={'₹'} placeholder="Coverage Limit" />
           <InputWithIcon className='col-span-2' icon={<FaCheckCircle />} placeholder="Maturity Amount"/>
-          <InputWithIcon icon={<FaDollarSign />} placeholder="Premium Amount" />
-          <InputWithIcon icon={<FaDollarSign />} placeholder="Coverage Limit" />
+          <InputWithIcon icon={'₹'} placeholder="Premium Amount" />
+          <InputWithIcon icon={'₹'}placeholder="Coverage Limit" />
           <InputWithIcon
             className="col-span-2"
             icon={<FaCheckCircle />}

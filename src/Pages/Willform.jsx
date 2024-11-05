@@ -1,181 +1,108 @@
-import React, { useState } from 'react';
-import InputWithIcon from '../Components/InputWithIcon'; // Adjust the import path as needed
-import FieldSection from '../Components/FieldSection'; // Adjust the import path as needed
-import { FaUser, FaHome, FaCar, FaFileAlt, FaMoneyBill } from 'react-icons/fa'; // Example icons
+import React from 'react';
+import {
+  FaUser,
+  FaHome,
+  FaCar,
+  FaFileAlt,
+  FaMoneyBill,
+  FaBuilding,
+  FaLandmark,
+  FaDigitalTachograph,
+} from 'react-icons/fa';
+import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
 
-const WillForm = () => {
-  const [formData, setFormData] = useState({
-    fullName: '',
-    address: '',
-    fatherName: '',
-    motherName: '',
-    insurancePolicies: '',
-    fixedDeposit: '',
-    homeLoan: '',
-    carLoan: '',
-    signatureName: '',
-    signatureDate: '',
-  });
+const WillFormSummary = ({ allData = {} }) => {
+  const personalInfo = allData.personalInfo || {};
+  const assets = allData.assets || {};
+  const liabilities = allData.liabilities || {};
+  const digitalIdentity = allData.digitalIdentity || {};
+  const signature = allData.signature || {};
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData({
-      ...formData,
-      [name]: value,
-    });
-  };
+  const generatePDF = () => {
+    const element = document.getElementById('will-summary');
+    html2canvas(element, { scale: 2 }).then((canvas) => {
+      const imgData = canvas.toDataURL('image/png');
+      const pdf = new jsPDF('p', 'mm', 'a4');
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    console.log("Form Data Submitted: ", formData);
-    setFormData({
-      fullName: '',
-      address: '',
-      fatherName: '',
-      motherName: '',
-      insurancePolicies: '',
-      fixedDeposit: '',
-      homeLoan: '',
-      carLoan: '',
-      signatureName: '',
-      signatureDate: '',
+      pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+      pdf.save('Will_Summary.pdf');
     });
   };
 
   return (
-    <form onSubmit={handleSubmit} className="min-h-screen bg-white  p-6 rounded-xl">
-      <h1 className="text-3xl font-bold text-center mb-6">Last Will and Testament</h1>
+    <div className="min-h-screen bg-white p-6 rounded-xl relative">
+      <div id="will-summary">
+        <h1 className="text-3xl font-bold text-center mb-6">Last Will and Testament Summary</h1>
 
         {/* Personal Information Section */}
-        <section>
-          <h2 className="text-2xl font-semibold ">Personal Information</h2>
-            <FieldSection label="Full Name">
-              <InputWithIcon
-                icon={<FaUser />}
-                name="fullName"
-                value={formData.fullName}
-                onChange={handleChange}
-                placeholder="Your Full Name"
-                required
-              />
-         
-              <InputWithIcon
-                icon={<FaHome />}
-                name="address"
-                value={formData.address}
-                onChange={handleChange}
-                placeholder="Your Address"
-                required
-              />
-     
-              <InputWithIcon
-                icon={<FaUser />}
-                name="fatherName"
-                value={formData.fatherName}
-                onChange={handleChange}
-                placeholder="Father's Full Name"
-                required
-              />
-         
-              <InputWithIcon
-                icon={<FaUser />}
-                name="motherName"
-                value={formData.motherName}
-                onChange={handleChange}
-                placeholder="Mother's Full Name"
-                required
-              />
-            </FieldSection>
+        <section className="mb-6">
+          <h2 className="text-2xl font-semibold mb-4">Personal Information</h2>
+          <div className="bg-gray-100 p-4 rounded-md shadow-md">
+            <p><FaUser className="inline text-green-600" /> <strong>Full Name:</strong> {personalInfo.fullName || 'N/A'}</p>
+            <p><FaHome className="inline text-green-600" /> <strong>Address:</strong> {personalInfo.address || 'N/A'}</p>
+            <p><FaUser className="inline text-green-600" /> <strong>Father's Name:</strong> {personalInfo.fatherName || 'N/A'}</p>
+            <p><FaUser className="inline text-green-600" /> <strong>Mother's Name:</strong> {personalInfo.motherName || 'N/A'}</p>
+          </div>
         </section>
 
         {/* Assets Section */}
-        <section>
-          <h2 className="text-2xl font-semibold ">Assets</h2>
-          <div className="grid grid-cols-1 gap-4">
-            <FieldSection label="Insurance Policies">
-              <InputWithIcon
-                icon={<FaFileAlt />}
-                name="insurancePolicies"
-                value={formData.insurancePolicies}
-                onChange={handleChange}
-                placeholder="Details like Account No."
-                required
-              />
-        
-              <InputWithIcon
-                icon={<FaMoneyBill />}
-                name="fixedDeposit"
-                value={formData.fixedDeposit}
-                onChange={handleChange}
-                placeholder="Details like Account No."
-                required
-              />
-            </FieldSection>
-            {/* Add more fields as necessary */}
+        <section className="mb-6">
+          <h2 className="text-2xl font-semibold mb-4">Assets</h2>
+          <div className="bg-gray-100 p-4 rounded-md shadow-md">
+            <p><FaFileAlt className="inline text-green-600" /> <strong>Insurance Policies:</strong> {assets.insurancePolicies || 'N/A'}</p>
+            <p><FaMoneyBill className="inline text-green-600" /> <strong>Fixed Deposits:</strong> {assets.fixedDeposit || 'N/A'}</p>
+            <p><FaBuilding className="inline text-green-600" /> <strong>Real Estate:</strong> {assets.realEstate || 'N/A'}</p>
+            <p><FaLandmark className="inline text-green-600" /> <strong>Bonds:</strong> {assets.bonds || 'N/A'}</p>
+            <p><FaDigitalTachograph className="inline text-green-600" /> <strong>Cryptocurrencies:</strong> {assets.cryptocurrencies || 'N/A'}</p>
           </div>
         </section>
 
         {/* Liabilities Section */}
-        <section>
+        <section className="mb-6">
           <h2 className="text-2xl font-semibold mb-4">Liabilities</h2>
-          <div className="grid grid-cols-1 gap-4">
-            <FieldSection label="Home Loan">
-              <InputWithIcon
-                icon={<FaHome />}
-                name="homeLoan"
-                value={formData.homeLoan}
-                onChange={handleChange}
-                placeholder="Details like Account No."
-                required
-              />
-   
-              <InputWithIcon
-                icon={<FaCar />}
-                name="carLoan"
-                value={formData.carLoan}
-                onChange={handleChange}
-                placeholder="Details like Account No."
-                required
-              />
-            </FieldSection>
-            {/* Add more fields as necessary */}
+          <div className="bg-gray-100 p-4 rounded-md shadow-md">
+            <p><FaHome className="inline text-green-600" /> <strong>Home Loan:</strong> {liabilities.homeLoan || 'N/A'}</p>
+            <p><FaCar className="inline text-green-600" /> <strong>Car Loan:</strong> {liabilities.carLoan || 'N/A'}</p>
+          </div>
+        </section>
+
+        {/* Digital Identity Section */}
+        <section className="mb-6">
+          <h2 className="text-2xl font-semibold mb-4">Digital Identity</h2>
+          <div className="bg-gray-100 p-4 rounded-md shadow-md">
+            <p><FaDigitalTachograph className="inline text-green-600" /> <strong>Digital Accounts:</strong> {digitalIdentity.accounts || 'N/A'}</p>
           </div>
         </section>
 
         {/* Signature Section */}
-        <section>
-          <h2 className="text-2xl font-semibold mb-4">Signature and Witnesses</h2>
-          <div className="grid grid-cols-1 gap-4">
-            <FieldSection label="Your Full Name">
-              <InputWithIcon
-                icon={<FaUser />}
-                name="signatureName"
-                value={formData.signatureName}
-                onChange={handleChange}
-                placeholder="Your Full Name"
-                required
-              />
-     
-              <InputWithIcon
-                icon={<FaFileAlt />} // Use appropriate icon
-                name="signatureDate"
-                value={formData.signatureDate}
-                onChange={handleChange}
-                type="date"
-                required
-              />
-            </FieldSection>
+        <section className="mb-6">
+          <h2 className="text-2xl font-semibold mb-4">Signature and Date</h2>
+          <div className="bg-gray-100 p-4 rounded-md shadow-md">
+            <p><FaUser className="inline text-green-600" /> <strong>Signature Name:</strong> {signature.name || 'N/A'}</p>
+            <p><FaFileAlt className="inline text-green-600" /> <strong>Signature Date:</strong> {signature.date || 'N/A'}</p>
           </div>
         </section>
+      </div>
 
-        {/* Submit Button */}
-        <div className="text-center">
-          <button className="bg-[#538d2dfd] text-white py-2 px-6 rounded-md shadow-md hover:bg-[#4c7033fd]">
-            Save Changes
-          </button>
-        </div>
-    </form>
+      {/* Confirm and Upload Buttons */}
+      <div className="text-center mt-6 space-x-4">
+      <button className="bg-gray-200 text-green-600 py-2 px-4 rounded-md shadow-md hover:bg-gray-300">
+          Upload Digital Signature
+        </button>
+        <button
+          onClick={generatePDF}
+          className="bg-[#538d2dfd] text-white py-2 px-6 rounded-md shadow-md hover:bg-[#4c7033fd]"
+        >
+          Confirm and Finalize Will
+        </button>
+     
+     
+      </div>
+    </div>
   );
 };
 
-export default WillForm;
+export default WillFormSummary;

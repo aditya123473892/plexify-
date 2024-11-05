@@ -78,14 +78,14 @@ const RealEstateManagement = () => {
       {/* Property Section */}
       {properties.map((property, index) => (
         <FieldSection key={index} title={`${index + 1} Properties`}>
-          <InputWithIcon
-            icon={<FaHome className="text-[#538d2dfd] mx-2" />}
-            type="select"
-            placeholder="Select Property Type"
-            value={property.type}
-            options={["Select Property Type", "Residential", "Commercial", "Vacant Land", "Agricultural"]}
-            onChange={(e) => handlePropertyChange(index, 'type', e.target.value)}
-          />
+        <select className="border-l-2 border-[#538d2dfd] shadow-lg p-2 text-white rounded-md w-full outline-0 bg-[#538d2dfd]">
+          <option>Public</option>
+          <option>Private</option>
+          <option>Residential</option>
+          <option>Commertial</option>
+          <option> Aggreculture </option>
+          <option value="">Other</option>
+        </select>
           <InputWithIcon
             icon={<FaMapMarkerAlt className="text-[#538d2dfd] mx-2" />}
             type="text"

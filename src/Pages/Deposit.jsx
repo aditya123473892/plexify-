@@ -32,11 +32,11 @@ function DepositsPage() {
           <InputWithIcon icon={<FaTag />} placeholder="Account Number" />
           <InputWithIcon icon={<FaClipboard />} placeholder="Bank Name" />
           <InputWithIcon icon={<FaCalendar />} placeholder="Deposit Term" />
-          <InputWithIcon icon={<FaDollarSign />} placeholder="Deposit Amount" />
-          <InputWithIcon icon={<FaDollarSign />} placeholder="Interest Rate" />
+          <InputWithIcon icon={'₹'} placeholder="Deposit Amount" />
+          <InputWithIcon icon={'₹'} placeholder="Interest Rate" />
           <InputWithIcon
             className="col-span-2"
-            icon={<FaDollarSign />}
+            icon={'₹'}
             placeholder="Maturity Amount"
           />
         </div>
