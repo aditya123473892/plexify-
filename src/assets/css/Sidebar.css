@@ -10,13 +10,15 @@
     left: 0;
     z-index: 10000;
   }
-  
+
   .sidebar.open {
     width: 256px;
   }
   
   .sidebar.closed {
-    width: 64px;
+   
+    align-items: center;
+    width: 74px;
   }
   
   .sidebar-header {

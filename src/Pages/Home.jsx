@@ -277,8 +277,8 @@ const Home = () => {
         <div className=" my-10 flex md:flex-row flex-col space-x-6 border-l-8 border-[#538d2dfd] rounded-3xl">
 
           {/* 8 */}
-          <div className="md:w-8/12 p-10 pb-24 rounded-2xl shadow-2xl z-40 bg-white  relative">
-           <div className="bground2 top-40 opacity-70 bg-[#538d2dfd]"><div className="bground2 opacity-70 top-32 bg-[#b6e299fd]"></div></div>
+          <div className="md:w-8/12 p-10 pb-24 rounded-2xl shadow-2xl z-40 bg-[#538d2dfd] text-white relative">
+           <div className="bground2 top-40 left-64 opacity-70 bg-[#457227fd]"><div className="bground2 opacity-70 top-32 bg-[#fcfffa94]"></div></div>
             <div className="flex justify-between pb-10">
               <div className='flex items-center'>
                 <MdOutlineQueryStats className='size-12 p-3 rounded-full shadow-xl bg-[#538d2da4]' />
@@ -295,7 +295,7 @@ const Home = () => {
               </div>
             </div>
 
-            <div className="flex justify-evenly pb-16 border-b-2 border-black mb-3">
+            <div className="flex justify-evenly pb-16 border-b-2 border-white mb-3">
               <div>
                 <div className='text-xl text-white'>Income</div>
                 <div className='z-10 relative'>
@@ -305,7 +305,7 @@ const Home = () => {
                   </div>
                 </div>
               </div>
-              <div className='border border-black mx-6'></div>
+              <div className='border border-white mx-6'></div>
               <div>
                 <div className='text-xl text-white'>Income</div>
                 <div className='z-10 relative'>
@@ -401,10 +401,11 @@ const Home = () => {
 
 
         <div className="mt-6 ">
-          <div className="text-4xl font-bold my-20 text-center">Beneficiary</div>
+          <div className="text-4xl font-bold my-20 text-center text-[#daa431]">Beneficiary</div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 relative">
             {/* Card 1 */}
-            <div className="bg-white  shadow-2xl p-5 relative overflow-hidden group border-l-8 border-[#538d2dfd] rounded-3xl">
+            <div className="z-40 bg-[#457227fd] shadow-2xl p-5 relative overflow-hidden group border-l-8 border-[#538d2dfd] rounded-3xl">
+            <div className="bground2 top-10 left-4 opacity-70 bg-[#fcfffa94]"><div className="bground2 opacity-70 top-32 bg-[#234b09fd]"></div></div>
               <div className="img-box mb-4 relative flex justify-center overflow-hidden">
                 <img
                   className="w-64 h-64 rounded-full transition-transform duration-300"
@@ -419,13 +420,14 @@ const Home = () => {
                   <Link to="#" className="text-green-200 underline mt-2">Read More</Link>
                 </div>
               </div>
-              <div className="text-2xl font-bold text-center mt-2 transition-opacity duration-300">
+              <div className="text-2xl text-white font-bold text-center mt-2 transition-opacity duration-300">
                 Assets of Beneficiary 1
               </div>
             </div>
 
             {/* Card 2 */}
-            <div className="bg-white border-l-8 border-[#538d2dfd] rounded-3xl shadow-2xl p-5 relative overflow-hidden group">
+            <div className="bg-white bg-[#457227fd] z-40 border-l-8 border-[#538d2dfd] rounded-3xl shadow-2xl p-5 relative overflow-hidden group">
+            <div className="bground2 top-10 left-4 opacity-70 bg-[#60804bfd]"><div className="bground2 opacity-70 top-32 bg-[#fcfffa94]"></div></div>
               <div className="img-box mb-4 relative flex justify-center overflow-hidden">
                 <img
                   className="w-64 h-64 rounded-full transition-transform duration-300"
@@ -440,13 +442,14 @@ const Home = () => {
                   <Link to="#" className="text-green-200 underline mt-2">Read More</Link>
                 </div>
               </div>
-              <div className="text-2xl font-bold text-center mt-2 transition-opacity duration-300">
+              <div className="text-2xl text-white font-bold text-center mt-2 transition-opacity duration-300">
                 Assets of Beneficiary 2
               </div>
             </div>
 
             {/* Card 3 */}
-            <div className="bg-white border-l-8 border-[#538d2dfd] rounded-3xl shadow-2xl p-5 relative overflow-hidden group">
+            <div className="bg-[#43642dfd] z-40 border-l-8 border-[#538d2dfd] rounded-3xl shadow-2xl p-5 relative overflow-hidden group">
+            <div className="bground2 top-10 left-4 opacity-70 bg-[#457227fd]"><div className="bground2 opacity-70 top-32 bg-[#fcfffa94]"></div></div>
               <div className="img-box mb-4 relative flex justify-center overflow-hidden">
                 <img
                   className="w-64 h-64 rounded-full transition-transform duration-300"
@@ -461,7 +464,7 @@ const Home = () => {
                   <Link to="#" className="text-green-200 underline mt-2">Read More</Link>
                 </div>
               </div>
-              <div className="text-2xl font-bold text-center mt-2 transition-opacity duration-300">
+              <div className="text-2xl text-white font-bold text-center mt-2 transition-opacity duration-300">
                 Assets of Beneficiary 3
               </div>
             </div>
