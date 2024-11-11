@@ -1,8 +1,6 @@
 import React, { useState } from "react";
-
-import InputWithIcon from '../Components/InputWithIcon';
-import FieldSection from '../Components/FieldSection'
-
+import InputWithIcon from "../Components/InputWithIcon";
+import FieldSection from "../Components/FieldSection";
 import {
   FaMoneyBillWave,
   FaCalendarAlt,
@@ -13,8 +11,8 @@ import {
   FaLink,
   FaPlus,
   FaCheckCircle,
+  FaHashtag,
 } from "react-icons/fa";
-
 
 function RecurringDepositManagement() {
   const [deposits, setDeposits] = useState([
@@ -22,8 +20,12 @@ function RecurringDepositManagement() {
       bankName: "",
       depositAmount: "",
       tenure: "",
-      maturityAmount: "",
+      interestRate: "",
       startDate: "",
+      maturityDate: "",
+      maturityAmount: "",
+      rdNumber: "",
+      status: "",
     },
   ]);
   const [beneficiaries, setBeneficiaries] = useState([
@@ -44,8 +46,12 @@ function RecurringDepositManagement() {
         bankName: "",
         depositAmount: "",
         tenure: "",
-        maturityAmount: "",
+        interestRate: "",
         startDate: "",
+        maturityDate: "",
+        maturityAmount: "",
+        rdNumber: "",
+        status: "",
       },
     ]);
   };
@@ -78,53 +84,94 @@ function RecurringDepositManagement() {
 
   return (
     <div className="min-h-screen shadow-2xl bg-white p-6 rounded-lg md:mt-10 mt-20">
-    <header className="mb-8">
-      <h1 className="text-3xl font-bold text-gray-800 mb-2">Manage Your Recurring Deposits</h1>
-      <p className="text-gray-600">Effortlessly manage your recurring deposits and keep track of beneficiary details.</p>
-    </header>
-  
-    {/* Deposit Section */}
+      <header className="mb-8">
+        <h1 className="text-3xl font-bold text-gray-800 mb-2">
+          Manage Your Recurring Deposits
+        </h1>
+        <p className="text-gray-600">
+          Effortlessly manage your recurring deposits and keep track of
+          beneficiary details.
+        </p>
+      </header>
+
+      {/* Deposit Section */}
       {deposits.map((deposit, index) => (
         <div key={index} className="mb-4 border-b pb-4">
           <FieldSection title="Recurring Deposits">
-    
+            <InputWithIcon
+              icon={<FaHashtag />}
+              type="text"
+              placeholder="RD Number"
+              value={deposit.rdNumber}
+              onChange={(e) =>
+                handleDepositChange(index, "rdNumber", e.target.value)
+              }
+            />
             <InputWithIcon
               icon={<FaMoneyBillWave />}
               type="text"
               placeholder="Bank Name"
               value={deposit.bankName}
-              onChange={(e) => handleDepositChange(index, "bankName", e.target.value)}
+              onChange={(e) =>
+                handleDepositChange(index, "bankName", e.target.value)
+              }
             />
             <InputWithIcon
               icon={<FaMoneyBillWave />}
               type="number"
-              placeholder="Deposit Amount"
+              placeholder="Monthly Deposit Amount"
               value={deposit.depositAmount}
-              onChange={(e) => handleDepositChange(index, "depositAmount", e.target.value)}
+              onChange={(e) =>
+                handleDepositChange(index, "depositAmount", e.target.value)
+              }
+            />
+            <InputWithIcon
+              icon={<FaPercent />}
+              type="number"
+              placeholder="Interest Rate (%)"
+              value={deposit.interestRate}
+              onChange={(e) =>
+                handleDepositChange(index, "interestRate", e.target.value)
+              }
             />
             <InputWithIcon
               icon={<FaCalendarAlt />}
-              type="number"
-              placeholder="Tenure (months)"
-              value={deposit.tenure}
-              onChange={(e) => handleDepositChange(index, "tenure", e.target.value)}
+              type="date"
+              placeholder="Start Date"
+              value={deposit.startDate}
+              onChange={(e) =>
+                handleDepositChange(index, "startDate", e.target.value)
+              }
+            />
+            <InputWithIcon
+              icon={<FaCalendarAlt />}
+              type="date"
+              placeholder="Maturity Date"
+              value={deposit.maturityDate}
+              onChange={(e) =>
+                handleDepositChange(index, "maturityDate", e.target.value)
+              }
             />
             <InputWithIcon
               icon={<FaMoneyBillWave />}
               type="number"
               placeholder="Maturity Amount"
               value={deposit.maturityAmount}
-              onChange={(e) => handleDepositChange(index, "maturityAmount", e.target.value)}
+              onChange={(e) =>
+                handleDepositChange(index, "maturityAmount", e.target.value)
+              }
             />
             <InputWithIcon
-              icon={<FaCalendarAlt />}
-              type="date"
-              value={deposit.startDate}
-              onChange={(e) => handleDepositChange(index, "startDate", e.target.value)}
+              icon={<FaCheckCircle />}
+              type="text"
+              placeholder="Status"
+              value={deposit.status}
+              onChange={(e) =>
+                handleDepositChange(index, "status", e.target.value)
+              }
             />
- 
-      </FieldSection>
-          </div>
+          </FieldSection>
+        </div>
       ))}
       <button
         onClick={addDeposit}
@@ -132,8 +179,8 @@ function RecurringDepositManagement() {
       >
         <FaPlus className="inline mx-2" /> Add Deposit
       </button>
-  
-    {/* Beneficiary Information */}
+
+      {/* Beneficiary Information */}
       {beneficiaries.map((beneficiary, index) => (
         <div key={index} className="mb-4 border-b pb-4">
           <FieldSection title="Beneficiary Information">
@@ -142,47 +189,59 @@ function RecurringDepositManagement() {
               type="text"
               placeholder="Beneficiary Name"
               value={beneficiary.name}
-              onChange={(e) => handleBeneficiaryChange(index, "name", e.target.value)}
+              onChange={(e) =>
+                handleBeneficiaryChange(index, "name", e.target.value)
+              }
             />
             <InputWithIcon
               icon={<FaPhone />}
               type="text"
               placeholder="Contact Number"
               value={beneficiary.contact}
-              onChange={(e) => handleBeneficiaryChange(index, "contact", e.target.value)}
+              onChange={(e) =>
+                handleBeneficiaryChange(index, "contact", e.target.value)
+              }
             />
             <InputWithIcon
               icon={<FaEnvelope />}
               type="email"
               placeholder="Email Address"
               value={beneficiary.email}
-              onChange={(e) => handleBeneficiaryChange(index, "email", e.target.value)}
+              onChange={(e) =>
+                handleBeneficiaryChange(index, "email", e.target.value)
+              }
             />
             <InputWithIcon
               icon={<FaPercent />}
               type="text"
               placeholder="Percentage of Entitlement"
               value={beneficiary.entitlement}
-              onChange={(e) => handleBeneficiaryChange(index, "entitlement", e.target.value)}
+              onChange={(e) =>
+                handleBeneficiaryChange(index, "entitlement", e.target.value)
+              }
             />
             <InputWithIcon
               icon={<FaLink />}
               type="text"
               placeholder="Relationship"
               value={beneficiary.relationship}
-              onChange={(e) => handleBeneficiaryChange(index, "relationship", e.target.value)}
+              onChange={(e) =>
+                handleBeneficiaryChange(index, "relationship", e.target.value)
+              }
             />
             <label className="inline-flex items-center mt-2 col-span-2">
               <input
                 type="checkbox"
                 className="mx-2"
                 checked={beneficiary.notify}
-                onChange={(e) => handleBeneficiaryChange(index, "notify", e.target.checked)}
+                onChange={(e) =>
+                  handleBeneficiaryChange(index, "notify", e.target.checked)
+                }
               />
               Notify by Email
             </label>
-      </FieldSection>
-          </div>
+          </FieldSection>
+        </div>
       ))}
       <button
         onClick={addBeneficiary}
@@ -190,23 +249,23 @@ function RecurringDepositManagement() {
       >
         <FaPlus className="inline mx-2" /> Add Beneficiary
       </button>
-  
-    {/* Educational Resources */}
-    <FieldSection title="Educational Resources">
-      <ul className="list-disc pl-6 text-gray-600">
-        <li>Understand the benefits of recurring deposits.</li>
-        <li>Learn about maturity amounts and interest rates.</li>
-        <li>Explore tax implications of recurring deposits.</li>
-      </ul>
-      <button
-        type="submit"
-        className="bg-[#3a5e22fd] text-white ms-auto mt-4 py-2 px-4 rounded hover:bg-[#2f4b1dfd] flex items-center"
-      >
-        <FaCheckCircle className="mr-2" />
-        Submit
-      </button>
-    </FieldSection>
-  </div>
+
+      {/* Educational Resources */}
+      <FieldSection title="Educational Resources">
+        <ul className="list-disc pl-6 text-gray-600">
+          <li>Understand the benefits of recurring deposits.</li>
+          <li>Learn about maturity amounts and interest rates.</li>
+          <li>Explore tax implications of recurring deposits.</li>
+        </ul>
+        <button
+          type="submit"
+          className="bg-[#3a5e22fd] text-white ms-auto mt-4 py-2 px-4 rounded hover:bg-[#2f4b1dfd] flex items-center"
+        >
+          <FaCheckCircle className="mr-2" />
+          Submit
+        </button>
+      </FieldSection>
+    </div>
   );
 }
 
