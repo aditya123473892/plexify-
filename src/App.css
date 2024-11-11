@@ -124,3 +124,60 @@ input[type="radio"] {
       height: 79%;
      
       border-radius: 63% 37% 88% 12% / 71% 39% 61% 29%;}
+
+
+
+      /* src/components/Dashboard.css */
+
+.dashboard {
+  display: flex;
+  gap: 20px;
+  padding: 20px;
+}
+
+.dashboard-card {
+  background: #fff;
+  border-radius: 8px;
+  padding: 20px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  width: 100%;
+}
+
+.sales-per-day .sales-info,
+.sales-per-day .mini-stats {
+  display: flex;
+  justify-content: space-between;
+  font-size: 14px;
+  margin-top: 10px;
+}
+
+.sales-per-day .mini-stats p {
+  font-weight: bold;
+}
+
+.total-revenue .pie-labels p {
+  font-size: 14px;
+  display: flex;
+  justify-content: space-between;
+  margin: 5px 0;
+}
+
+.traffic-sources .traffic-source {
+  display: flex;
+  align-items: center;
+  margin: 8px 0;
+  font-size: 14px;
+}
+
+.traffic-sources .progress-bar {
+  flex: 1;
+  background: #e0e0e0;
+  border-radius: 4px;
+  margin: 0 10px;
+  height: 8px;
+}
+
+.traffic-sources .progress {
+  height: 100%;
+  border-radius: 4px;
+}
