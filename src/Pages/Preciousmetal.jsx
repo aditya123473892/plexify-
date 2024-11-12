@@ -97,7 +97,7 @@ function PreciousMetalsInheritanceManagement() {
                 />
                 <input
                   type="number"
-                  placeholder="Purchase Price ($)"
+                  placeholder="Purchase Price (₹)"
                   className="border border-gray-300 p-3 rounded-md w-full"
                   value={metal.purchasePrice}
                   onChange={(e) =>
@@ -106,7 +106,7 @@ function PreciousMetalsInheritanceManagement() {
                 />
                 <input
                   type="number"
-                  placeholder="Current Value ($)"
+                  placeholder="Current Value (₹)"
                   className="border border-gray-300 p-3 rounded-md w-full"
                   value={metal.currentValue}
                   onChange={(e) =>

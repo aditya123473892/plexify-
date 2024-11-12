@@ -268,3 +268,70 @@ function DigitalAssetsInheritanceManagement() {
 }
 
 export default DigitalAssetsInheritanceManagement;
+
+/*
+  const metrics = [
+    {
+      title: "Networth",
+      value: 932,
+      total: 5443,
+      percentage: 75,
+      color: "#6a1b9a",
+      icon: <FaLightbulb />,
+      footerText: "Completed",
+    },
+    {
+      title: "Wealth",
+      value: 756,
+      percentage: 50,
+      color: "#4caf50",
+      icon: <FaEye />,
+      footerText: "Increased since yesterday",
+    },
+    {
+      title: "Liabilities",
+      value: 10038,
+      percentage: 35,
+      color: "#ff9800",
+      icon: <FaEye />,
+      footerText: "Increased since yesterday",
+    },
+  ];
+
+  const MetricCard = ({
+    title,
+    value,
+    total,
+    percentage,
+    color,
+    icon,
+    footerText,
+  }) => (
+    <div className="flex flex-col items-center bg-white rounded-lg shadow-lg p-5 w-64 text-center m-4">
+      <h3 className="text-xl font-semibold text-gray-600">{title}</h3>
+      <p className="text-2xl font-bold my-2">{value}</p>
+
+      <div className="w-20 h-20 mb-2">
+        <CircularProgressbar
+          value={percentage}
+          text={icon}
+          styles={buildStyles({
+            pathColor: color,
+            textColor: color,
+            trailColor: "#e0e0e0",
+            textSize: "24px",
+          })}
+        />
+      </div>
+
+      <p className="text-lg font-semibold text-gray-600">{total}</p>
+      <p className="text-sm text-gray-500 mt-2">{footerText}</p>
+    </div>
+
+
+      <div className="flex justify-center space-x-6 mt-10">
+          {metrics.map((metric, index) => (
+            <MetricCard key={index} {...metric} />
+          ))}
+        </div>
+  ); */
