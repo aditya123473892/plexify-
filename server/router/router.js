@@ -32,11 +32,15 @@ router.post('/signup', async (req, res) => {
 
       const hashedPassword = await bcrypt.hash(password, 12);
 
+      // Generate a 10-digit random user_id
+      const generateUserId = () => Math.floor(1000000000 + Math.random() * 9000000000);
+      const user_id = generateUserId();
+
       const insertUserQuery = `
-        INSERT INTO [registration] (firstName, lastName, email, password_hash, aadharNumber, phoneNumber, gender, beneficiary) 
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        INSERT INTO [registration] (user_id, firstName, lastName, email, password_hash, aadharNumber, phoneNumber, gender, beneficiary) 
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
       `;
-      sql.query(connectionString, insertUserQuery, [firstName, lastName, email, hashedPassword, aadharNumber, phoneNumber, gender, beneficiary], (err, result) => {
+      sql.query(connectionString, insertUserQuery, [user_id, firstName, lastName, email, hashedPassword, aadharNumber, phoneNumber, gender, beneficiary], (err, result) => {
         if (err) {
           console.error('Error inserting user:', err);
           return res.status(500).json({ msg: 'Server Error' });
@@ -51,6 +55,7 @@ router.post('/signup', async (req, res) => {
     res.status(500).json({ msg: 'Server Error' });
   }
 });
+
 
 router.post('/signin', async (req, res) => {
   try {
@@ -70,7 +75,7 @@ router.post('/signin', async (req, res) => {
 
       const isMatch = await bcrypt.compare(password, user[0].password_hash);
       if (isMatch) {
-        const token = jweb.sign({ email: email, user_id: user[0].id }, secret);
+        const token = jweb.sign({ email: email, user_id: user[0].user_id }, secret);
         return res.status(200).json({ token });
       } else {
         return res.status(401).json({ msg: 'Invalid credentials' });

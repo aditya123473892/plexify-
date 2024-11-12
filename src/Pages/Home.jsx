@@ -287,10 +287,10 @@ const Home = () => {
               <div className='flex items-center'>
                 <MdOutlineQueryStats className='size-12 p-3 rounded-full shadow-xl' />
                 <div className='p-3 text-xl'>
-                  <select className='border rounded p-2 text-xl shadow-xl bg-[#538d2da4]'>
+                  {/* <select className='border rounded p-2 text-xl shadow-xl bg-[#538d2da4]'>
                     <option value="Monthly">Monthly</option>
                     <option value="Yearly">Yearly</option>
-                  </select>
+                  </select> */}
                 </div>
               </div>
             </div>
