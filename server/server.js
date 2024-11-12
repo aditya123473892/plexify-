@@ -7,8 +7,8 @@ require("./db/connection.js");
 const router = require("./router/router");
 const CLIENT_URL =
   process.env.NODE_ENV === "production"
-    ? "https://vsee.netlify.app"
-    : "http://localhost:4000";
+    ? "https://plexify-chi.vercel.app"
+    : "http://localhost:3000";
 
 app.use(cors({ origin: CLIENT_URL, credentials: true }));
 app.use(express.json());

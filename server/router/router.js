@@ -6,7 +6,10 @@ const bcrypt = require('bcryptjs');
 const crypto = require('crypto'); 
 const nodemailer = require('nodemailer'); 
 const sql = require('msnodesqlv8');
-
+const multer = require('multer');
+const fs = require('fs');
+const path = require('path');
+const authMiddleware = require('../auth/authMiddleware')
 const secret = 'iwfhugafwofjwhig3hwigk3wnig3uwmgkmewoipj39gw8hqoijhi3hgwgkwni';
 const connectionString = 'Driver={ODBC Driver 17 for SQL Server};Server=DESKTOP-BBKLDAG\\SQLEXPRESS01;Database=DB;Trusted_Connection=yes;';
 
@@ -75,6 +78,8 @@ router.post('/signin', async (req, res) => {
 
       const isMatch = await bcrypt.compare(password, user[0].password_hash);
       if (isMatch) {
+        
+        console.log('✌️user[0].user_id --->', user[0].user_id);
         const token = jweb.sign({ email: email, user_id: user[0].user_id }, secret);
         return res.status(200).json({ token });
       } else {
@@ -196,6 +201,185 @@ router.post('/reset-password', async (req, res) => {
   } catch (error) {
     console.error("Server error:", error);
     return res.status(500).json({ msg: 'Server Error' });
+  }
+});
+
+
+
+
+
+
+// insurance
+
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, 'uploads/');
+  },
+  filename: function (req, file, cb) {
+    cb(null, Date.now() + path.extname(file.originalname));
+  },
+});
+
+const upload = multer({ storage: storage });
+
+router.post('/insurance', authMiddleware, upload.single('document'), async (req, res) => {
+  const {
+    policyName,
+    policyNumber,
+    provider,
+    policyType,
+    policyPeriod,
+    premiumAmount,
+    coverageLimit,
+    maturityAmount,
+    nomineeName,
+    nomineeRelation,
+  } = req.body;
+
+  const user_id = req.user_id;
+
+  const parsedPremiumAmount = parseFloat(premiumAmount);
+  const parsedCoverageLimit = parseFloat(coverageLimit);
+  const parsedMaturityAmount = parseFloat(maturityAmount);
+
+  const finalNomineeName = nomineeName.trim() === '' ? null : nomineeName;
+  const finalNomineeRelation = nomineeRelation.trim() === '' ? null : nomineeRelation;
+
+  let documentData = null;
+  if (req.file) {
+    try {
+      documentData = fs.readFileSync(req.file.path);
+    } catch (err) {
+      console.error('Error reading file:', err);
+      return res.status(500).json({ msg: 'Error reading document file' });
+    }
+  }
+
+  const insertPolicyQuery = `
+    INSERT INTO insurance_policy (
+      user_id, policy_number, policy_name, policy_type, provider, 
+      policy_period, premium_amount, coverage_limit, maturity_amount, 
+      nominee_name, nominee_relation, status, document
+    )
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'Active', ?)
+  `;
+
+  sql.query(
+    connectionString,
+    insertPolicyQuery,
+    [
+      user_id,
+      policyNumber,
+      policyName,
+      policyType,
+      provider,
+      policyPeriod,
+      parsedPremiumAmount,
+      parsedCoverageLimit,
+      parsedMaturityAmount,
+      finalNomineeName,
+      finalNomineeRelation,
+      documentData, // Insert the file as binary data
+    ],
+    (err, result) => {
+      if (err) {
+        console.error('Error inserting insurance policy:', err);
+        return res.status(500).json({ msg: 'Server Error' });
+      }
+      res.status(201).json({ msg: 'Insurance policy added successfully' });
+    }
+  );
+});
+
+
+
+
+
+const deposits_storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, 'uploads/deposits'); 
+  },
+  filename: function (req, file, cb) {
+    cb(null, Date.now() + path.extname(file.originalname)); 
+  },
+});
+
+const deposits_upload = multer({
+  storage: deposits_storage,
+  limits: { fileSize: 10 * 1024 * 1024 }, 
+  fileFilter: function (req, file, cb) {
+    cb(null, true);
+  },
+});
+
+
+router.post('/deposits', authMiddleware,deposits_upload.single('document'), async (req, res) => {
+  try {
+    const {
+      depositType,
+      depositName,
+      accountNumber,
+      bankName,
+      depositTerm,
+      depositAmount,
+      interestRate,
+      maturityAmount,
+    } = req.body;
+
+    let documentData = null;
+    if (req.file) {
+      try {
+        documentData = fs.readFileSync(req.file.path);  
+        console.log('✌️ documentData Buffer:', documentData); 
+      } catch (err) {
+        console.error('Error reading file:', err);
+        return res.status(500).json({ msg: 'Error reading document file' });
+      }
+    }
+
+    if (!documentData) {
+      return res.status(400).json({ msg: 'No document data to upload' });
+    }
+
+    const user_id = req.user_id; 
+    const depositAmountParsed = parseFloat(depositAmount);
+    const interestRateParsed = parseFloat(interestRate);
+    const maturityAmountParsed = parseFloat(maturityAmount);
+
+    const insertDepositQuery = `
+      INSERT INTO fixed_deposit (
+        user_id, deposit_type, deposit_name, account_number, bank_name, deposit_term,
+        deposit_amount, interest_rate, maturity_amount, document
+      )
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `;
+
+    sql.query(
+      connectionString,
+      insertDepositQuery,
+      [
+        user_id,
+        depositType,
+        depositName,
+        accountNumber,
+        bankName,
+        depositTerm,
+        depositAmountParsed,
+        interestRateParsed,
+        maturityAmountParsed,
+        documentData, 
+      ],
+      (err, result) => {
+        if (err) {
+          console.error('Error inserting deposit data:', err);
+          return res.status(500).json({ msg: 'Server Error' });
+        }
+        res.status(201).json({ msg: 'Deposit details added successfully' });
+      }
+    );
+  } catch (error) {
+    console.error('Error processing deposit details:', error);
+    res.status(500).json({ msg: 'Error processing deposit details' });
   }
 });
 

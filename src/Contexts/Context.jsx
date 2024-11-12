@@ -17,8 +17,11 @@ export function AuthProvider({ children }) {
     setIsLoggedIn(false);
   };
 
+  const token = localStorage.getItem('token');
+const API = process.env.NODE_ENV =='development' ? 'http://localhost:3523':'LIVE LINK'
+
   return (
-    <AuthContext.Provider value={{ isLoggedIn, login, logout }}>
+    <AuthContext.Provider value={{ isLoggedIn, login, logout ,API,token}}>
       {children}
     </AuthContext.Provider>
   );
