@@ -6,7 +6,6 @@ import {
   FaCheckCircle,
 } from "react-icons/fa";
 import InputWithIcon from "../Components/InputWithIcon";
-import FieldSection from "../Components/FieldSection";
 import Section from "../Components/Section";
 
 function InsurancePage() {
@@ -15,7 +14,7 @@ function InsurancePage() {
     user_id: "",
     policy_number: "",
     policy_name: "",
-    policy_type: "Life Insurance", // Default option
+    policy_type: "Life Insurance",
     provider: "",
     coverage_amount: "",
     premium_amount: "",
@@ -23,8 +22,8 @@ function InsurancePage() {
     end_date: "",
     nominee_name: "",
     nominee_relation: "",
-    status: "Active", // Example default status
-    created_at: new Date().toISOString().split("T")[0], // Default to current date
+    status: "Active",
+    created_at: new Date().toISOString().split("T")[0],
   });
 
   const handleInputChange = (e) => {
@@ -46,6 +45,7 @@ function InsurancePage() {
         </p>
       </header>
 
+      {/* Policy Type Selection */}
       <Section title="Select Policy Type" className="mb-10">
         <select
           name="policy_type"
@@ -58,7 +58,7 @@ function InsurancePage() {
           <option>Car Insurance</option>
           <option>Home Insurance</option>
           <option>Term Insurance</option>
-          <option>Indentity Information</option>
+          <option>Identity Information</option>
           <option value="">Others</option>
         </select>
       </Section>
@@ -138,6 +138,63 @@ function InsurancePage() {
             value={formData.status}
             onChange={handleInputChange}
           />
+        </div>
+      </Section>
+
+      {/* Additional Sections */}
+      <Section title="Renewal Reminders" className="mb-10">
+        <p>Set reminders for upcoming policy renewals.</p>
+        <button className="bg-[#538d2dfd] text-white py-2 px-4 mt-4 rounded-md shadow-md hover:bg-[#4c7033fd]">
+          Add Reminder
+        </button>
+      </Section>
+
+      <Section title="Nominee Information" className="mb-10">
+        <InputWithIcon
+          icon={<FaClipboard />}
+          placeholder="Nominee Name"
+          name="nominee_name"
+          value={formData.nominee_name}
+          onChange={handleInputChange}
+        />
+        <InputWithIcon
+          icon={<FaClipboard />}
+          placeholder="Nominee Relation"
+          name="nominee_relation"
+          value={formData.nominee_relation}
+          onChange={handleInputChange}
+        />
+      </Section>
+
+      <Section title="Document Upload" className="mb-10">
+        <p>Upload scanned copies of policy documents for safekeeping.</p>
+        <button className="bg-[#538d2dfd] text-white py-2 px-4 rounded-md shadow-md hover:bg-[#4c7033fd]">
+          Upload Documents
+        </button>
+      </Section>
+
+      <Section
+        title="Educational Resources and Calculator"
+        className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10"
+      >
+        <div className="border-l-2 border-[#538d2dfd] p-6 rounded-lg shadow">
+          <h3 className="text-lg font-semibold">Educational Resources</h3>
+          <p className="mt-2">
+            Learn more about insurance policies and coverage.
+          </p>
+          <button className="bg-[#538d2dfd] text-white py-2 px-4 mt-4 rounded-md shadow-md hover:bg-[#4c7033fd]">
+            Explore Resources
+          </button>
+        </div>
+
+        <div className="border-l-2 border-[#538d2dfd] p-6 rounded-lg shadow">
+          <h3 className="text-lg font-semibold">Insurance Calculator</h3>
+          <p className="mt-2">
+            Calculate premium, maturity, and other insurance metrics.
+          </p>
+          <button className="bg-[#538d2dfd] text-white py-2 px-4 mt-4 rounded-md shadow-md hover:bg-[#4c7033fd]">
+            Open Calculator
+          </button>
         </div>
       </Section>
 
