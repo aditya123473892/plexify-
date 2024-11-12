@@ -393,6 +393,7 @@ const Home = () => {
                     className="flex-1 min-h-[500px] rounded-2xl p-6 my-6 text-white shadow-2xl bg-[#f5f5f5] border-l-8 border-[#85bb65]"
                   />
                 ))}
+
               </div>
             </div>
 
