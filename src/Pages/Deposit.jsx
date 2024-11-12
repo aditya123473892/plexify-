@@ -8,6 +8,7 @@ import { toast } from "react-toastify";
 
 const ManageDeposits = () => {
   const { API, token } = useContext(AuthContext);
+  const [filePreview, setFilePreview] = useState(null);
   const [depositDetails, setDepositDetails] = useState({
     depositType: "Fixed Deposit",
     depositName: "",
@@ -175,18 +176,32 @@ const ManageDeposits = () => {
       </Section>
 
       <section className="mb-10 border-l-2 border-[#538d2dfd] p-6 rounded-lg shadow">
-        <h2 className="text-xl font-semibold mb-4">Document Upload</h2>
+      <h2 className="text-xl font-semibold mb-4">Document Upload</h2>
+
+      <div className="relative flex items-center">
         <input
           type="file"
           accept="application/pdf, image/*"
           onChange={handleFileChange}
-          className="mb-4"
+          id="file-input"
+          className="hidden"
         />
+        <label 
+          htmlFor="file-input" 
+          className="cursor-pointer bg-[#538d2dfd] text-white py-2 px-4  rounded-md shadow-md hover:bg-[#4c7033fd]"
+        >
+          Choose a file
+        </label>
+
+        {file && (
+          <span className="ml-4 text-[#538d2dfd] font-semibold">
+            {file.name}
+          </span>
+        )}
+      </div>
+    </section>
 
 
-
-        
-      </section>
 
       <section className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
         <div className="border-l-2 border-[#538d2dfd] p-6 rounded-lg shadow">
