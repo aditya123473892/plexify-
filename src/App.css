@@ -183,7 +183,7 @@ input[type="radio"] {
 }
 
 
-
+.Toastify__toast{z-index: 100000 !important;}
 
 
 

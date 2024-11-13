@@ -4,11 +4,11 @@ import InputWithIcon from "../Components/InputWithIcon";
 import Section from "../Components/Section";
 import axios from "axios";
 import { AuthContext } from "../Contexts/Context";
-import { toast } from "react-toastify";
+import { toast,ToastContainer } from "react-toastify";
 
 const ManageDeposits = () => {
   const { API, token } = useContext(AuthContext);
-  const [filePreview, setFilePreview] = useState(null);
+
   const [depositDetails, setDepositDetails] = useState({
     depositType: "Fixed Deposit",
     depositName: "",
@@ -232,6 +232,7 @@ const ManageDeposits = () => {
           {loading ? "Saving..." : "Save Changes"}
         </button>
       </div>
+      <ToastContainer/>
     </div>
   );
 };

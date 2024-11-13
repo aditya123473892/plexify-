@@ -384,4 +384,114 @@ router.post('/deposits', authMiddleware,deposits_upload.single('document'), asyn
 });
 
 
+
+
+
+// Function to query the database
+const queryDatabase = (query, params) => {
+  return new Promise((resolve, reject) => {
+    sql.query(connectionString, query, params, (err, result) => {
+      if (err) {
+        return reject(err);
+      }
+      resolve(result);
+    });
+  });
+};
+
+router.post("/recurring_deposits", authMiddleware, async (req, res) => {
+  console.log('✌️ req.body --->', req.body);
+  const { deposits, beneficiaries } = req.body;
+  const user_id = req.user_id;
+
+  try {
+    for (const deposit of deposits) {
+      const checkDepositQuery = `
+        SELECT COUNT(*) AS count FROM [dbo].[recurring_deposit] WHERE rd_number = ?
+      `;
+
+      const checkDepositResult = await queryDatabase(checkDepositQuery, [deposit.rdNumber]);
+
+      if (checkDepositResult[0].count > 0) {
+        // If the deposit already exists, update it instead of inserting a new one
+        const updateDepositQuery = `
+          UPDATE [dbo].[recurring_deposit]
+          SET monthly_deposit_amount = ?, interest_rate = ?, start_date = ?, 
+              maturity_date = ?, maturity_amount = ?, bank_name = ?, status = ?
+          WHERE rd_number = ?
+        `;
+
+        await queryDatabase(updateDepositQuery, [
+          deposit.depositAmount,
+          deposit.interestRate,
+          deposit.startDate,
+          deposit.maturityDate,
+          deposit.maturityAmount,
+          deposit.bankName,
+          deposit.status || 'Active',
+          deposit.rdNumber
+        ]);
+      } else {
+        // If deposit does not exist, insert a new one using OUTPUT to get the inserted ID
+        const insertDepositQuery = `
+          INSERT INTO [dbo].[recurring_deposit] (
+            user_id, rd_number, monthly_deposit_amount, interest_rate, start_date, 
+            maturity_date, maturity_amount, bank_name, status
+          )
+          OUTPUT INSERTED.rd_id
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        `;
+
+        const insertDepositResult = await queryDatabase(insertDepositQuery, [
+          user_id,
+          deposit.rdNumber,
+          deposit.depositAmount,
+          deposit.interestRate,
+          deposit.startDate,
+          deposit.maturityDate,
+          deposit.maturityAmount,
+          deposit.bankName,
+          deposit.status || 'Active',
+        ]);
+
+        const rd_id = insertDepositResult[0]?.rd_id; // Extract the inserted deposit ID
+        if (!rd_id) {
+          throw new Error("Failed to retrieve inserted deposit ID.");
+        }
+
+        console.log('Inserted Deposit ID:', rd_id);
+
+
+        for (const beneficiary of beneficiaries) {
+          const insertBeneficiaryQuery = `
+            INSERT INTO [dbo].[beneficiaries] (
+              rd_id, user_id, name, contact, email, entitlement, relationship, notify
+            )
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+          `;
+
+          await queryDatabase(insertBeneficiaryQuery, [
+            rd_id,  // Inserted deposit ID
+            user_id,
+            beneficiary.name,
+            beneficiary.contact,
+            beneficiary.email,
+            parseInt(beneficiary.entitlement), 
+            beneficiary.relationship,
+            beneficiary.notify ? 1 : 0, 
+          ]);
+        }
+      }
+    }
+
+    res.status(201).json({
+      msg: 'Recurring deposits and beneficiaries added/updated successfully!',
+    });
+  } catch (error) {
+    console.error('Error:', error);
+    res.status(500).json({ msg: 'Server error.' });
+  }
+});
+
+
 module.exports = router;
