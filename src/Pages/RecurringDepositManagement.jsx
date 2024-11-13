@@ -9,8 +9,25 @@ import "react-toastify/dist/ReactToastify.css";
 
 function RecurringDepositManagement() {
   const { API, token } = useContext(AuthContext);
-  const [deposits, setDeposits] = useState([]);
-  const [beneficiaries, setBeneficiaries] = useState([]);
+  const [deposits, setDeposits] = useState([{
+    bankName: "",
+    depositAmount: "",
+    tenure: "",
+    interestRate: "",
+    startDate: "",
+    maturityDate: "",
+    maturityAmount: "",
+    rdNumber: "",
+    status: "",
+  }]);
+  const [beneficiaries, setBeneficiaries] = useState([{
+    name: "",
+    contact: "",
+    email: "",
+    entitlement: "",
+    relationship: "",
+    notify: false,
+  }]);
 
   useEffect(() => {
     const fetchDeposits = async () => {
@@ -21,8 +38,25 @@ function RecurringDepositManagement() {
             "Content-Type": "application/json",
           },
         });
-        setDeposits(response.data.deposits || []);
-        setBeneficiaries(response.data.beneficiaries || []);
+        setDeposits(response.data.deposits || [{
+          bankName: "",
+          depositAmount: "",
+          tenure: "",
+          interestRate: "",
+          startDate: "",
+          maturityDate: "",
+          maturityAmount: "",
+          rdNumber: "",
+          status: "",
+        }]);
+        setBeneficiaries(response.data.beneficiaries || [{
+          name: "",
+          contact: "",
+          email: "",
+          entitlement: "",
+          relationship: "",
+          notify: false,
+        }]);
       } catch (error) {
         console.error("Error fetching data:", error);
         toast.error("Error fetching data. Please try again.");
@@ -75,7 +109,6 @@ function RecurringDepositManagement() {
     setBeneficiaries(updatedBeneficiaries);
   };
 
-  // Validation function
   const validateForm = () => {
     for (let deposit of deposits) {
       if (!deposit.bankName || !deposit.depositAmount || !deposit.interestRate || !deposit.startDate || !deposit.maturityDate || !deposit.maturityAmount) {
@@ -231,26 +264,26 @@ function RecurringDepositManagement() {
             <InputWithIcon
               icon={<FaUser />}
               type="text"
-              placeholder="Beneficiary Name"
+              placeholder="Name"
               value={beneficiary.name}
               onChange={(e) => handleBeneficiaryChange(index, "name", e.target.value)}
             />
             <InputWithIcon
               icon={<FaPhone />}
               type="text"
-              placeholder="Contact Number"
+              placeholder="Contact"
               value={beneficiary.contact}
               onChange={(e) => handleBeneficiaryChange(index, "contact", e.target.value)}
             />
             <InputWithIcon
               icon={<FaEnvelope />}
               type="email"
-              placeholder="Email Address"
+              placeholder="Email"
               value={beneficiary.email}
               onChange={(e) => handleBeneficiaryChange(index, "email", e.target.value)}
             />
             <InputWithIcon
-              icon={<FaHashtag />}
+              icon={<FaPercent />}
               type="number"
               placeholder="Entitlement (%)"
               value={beneficiary.entitlement}
@@ -263,6 +296,15 @@ function RecurringDepositManagement() {
               value={beneficiary.relationship}
               onChange={(e) => handleBeneficiaryChange(index, "relationship", e.target.value)}
             />
+            <div className="flex items-center">
+              <input
+                type="checkbox"
+                checked={beneficiary.notify}
+                onChange={(e) => handleBeneficiaryChange(index, "notify", e.target.checked)}
+                className="mr-2"
+              />
+              <span>Notify on Maturity</span>
+            </div>
           </FieldSection>
         </div>
       ))}
@@ -273,17 +315,19 @@ function RecurringDepositManagement() {
         <FaPlus className="inline mx-2" /> Add Beneficiary
       </button>
 
-      <div className="mt-6">
-        <button
-          onClick={handleSubmit}
-          className="bg-[#3d5e27fd] hover:bg-[#2f4b1dfd] text-white py-2 px-4 rounded-md shadow-md"
-        >
-          Submit
-        </button>
-      </div>
+
 
       <ToastContainer />
+   <div className="text-end">
+   <button
+        onClick={handleSubmit}
+        className="bg-[#538d2dfd] hover:bg-[#4c7033fd] text-white py-2 px-4 rounded-md shadow-md mt-4"
+      >
+        Submit
+      </button>
+   </div>
     </div>
+    
   );
 }
 

@@ -187,7 +187,7 @@ const Home = () => {
                 </div>
 
                 {/* Sub-Balances */}
-                <div className="flex justify-between mt-3 ">
+                {/* <div className="flex justify-between mt-3 ">
                   {[
                     {
                       label: "Saving (3)",
@@ -212,16 +212,18 @@ const Home = () => {
                       </div>
                     </div>
                   ))}
-                </div>
+                </div> */}
               </div>
             </div>
 
             {/* Footer Actions */}
-            <div className="flex justify-around border-t-2 pt-3 mt-3 text-white">
-              {["Statement", "Manage", "Spends"].map((text, index) => (
+            <div className="flex justify-around border-t-2 pt-3 mt-3 border-white text-white">
+              {/* {["Statement", "Manage", "Spends"].map((text, index) => ( */}
+              {["View All"].map((text, index) => (
                 <React.Fragment key={index}>
                   <div>{text}</div>
-                  {index < 2 && <span className="mx-2">|</span>}
+                  {/* {index < 2 && <span className="mx-2">|</span>} */}
+                  {index < 0 && <span className="mx-2">|</span>}
                 </React.Fragment>
               ))}
             </div>
@@ -259,7 +261,7 @@ const Home = () => {
                 </div>
 
                 {/* Sub-Balances */}
-                <div className="flex justify-between mt-3 ">
+                {/* <div className="flex justify-between mt-3 ">
                   {[
                     {
                       label: "Saving (3)",
@@ -284,16 +286,17 @@ const Home = () => {
                       </div>
                     </div>
                   ))}
-                </div>
+                </div> */}
               </div>
             </div>
 
             {/* Footer Actions */}
             <div className="flex justify-around border-t-2 pt-3 mt-3 text-white">
-              {["Statement", "Manage", "Spends"].map((text, index) => (
+                  {/* {["Statement", "Manage", "Spends"].map((text, index) => ( */}
+                  {["View All"].map((text, index) => (
                 <React.Fragment key={index}>
                   <div>{text}</div>
-                  {index < 2 && <span className="mx-2">|</span>}
+                  {index < 0 && <span className="mx-2">|</span>}
                 </React.Fragment>
               ))}
             </div>
@@ -331,7 +334,7 @@ const Home = () => {
                 </div>
 
                 {/* Sub-Balances */}
-                <div className="flex justify-between mt-3 ">
+                {/* <div className="flex justify-between mt-3 ">
                   {[
                     {
                       label: "Saving (3)",
@@ -356,16 +359,17 @@ const Home = () => {
                       </div>
                     </div>
                   ))}
-                </div>
+                </div> */}
               </div>
             </div>
 
             {/* Footer Actions */}
             <div className="flex justify-around border-t-2 pt-3 mt-3 text-white">
-              {["Statement", "Manage", "Spends"].map((text, index) => (
+                   {/* {["Statement", "Manage", "Spends"].map((text, index) => ( */}
+                   {["View All"].map((text, index) => (
                 <React.Fragment key={index}>
                   <div>{text}</div>
-                  {index < 2 && <span className="mx-2">|</span>}
+                  {index < 0 && <span className="mx-2">|</span>}
                 </React.Fragment>
               ))}
             </div>
