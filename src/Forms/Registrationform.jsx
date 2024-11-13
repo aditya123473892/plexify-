@@ -51,27 +51,44 @@ const RegistrationForm = () => {
 
   const postData = async (e) => {
     e.preventDefault();
-    if (validateForm()) {
-      setLoading(true);
-      try {
-        const response = await axios.post(
-          "http://localhost:3523/signup",
-          formData
-        );
-        if (response.status === 201) {
-          localStorage.setItem("token", response.data.token);
-          toast.success("Signup successful!");
-          setTimeout(() => {
-            navigate("/");
-          }, 1000);
-        } else {
-          toast.error(response?.data?.msg || "Details do not match");
-        }
-      } catch (error) {
-        toast.error(error.response?.data?.msg || "Signup failed");
-      } finally {
-        setLoading(false);
+    if (!validateForm()) {
+      toast.error("Please fill out all required fields correctly.");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const response = await axios.post(
+        "http://localhost:3523/signup",
+        formData
+      );
+      if (response.status === 201) {
+        localStorage.setItem("token", response.data.token);
+        toast.success("Signup successful!");
+        setTimeout(() => {
+          navigate("/");
+        }, 1000);
+      } else {
+        toast.error(response.data.msg || "Unexpected response from server.");
+        console.error("Error:", response.data);
       }
+    } catch (error) {
+      if (error.response) {
+        toast.error(
+          error.response.data?.msg || "Signup failed due to server error."
+        );
+        console.error("Server Error:", error.response.data);
+      } else if (error.request) {
+        toast.error(
+          "No response from server. Please check your network connection."
+        );
+        console.error("Network Error:", error.request);
+      } else {
+        toast.error("Error during request setup. Please try again.");
+        console.error("Request Error:", error.message);
+      }
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -322,8 +339,9 @@ const RegistrationForm = () => {
           <button
             type="submit"
             className="w-full mt-6 py-2 shadow-md text-white bg-[#263d17] rounded-md hover:bg-[#263b18] transition"
+            disabled={loading}
           >
-            Register
+            {loading ? "Registering..." : "Register"}
           </button>
         </form>
       </div>
