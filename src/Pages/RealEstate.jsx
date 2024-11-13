@@ -1,6 +1,11 @@
 // File path: /src/pages/RealEstateManagement.js
 
-import React, { useState } from "react";
+import React, { useState, useEffect, useContext } from "react";
+import axios from "axios";
+import InputWithIcon from "../Components/InputWithIcon";
+import FieldSection from "../Components/FieldSection";
+import { FaEnvelope } from "react-icons/fa";
+
 import {
   FaHome,
   FaMapMarkerAlt,
@@ -8,34 +13,31 @@ import {
   FaDollarSign,
   FaUser,
   FaPhone,
-  FaEnvelope,
+  FaCheckCircle,
   FaPercent,
   FaLink,
   FaPlus,
-  FaFileUpload,
-  FaCheckCircle,
 } from "react-icons/fa";
-import InputWithIcon from "../Components/InputWithIcon";
-import FieldSection from "../Components/FieldSection";
-import Section from "../Components/Section";
+import { AuthContext } from "../Contexts/Context";
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
-const RealEstateManagement = () => {
+function RealEstateManagement() {
+  const { API, token } = useContext(AuthContext);
   const [properties, setProperties] = useState([
     {
-      property_name: "",
-      property_type: "",
+      propertyName: "",
+      propertyType: "",
       location: "",
-      area_in_sqft: "",
-      purchase_date: "",
-      purchase_price: "",
-      current_value: "",
-      ownership_status: "",
-      rental_income: "",
-      tenant_name: "",
-      tenant_contact: "",
+      areaInSqft: "",
+      purchaseDate: "",
+      purchasePrice: "",
+      currentValue: "",
+      ownershipStatus: "",
+      rentalIncome: "",
+      tenantName: "",
+      tenantContact: "",
       status: "",
-      created_at: new Date().toISOString().split("T")[0],
-      updated_at: new Date().toISOString().split("T")[0],
     },
   ]);
 
@@ -50,26 +52,192 @@ const RealEstateManagement = () => {
     },
   ]);
 
-  const [documents, setDocuments] = useState([
-    { label: "Upload Aadhar", file: null },
-    { label: "Upload PAN", file: null },
-  ]);
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const response = await axios.get(`${API}/real_estate`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        });
+        setProperties(
+          response.data.properties || [
+            {
+              propertyName: "",
+              propertyType: "",
+              location: "",
+              areaInSqft: "",
+              purchaseDate: "",
+              purchasePrice: "",
+              currentValue: "",
+              ownershipStatus: "",
+              rentalIncome: "",
+              tenantName: "",
+              tenantContact: "",
+              status: "",
+            },
+          ]
+        );
+        setBeneficiaries(
+          response.data.beneficiaries || [
+            {
+              name: "",
+              contact: "",
+              email: "",
+              entitlement: "",
+              relationship: "",
+              notify: false,
+            },
+          ]
+        );
+      } catch (error) {
+        console.error("Error fetching data:", error);
+        toast.error("Error fetching data. Please try again.");
+      }
+    };
 
-  // Generic change handler for properties and beneficiaries
-  const handleChange = (setState, index, field, value) => {
-    setState((prev) => {
-      const updated = [...prev];
-      updated[index][field] = value;
-      return updated;
-    });
+    fetchData();
+  }, [API, token]);
+
+  const addProperty = () => {
+    setProperties([
+      ...properties,
+      {
+        propertyName: "",
+        propertyType: "",
+        location: "",
+        areaInSqft: "",
+        purchaseDate: "",
+        purchasePrice: "",
+        currentValue: "",
+        ownershipStatus: "",
+        rentalIncome: "",
+        tenantName: "",
+        tenantContact: "",
+        status: "",
+      },
+    ]);
   };
 
-  // Function to add new properties or beneficiaries
-  const addField = (setState, initialState) => {
-    setState((prev) => [...prev, initialState]);
+  const addBeneficiary = () => {
+    setBeneficiaries([
+      ...beneficiaries,
+      {
+        name: "",
+        contact: "",
+        email: "",
+        entitlement: "",
+        relationship: "",
+        notify: false,
+      },
+    ]);
   };
 
-  // Render the form
+  const handlePropertyChange = (index, field, value) => {
+    const updatedProperties = [...properties];
+    updatedProperties[index][field] = value;
+    setProperties(updatedProperties);
+  };
+
+  const handleBeneficiaryChange = (index, field, value) => {
+    const updatedBeneficiaries = [...beneficiaries];
+    updatedBeneficiaries[index][field] = value;
+    setBeneficiaries(updatedBeneficiaries);
+  };
+
+  const validateForm = () => {
+    for (let property of properties) {
+      if (
+        !property.propertyName ||
+        !property.propertyType ||
+        !property.location ||
+        !property.areaInSqft ||
+        !property.purchaseDate ||
+        !property.purchasePrice ||
+        !property.ownershipStatus
+      ) {
+        toast.error("All property fields are required.", {
+          position: "bottom-right",
+        });
+        return false;
+      }
+      if (isNaN(property.areaInSqft) || property.areaInSqft <= 0) {
+        toast.error("Area (sq ft) should be a positive number.");
+        return false;
+      }
+      if (isNaN(property.purchasePrice) || property.purchasePrice <= 0) {
+        toast.error("Purchase Price should be a positive number.");
+        return false;
+      }
+      if (
+        property.currentValue &&
+        (isNaN(property.currentValue) || property.currentValue < 0)
+      ) {
+        toast.error("Current Value should be a non-negative number.");
+        return false;
+      }
+    }
+
+    for (let beneficiary of beneficiaries) {
+      if (
+        !beneficiary.name ||
+        !beneficiary.contact ||
+        !beneficiary.email ||
+        !beneficiary.entitlement ||
+        !beneficiary.relationship
+      ) {
+        toast.error("All beneficiary fields are required.");
+        return false;
+      }
+      const emailRegex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$/;
+      if (!emailRegex.test(beneficiary.email)) {
+        toast.error("Invalid email address.", {
+          position: "bottom-right",
+        });
+        return false;
+      }
+      if (
+        isNaN(beneficiary.entitlement) ||
+        beneficiary.entitlement <= 0 ||
+        beneficiary.entitlement > 100
+      ) {
+        toast.error(
+          "Entitlement percentage should be a number between 0 and 100."
+        );
+        return false;
+      }
+    }
+
+    return true;
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    if (!validateForm()) return;
+
+    const data = {
+      properties,
+      beneficiaries,
+    };
+
+    try {
+      const response = await axios.post(`${API}/real_estate`, data, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      });
+      console.log(response.data);
+
+      toast.success("Data submitted successfully!");
+    } catch (error) {
+      console.error("Error submitting data:", error);
+      toast.error("Error submitting data. Please try again.");
+    }
+  };
+
   return (
     <div className="min-h-screen shadow-2xl bg-white p-6 rounded-lg md:mt-10 mt-20">
       <header className="mb-8">
@@ -82,312 +250,207 @@ const RealEstateManagement = () => {
         </p>
       </header>
 
-      {/* Property Section */}
       {properties.map((property, index) => (
-        <FieldSection key={index} title={`Property ${index + 1}`}>
-          <InputWithIcon
-            icon={<FaHome className="text-[#538d2dfd] mx-2" />}
-            type="text"
-            placeholder="Property Name"
-            value={property.property_name}
-            onChange={(e) =>
-              handleChange(
-                setProperties,
-                index,
-                "property_name",
-                e.target.value
-              )
-            }
-          />
-          <select
-            className="border-l-2 border-[#538d2dfd] shadow-lg p-2 text-white rounded-md w-full outline-0 bg-[#538d2dfd]"
-            value={property.property_type}
-            onChange={(e) =>
-              handleChange(
-                setProperties,
-                index,
-                "property_type",
-                e.target.value
-              )
-            }
-          >
-            <option value="">Select Property Type</option>
-            <option value="Public">Public</option>
-            <option value="Private">Private</option>
-            <option value="Residential">Residential</option>
-            <option value="Commercial">Commercial</option>
-            <option value="Agriculture">Agriculture</option>
-          </select>
-          <InputWithIcon
-            icon={<FaMapMarkerAlt className="text-[#538d2dfd] mx-2" />}
-            type="text"
-            placeholder="Location"
-            value={property.location}
-            onChange={(e) =>
-              handleChange(setProperties, index, "location", e.target.value)
-            }
-          />
-          <InputWithIcon
-            icon={<FaExpandArrowsAlt className="text-[#538d2dfd] mx-2" />}
-            type="number"
-            placeholder="Area (sq ft)"
-            value={property.area_in_sqft}
-            onChange={(e) =>
-              handleChange(setProperties, index, "area_in_sqft", e.target.value)
-            }
-          />
-          <InputWithIcon
-            icon={<FaDollarSign className="text-[#538d2dfd] mx-2" />}
-            type="date"
-            placeholder="Purchase Date"
-            value={property.purchase_date}
-            onChange={(e) =>
-              handleChange(
-                setProperties,
-                index,
-                "purchase_date",
-                e.target.value
-              )
-            }
-          />
-          <InputWithIcon
-            icon={<FaDollarSign className="text-[#538d2dfd] mx-2" />}
-            type="number"
-            placeholder="Purchase Price"
-            value={property.purchase_price}
-            onChange={(e) =>
-              handleChange(
-                setProperties,
-                index,
-                "purchase_price",
-                e.target.value
-              )
-            }
-          />
-          <InputWithIcon
-            icon={<FaDollarSign className="text-[#538d2dfd] mx-2" />}
-            type="number"
-            placeholder="Current Value"
-            value={property.current_value}
-            onChange={(e) =>
-              handleChange(
-                setProperties,
-                index,
-                "current_value",
-                e.target.value
-              )
-            }
-          />
-          <InputWithIcon
-            icon={<FaHome className="text-[#538d2dfd] mx-2" />}
-            type="text"
-            placeholder="Ownership Status"
-            value={property.ownership_status}
-            onChange={(e) =>
-              handleChange(
-                setProperties,
-                index,
-                "ownership_status",
-                e.target.value
-              )
-            }
-          />
-          <InputWithIcon
-            icon={<FaDollarSign className="text-[#538d2dfd] mx-2" />}
-            type="number"
-            placeholder="Rental Income"
-            value={property.rental_income}
-            onChange={(e) =>
-              handleChange(
-                setProperties,
-                index,
-                "rental_income",
-                e.target.value
-              )
-            }
-          />
-          <InputWithIcon
-            icon={<FaUser className="text-[#538d2dfd] mx-2" />}
-            type="text"
-            placeholder="Tenant Name"
-            value={property.tenant_name}
-            onChange={(e) =>
-              handleChange(setProperties, index, "tenant_name", e.target.value)
-            }
-          />
-          <InputWithIcon
-            icon={<FaPhone className="text-[#538d2dfd] mx-2" />}
-            type="text"
-            placeholder="Tenant Contact"
-            value={property.tenant_contact}
-            onChange={(e) =>
-              handleChange(
-                setProperties,
-                index,
-                "tenant_contact",
-                e.target.value
-              )
-            }
-          />
-          <InputWithIcon
-            icon={<FaCheckCircle className="text-[#538d2dfd] mx-2" />}
-            type="text"
-            placeholder="Status"
-            value={property.status}
-            onChange={(e) =>
-              handleChange(setProperties, index, "status", e.target.value)
-            }
-          />
-        </FieldSection>
+        <div key={index} className="mb-4 border-b pb-4">
+          <FieldSection title="Property Details">
+            <InputWithIcon
+              icon={<FaHome />}
+              type="text"
+              placeholder="Property Name"
+              value={property.propertyName}
+              onChange={(e) =>
+                handlePropertyChange(index, "propertyName", e.target.value)
+              }
+            />
+            <InputWithIcon
+              icon={<FaHome />}
+              type="text"
+              placeholder="Property Type"
+              value={property.propertyType}
+              onChange={(e) =>
+                handlePropertyChange(index, "propertyType", e.target.value)
+              }
+            />
+            <InputWithIcon
+              icon={<FaMapMarkerAlt />}
+              type="text"
+              placeholder="Location"
+              value={property.location}
+              onChange={(e) =>
+                handlePropertyChange(index, "location", e.target.value)
+              }
+            />
+            <InputWithIcon
+              icon={<FaExpandArrowsAlt />}
+              type="number"
+              placeholder="Area (sq ft)"
+              value={property.areaInSqft}
+              onChange={(e) =>
+                handlePropertyChange(index, "areaInSqft", e.target.value)
+              }
+            />
+            <InputWithIcon
+              icon={<FaDollarSign />}
+              type="date"
+              placeholder="Purchase Date"
+              value={property.purchaseDate}
+              onChange={(e) =>
+                handlePropertyChange(index, "purchaseDate", e.target.value)
+              }
+            />
+            <InputWithIcon
+              icon={<FaDollarSign />}
+              type="number"
+              placeholder="Purchase Price"
+              value={property.purchasePrice}
+              onChange={(e) =>
+                handlePropertyChange(index, "purchasePrice", e.target.value)
+              }
+            />
+            <InputWithIcon
+              icon={<FaDollarSign />}
+              type="number"
+              placeholder="Current Value"
+              value={property.currentValue}
+              onChange={(e) =>
+                handlePropertyChange(index, "currentValue", e.target.value)
+              }
+            />
+            <InputWithIcon
+              icon={<FaHome />}
+              type="text"
+              placeholder="Ownership Status"
+              value={property.ownershipStatus}
+              onChange={(e) =>
+                handlePropertyChange(index, "ownershipStatus", e.target.value)
+              }
+            />
+            <InputWithIcon
+              icon={<FaDollarSign />}
+              type="number"
+              placeholder="Rental Income"
+              value={property.rentalIncome}
+              onChange={(e) =>
+                handlePropertyChange(index, "rentalIncome", e.target.value)
+              }
+            />
+            <InputWithIcon
+              icon={<FaUser />}
+              type="text"
+              placeholder="Tenant Name"
+              value={property.tenantName}
+              onChange={(e) =>
+                handlePropertyChange(index, "tenantName", e.target.value)
+              }
+            />
+            <InputWithIcon
+              icon={<FaPhone />}
+              type="text"
+              placeholder="Tenant Contact"
+              value={property.tenantContact}
+              onChange={(e) =>
+                handlePropertyChange(index, "tenantContact", e.target.value)
+              }
+            />
+            <InputWithIcon
+              icon={<FaCheckCircle />}
+              type="text"
+              placeholder="Status"
+              value={property.status}
+              onChange={(e) =>
+                handlePropertyChange(index, "status", e.target.value)
+              }
+            />
+          </FieldSection>
+        </div>
       ))}
       <button
-        onClick={() =>
-          addField(setProperties, {
-            property_name: "",
-            property_type: "",
-            location: "",
-            area_in_sqft: "",
-            purchase_date: "",
-            purchase_price: "",
-            current_value: "",
-            ownership_status: "",
-            rental_income: "",
-            tenant_name: "",
-            tenant_contact: "",
-            status: "",
-            created_at: new Date().toISOString().split("T")[0],
-            updated_at: new Date().toISOString().split("T")[0],
-          })
-        }
-        className="text-white py-2 px-4 rounded-md shadow-md bg-[#3a5e22fd] hover:bg-[#2f4b1dfd] mt-4"
+        onClick={addProperty}
+        className="bg-[#3d5e27fd] hover:bg-[#2f4b1dfd] text-white py-2 px-4 rounded-md shadow-md mt-4"
       >
-        <FaPlus className="inline mr-2" /> Add Property
+        <FaPlus className="inline mx-2" /> Add Property
       </button>
 
-      {/* Beneficiary Section */}
       {beneficiaries.map((beneficiary, index) => (
-        <FieldSection key={index} title="Beneficiary Information">
-          <InputWithIcon
-            icon={<FaUser className="text-[#538d2dfd] mx-2" />}
-            type="text"
-            placeholder="Beneficiary Name"
-            value={beneficiary.name}
-            onChange={(e) =>
-              handleChange(setBeneficiaries, index, "name", e.target.value)
-            }
-          />
-          <InputWithIcon
-            icon={<FaPhone className="text-[#538d2dfd] mx-2" />}
-            type="text"
-            placeholder="Contact Number"
-            value={beneficiary.contact}
-            onChange={(e) =>
-              handleChange(setBeneficiaries, index, "contact", e.target.value)
-            }
-          />
-          <InputWithIcon
-            icon={<FaEnvelope className="text-[#538d2dfd] mx-2" />}
-            type="email"
-            placeholder="Email Address"
-            value={beneficiary.email}
-            onChange={(e) =>
-              handleChange(setBeneficiaries, index, "email", e.target.value)
-            }
-          />
-          <InputWithIcon
-            icon={<FaPercent className="text-[#538d2dfd] mx-2" />}
-            type="text"
-            placeholder="Percentage of Entitlement"
-            value={beneficiary.entitlement}
-            onChange={(e) =>
-              handleChange(
-                setBeneficiaries,
-                index,
-                "entitlement",
-                e.target.value
-              )
-            }
-          />
-          <InputWithIcon
-            icon={<FaLink className="text-[#538d2dfd] mx-2" />}
-            type="text"
-            placeholder="Relationship"
-            value={beneficiary.relationship}
-            onChange={(e) =>
-              handleChange(
-                setBeneficiaries,
-                index,
-                "relationship",
-                e.target.value
-              )
-            }
-          />
-          <div className="flex items-center border-l-2 border-[#538d2dfd] rounded-md shadow-lg">
-            <input
-              type="checkbox"
-              className="mx-2"
-              checked={beneficiary.notify}
+        <div key={index} className="mb-4 border-b pb-4">
+          <FieldSection title="Beneficiary Information">
+            <InputWithIcon
+              icon={<FaUser />}
+              type="text"
+              placeholder="Name"
+              value={beneficiary.name}
               onChange={(e) =>
-                handleChange(
-                  setBeneficiaries,
-                  index,
-                  "notify",
-                  e.target.checked
-                )
+                handleBeneficiaryChange(index, "name", e.target.value)
               }
             />
-            <label className="text-gray-800">Notify Beneficiary</label>
-          </div>
-        </FieldSection>
+            <InputWithIcon
+              icon={<FaPhone />}
+              type="text"
+              placeholder="Contact"
+              value={beneficiary.contact}
+              onChange={(e) =>
+                handleBeneficiaryChange(index, "contact", e.target.value)
+              }
+            />
+            <InputWithIcon
+              icon={<FaEnvelope />}
+              type="email"
+              placeholder="Email"
+              value={beneficiary.email}
+              onChange={(e) =>
+                handleBeneficiaryChange(index, "email", e.target.value)
+              }
+            />
+            <InputWithIcon
+              icon={<FaPercent />}
+              type="number"
+              placeholder="Entitlement (%)"
+              value={beneficiary.entitlement}
+              onChange={(e) =>
+                handleBeneficiaryChange(index, "entitlement", e.target.value)
+              }
+            />
+            <InputWithIcon
+              icon={<FaLink />}
+              type="text"
+              placeholder="Relationship"
+              value={beneficiary.relationship}
+              onChange={(e) =>
+                handleBeneficiaryChange(index, "relationship", e.target.value)
+              }
+            />
+            <div className="flex items-center">
+              <input
+                type="checkbox"
+                checked={beneficiary.notify}
+                onChange={(e) =>
+                  handleBeneficiaryChange(index, "notify", e.target.checked)
+                }
+                className="mr-2"
+              />
+              <span>Notify Beneficiary</span>
+            </div>
+          </FieldSection>
+        </div>
       ))}
       <button
-        onClick={() =>
-          addField(setBeneficiaries, {
-            name: "",
-            contact: "",
-            email: "",
-            entitlement: "",
-            relationship: "",
-            notify: false,
-          })
-        }
-        className="text-white py-2 px-4 rounded-md shadow-md bg-[#3a5e22fd] hover:bg-[#2f4b1dfd] mt-4"
+        onClick={addBeneficiary}
+        className="bg-[#3d5e27fd] hover:bg-[#2f4b1dfd] text-white py-2 px-4 rounded-md shadow-md mt-4"
       >
-        <FaPlus className="inline mr-2" /> Add Beneficiary
+        <FaPlus className="inline mx-2" /> Add Beneficiary
       </button>
 
-      {/* Document Upload Section */}
-      <Section title="Document Upload">
-        {documents.map((doc, index) => (
-          <div
-            key={index}
-            className="flex items-center border-l-2 border-[#538d2dfd] rounded-md shadow-lg mb-4"
-          >
-            <FaFileUpload className="text-[#538d2dfd] mx-2" />
-            <input
-              type="file"
-              className="border-0 rounded-md p-3 w-full bg-transparent"
-              onChange={(e) =>
-                handleChange(setDocuments, index, "file", e.target.files[0])
-              }
-              aria-label={doc.label}
-            />
-          </div>
-        ))}
-        <button className="text-white py-2 px-4 rounded-md shadow-md bg-[#3a5e22fd] hover:bg-[#2f4b1dfd]">
-          Upload Document
+      <ToastContainer />
+      <div className="text-end">
+        <button
+          onClick={handleSubmit}
+          className="bg-[#538d2dfd] hover:bg-[#4c7033fd] text-white py-2 px-4 rounded-md shadow-md mt-4"
+        >
+          Submit
         </button>
-      </Section>
-
-      {/* Save Button */}
-      <button
-        type="submit"
-        className="bg-[#3a5e22fd] hover:bg-[#2f4b1dfd] text-white py-2 px-4 rounded ms-auto flex items-center mt-6"
-      >
-        <FaCheckCircle className="mr-2" /> Save Real Estate Details
-      </button>
+      </div>
     </div>
   );
-};
+}
 
 export default RealEstateManagement;

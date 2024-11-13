@@ -2,32 +2,47 @@ import React, { useState, useEffect, useContext } from "react";
 import axios from "axios";
 import InputWithIcon from "../Components/InputWithIcon";
 import FieldSection from "../Components/FieldSection";
-import { FaMoneyBillWave, FaCalendarAlt, FaUser, FaPhone, FaEnvelope, FaPercent, FaLink, FaPlus, FaCheckCircle, FaHashtag } from "react-icons/fa";
+import {
+  FaMoneyBillWave,
+  FaCalendarAlt,
+  FaUser,
+  FaPhone,
+  FaEnvelope,
+  FaPercent,
+  FaLink,
+  FaPlus,
+  FaCheckCircle,
+  FaHashtag,
+} from "react-icons/fa";
 import { AuthContext } from "../Contexts/Context";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
 function RecurringDepositManagement() {
   const { API, token } = useContext(AuthContext);
-  const [deposits, setDeposits] = useState([{
-    bankName: "",
-    depositAmount: "",
-    tenure: "",
-    interestRate: "",
-    startDate: "",
-    maturityDate: "",
-    maturityAmount: "",
-    rdNumber: "",
-    status: "",
-  }]);
-  const [beneficiaries, setBeneficiaries] = useState([{
-    name: "",
-    contact: "",
-    email: "",
-    entitlement: "",
-    relationship: "",
-    notify: false,
-  }]);
+  const [deposits, setDeposits] = useState([
+    {
+      bankName: "",
+      depositAmount: "",
+      tenure: "",
+      interestRate: "",
+      startDate: "",
+      maturityDate: "",
+      maturityAmount: "",
+      rdNumber: "",
+      status: "",
+    },
+  ]);
+  const [beneficiaries, setBeneficiaries] = useState([
+    {
+      name: "",
+      contact: "",
+      email: "",
+      entitlement: "",
+      relationship: "",
+      notify: false,
+    },
+  ]);
 
   useEffect(() => {
     const fetchDeposits = async () => {
@@ -38,25 +53,33 @@ function RecurringDepositManagement() {
             "Content-Type": "application/json",
           },
         });
-        setDeposits(response.data.deposits || [{
-          bankName: "",
-          depositAmount: "",
-          tenure: "",
-          interestRate: "",
-          startDate: "",
-          maturityDate: "",
-          maturityAmount: "",
-          rdNumber: "",
-          status: "",
-        }]);
-        setBeneficiaries(response.data.beneficiaries || [{
-          name: "",
-          contact: "",
-          email: "",
-          entitlement: "",
-          relationship: "",
-          notify: false,
-        }]);
+        setDeposits(
+          response.data.deposits || [
+            {
+              bankName: "",
+              depositAmount: "",
+              tenure: "",
+              interestRate: "",
+              startDate: "",
+              maturityDate: "",
+              maturityAmount: "",
+              rdNumber: "",
+              status: "",
+            },
+          ]
+        );
+        setBeneficiaries(
+          response.data.beneficiaries || [
+            {
+              name: "",
+              contact: "",
+              email: "",
+              entitlement: "",
+              relationship: "",
+              notify: false,
+            },
+          ]
+        );
       } catch (error) {
         console.error("Error fetching data:", error);
         toast.error("Error fetching data. Please try again.");
@@ -111,7 +134,14 @@ function RecurringDepositManagement() {
 
   const validateForm = () => {
     for (let deposit of deposits) {
-      if (!deposit.bankName || !deposit.depositAmount || !deposit.interestRate || !deposit.startDate || !deposit.maturityDate || !deposit.maturityAmount) {
+      if (
+        !deposit.bankName ||
+        !deposit.depositAmount ||
+        !deposit.interestRate ||
+        !deposit.startDate ||
+        !deposit.maturityDate ||
+        !deposit.maturityAmount
+      ) {
         toast.error("All deposit fields are required.", {
           position: "bottom-right",
         });
@@ -132,7 +162,13 @@ function RecurringDepositManagement() {
     }
 
     for (let beneficiary of beneficiaries) {
-      if (!beneficiary.name || !beneficiary.contact || !beneficiary.email || !beneficiary.entitlement || !beneficiary.relationship) {
+      if (
+        !beneficiary.name ||
+        !beneficiary.contact ||
+        !beneficiary.email ||
+        !beneficiary.entitlement ||
+        !beneficiary.relationship
+      ) {
         toast.error("All beneficiary fields are required.");
         return false;
       }
@@ -143,8 +179,14 @@ function RecurringDepositManagement() {
         });
         return false;
       }
-      if (isNaN(beneficiary.entitlement) || beneficiary.entitlement <= 0 || beneficiary.entitlement > 100) {
-        toast.error("Entitlement percentage should be a number between 0 and 100.");
+      if (
+        isNaN(beneficiary.entitlement) ||
+        beneficiary.entitlement <= 0 ||
+        beneficiary.entitlement > 100
+      ) {
+        toast.error(
+          "Entitlement percentage should be a number between 0 and 100."
+        );
         return false;
       }
     }
@@ -185,7 +227,8 @@ function RecurringDepositManagement() {
           Manage Your Recurring Deposits
         </h1>
         <p className="text-gray-600">
-          Effortlessly manage your recurring deposits and keep track of beneficiary details.
+          Effortlessly manage your recurring deposits and keep track of
+          beneficiary details.
         </p>
       </header>
 
@@ -197,56 +240,72 @@ function RecurringDepositManagement() {
               type="text"
               placeholder="RD Number"
               value={deposit.rdNumber}
-              onChange={(e) => handleDepositChange(index, "rdNumber", e.target.value)}
+              onChange={(e) =>
+                handleDepositChange(index, "rdNumber", e.target.value)
+              }
             />
             <InputWithIcon
               icon={<FaMoneyBillWave />}
               type="text"
               placeholder="Bank Name"
               value={deposit.bankName}
-              onChange={(e) => handleDepositChange(index, "bankName", e.target.value)}
+              onChange={(e) =>
+                handleDepositChange(index, "bankName", e.target.value)
+              }
             />
             <InputWithIcon
               icon={<FaMoneyBillWave />}
               type="number"
               placeholder="Monthly Deposit Amount"
               value={deposit.depositAmount}
-              onChange={(e) => handleDepositChange(index, "depositAmount", e.target.value)}
+              onChange={(e) =>
+                handleDepositChange(index, "depositAmount", e.target.value)
+              }
             />
             <InputWithIcon
               icon={<FaPercent />}
               type="number"
               placeholder="Interest Rate (%)"
               value={deposit.interestRate}
-              onChange={(e) => handleDepositChange(index, "interestRate", e.target.value)}
+              onChange={(e) =>
+                handleDepositChange(index, "interestRate", e.target.value)
+              }
             />
             <InputWithIcon
               icon={<FaCalendarAlt />}
               type="date"
               placeholder="Start Date"
               value={deposit.startDate}
-              onChange={(e) => handleDepositChange(index, "startDate", e.target.value)}
+              onChange={(e) =>
+                handleDepositChange(index, "startDate", e.target.value)
+              }
             />
             <InputWithIcon
               icon={<FaCalendarAlt />}
               type="date"
               placeholder="Maturity Date"
               value={deposit.maturityDate}
-              onChange={(e) => handleDepositChange(index, "maturityDate", e.target.value)}
+              onChange={(e) =>
+                handleDepositChange(index, "maturityDate", e.target.value)
+              }
             />
             <InputWithIcon
               icon={<FaMoneyBillWave />}
               type="number"
               placeholder="Maturity Amount"
               value={deposit.maturityAmount}
-              onChange={(e) => handleDepositChange(index, "maturityAmount", e.target.value)}
+              onChange={(e) =>
+                handleDepositChange(index, "maturityAmount", e.target.value)
+              }
             />
             <InputWithIcon
               icon={<FaCheckCircle />}
               type="text"
               placeholder="Status"
               value={deposit.status}
-              onChange={(e) => handleDepositChange(index, "status", e.target.value)}
+              onChange={(e) =>
+                handleDepositChange(index, "status", e.target.value)
+              }
             />
           </FieldSection>
         </div>
@@ -266,41 +325,53 @@ function RecurringDepositManagement() {
               type="text"
               placeholder="Name"
               value={beneficiary.name}
-              onChange={(e) => handleBeneficiaryChange(index, "name", e.target.value)}
+              onChange={(e) =>
+                handleBeneficiaryChange(index, "name", e.target.value)
+              }
             />
             <InputWithIcon
               icon={<FaPhone />}
               type="text"
               placeholder="Contact"
               value={beneficiary.contact}
-              onChange={(e) => handleBeneficiaryChange(index, "contact", e.target.value)}
+              onChange={(e) =>
+                handleBeneficiaryChange(index, "contact", e.target.value)
+              }
             />
             <InputWithIcon
               icon={<FaEnvelope />}
               type="email"
               placeholder="Email"
               value={beneficiary.email}
-              onChange={(e) => handleBeneficiaryChange(index, "email", e.target.value)}
+              onChange={(e) =>
+                handleBeneficiaryChange(index, "email", e.target.value)
+              }
             />
             <InputWithIcon
               icon={<FaPercent />}
               type="number"
               placeholder="Entitlement (%)"
               value={beneficiary.entitlement}
-              onChange={(e) => handleBeneficiaryChange(index, "entitlement", e.target.value)}
+              onChange={(e) =>
+                handleBeneficiaryChange(index, "entitlement", e.target.value)
+              }
             />
             <InputWithIcon
               icon={<FaLink />}
               type="text"
               placeholder="Relationship"
               value={beneficiary.relationship}
-              onChange={(e) => handleBeneficiaryChange(index, "relationship", e.target.value)}
+              onChange={(e) =>
+                handleBeneficiaryChange(index, "relationship", e.target.value)
+              }
             />
             <div className="flex items-center">
               <input
                 type="checkbox"
                 checked={beneficiary.notify}
-                onChange={(e) => handleBeneficiaryChange(index, "notify", e.target.checked)}
+                onChange={(e) =>
+                  handleBeneficiaryChange(index, "notify", e.target.checked)
+                }
                 className="mr-2"
               />
               <span>Notify on Maturity</span>
@@ -315,19 +386,16 @@ function RecurringDepositManagement() {
         <FaPlus className="inline mx-2" /> Add Beneficiary
       </button>
 
-
-
       <ToastContainer />
-   <div className="text-end">
-   <button
-        onClick={handleSubmit}
-        className="bg-[#538d2dfd] hover:bg-[#4c7033fd] text-white py-2 px-4 rounded-md shadow-md mt-4"
-      >
-        Submit
-      </button>
-   </div>
+      <div className="text-end">
+        <button
+          onClick={handleSubmit}
+          className="bg-[#538d2dfd] hover:bg-[#4c7033fd] text-white py-2 px-4 rounded-md shadow-md mt-4"
+        >
+          Submit
+        </button>
+      </div>
     </div>
-    
   );
 }
 

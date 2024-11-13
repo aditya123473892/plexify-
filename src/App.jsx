@@ -275,9 +275,9 @@ function App() {
           }
         />
         <Route
-          path="/real-estate-registration"
+          path="/realestate"
           element={
-            isLoggedIn ? <RealEstateRegistration /> : <Navigate to="/signin" />
+            isLoggedIn ? <RealEstateManagement /> : <Navigate to="/signin" />
           }
         />
         <Route
@@ -330,7 +330,6 @@ function App() {
       <Route path="/reset-password/:token" element={<NewPassword />} />
       <Route path="/forgetpassword" element={<ForgotPassword />} />
     </Routes>
-  
   );
 }
 
