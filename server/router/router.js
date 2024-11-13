@@ -6,6 +6,7 @@ const bcrypt = require("bcryptjs");
 const sql = require("msnodesqlv8");
 const multer = require("multer");
 const mysql = require("mysql2");
+const jwt = require("jsonwebtoken");
 
 const authMiddleware = require("../auth/authMiddleware");
 
@@ -103,12 +104,10 @@ router.post("/signup", async (req, res) => {
               "Error inserting user into the database:",
               err.sqlMessage || err.message
             );
-            return res
-              .status(500)
-              .json({
-                msg: "Failed to register user",
-                error: err.sqlMessage || err.message,
-              });
+            return res.status(500).json({
+              msg: "Failed to register user",
+              error: err.sqlMessage || err.message,
+            });
           }
 
           const token = jweb.sign({ email, user_id: result.insertId }, secret, {
@@ -245,6 +244,64 @@ router.post("/forgot-password", async (req, res) => {
     console.error("Server error:", error);
     return res.status(500).json({ msg: "Server Error" });
   }
+});
+
+router.get("/profile", authMiddleware, (req, res) => {
+  const userId = req.user.user_id;
+
+  const getUserQuery = `SELECT first_name, last_name, email, aadhar_number, phone_number, gender, beneficiary 
+                        FROM registration WHERE user_id = ?`;
+
+  db.query(getUserQuery, [userId], (err, results) => {
+    if (err) {
+      console.error("Error fetching user profile:", err);
+      return res.status(500).json({ msg: "Error fetching user profile" });
+    }
+
+    if (results.length === 0) {
+      return res.status(404).json({ msg: "User profile not found" });
+    }
+
+    res.status(200).json(results[0]);
+  });
+});
+
+// Update User Profile
+router.put("/profile", authMiddleware, (req, res) => {
+  const userId = req.user.user_id;
+  const { firstName, lastName, phoneNumber, gender, beneficiary } = req.body;
+
+  // Validate required fields
+  if (!firstName || !lastName || !phoneNumber || !gender || !beneficiary) {
+    return res.status(400).json({ msg: "All fields are required" });
+  }
+
+  const updateUserQuery = `
+    UPDATE registration SET 
+      first_name = ?, 
+      last_name = ?, 
+      phone_number = ?, 
+      gender = ?, 
+      beneficiary = ?
+    WHERE user_id = ?
+  `;
+
+  db.query(
+    updateUserQuery,
+    [firstName, lastName, phoneNumber, gender, beneficiary, userId],
+    (err, result) => {
+      if (err) {
+        console.error("Error updating user profile:", err);
+        return res.status(500).json({ msg: "Error updating user profile" });
+      }
+
+      if (result.affectedRows === 0) {
+        return res.status(404).json({ msg: "User not found" });
+      }
+
+      res.status(200).json({ msg: "Profile updated successfully" });
+    }
+  );
 });
 
 router.post("/reset-password", async (req, res) => {
