@@ -1,9 +1,15 @@
-import React, { useState } from "react";
-import { FaPlus, FaFileUpload } from "react-icons/fa";
+import React, { useState, useContext } from "react";
+import { FaPlus, FaFileUpload, FaDollarSign } from "react-icons/fa";
+import { AuthContext } from "../Contexts/Context";
+import { toast, ToastContainer } from "react-toastify";
+import Section from "../Components/Section";
+import InputWithIcon from "../Components/InputWithIcon"; // Importing the InputWithIcon component
+import axios from "axios";
 
 function PreciousMetalsInheritanceManagement() {
+  const { API, token } = useContext(AuthContext);
   const [metals, setMetals] = useState([
-    { metalType: "", weight: "", purchasePrice: "", currentValue: "" },
+    { metalType: "", weight: "", purchasePrice: "", currentValue: "", description: "" },
   ]);
   const [beneficiaries, setBeneficiaries] = useState([
     {
@@ -15,16 +21,15 @@ function PreciousMetalsInheritanceManagement() {
       notify: false,
     },
   ]);
+  const [document, setDocument] = useState(null);
 
-  // Add a new metal entry
   const addMetal = () => {
     setMetals([
       ...metals,
-      { metalType: "", weight: "", purchasePrice: "", currentValue: "" },
+      { metalType: "", weight: "", purchasePrice: "", currentValue: "", description: "" },
     ]);
   };
 
-  // Add a new beneficiary
   const addBeneficiary = () => {
     setBeneficiaries([
       ...beneficiaries,
@@ -39,204 +44,244 @@ function PreciousMetalsInheritanceManagement() {
     ]);
   };
 
-  // Handle changes for metal fields
   const handleMetalChange = (index, field, value) => {
-    const updatedMetals = [...metals];
-    updatedMetals[index][field] = value;
-    setMetals(updatedMetals);
+    // For weight field, allow only up to two decimal places
+    if (field === "weight") {
+      const regex = /^\d*\.?\d{0,2}$/;
+      if (regex.test(value)) {
+        const updatedMetals = [...metals];
+        updatedMetals[index][field] = value;
+        setMetals(updatedMetals);
+      }
+    } else {
+      const updatedMetals = [...metals];
+      updatedMetals[index][field] = value;
+      setMetals(updatedMetals);
+    }
   };
 
-  // Handle changes for beneficiary fields
   const handleBeneficiaryChange = (index, field, value) => {
     const updatedBeneficiaries = [...beneficiaries];
     updatedBeneficiaries[index][field] = value;
     setBeneficiaries(updatedBeneficiaries);
   };
 
+  const handleDocumentUpload = (e) => {
+    setDocument(e.target.files[0]);
+  };
+
+  const handleSubmit = async () => {
+    const formData = new FormData();
+    formData.append("metals", JSON.stringify(metals));
+    formData.append("beneficiaries", JSON.stringify(beneficiaries));
+    if (document) {
+      formData.append("document", document);
+    }
+
+    try {
+      const response = await axios.post(`${API}/precious-metal`, formData, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "multipart/form-data",
+        },
+      });
+      if (response.data.success) {
+        toast.success("Data saved successfully!");
+      } else {
+        toast.error("Failed to save data.");
+      }
+    } catch (error) {
+      console.error("Error saving data:", error);
+      toast.error("An error occurred.");
+    }
+  };
+
   return (
-    <div className="min-h-screen bg-gray-50 p-10">
-      <header className="mb-8 text-center">
+    <div className="min-h-screen shadow-2xl bg-white p-6 rounded-lg md:mt-10 mt-20">
+      <header className="mb-8">
         <h1 className="text-3xl font-bold text-gray-800 mb-2">
           Manage Your Precious Metals Inheritance
         </h1>
-        <p className="text-gray-600 max-w-md mx-auto">
+        <p className="text-gray-600 max-w-md">
           Organize and designate beneficiaries for your precious metal assets.
         </p>
       </header>
 
-      <div className="max-w-5xl mx-auto space-y-10">
-        {/* Precious Metals Section */}
-        <section className="bg-white p-6 rounded-lg shadow-md">
-          <h2 className="text-2xl font-semibold text-gray-800 mb-4">
-            Precious Metals
-          </h2>
-          {metals.map((metal, index) => (
-            <div key={index} className="mb-4 border-b pb-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                <select
-                  className="border border-gray-300 p-3 rounded-md w-full"
-                  value={metal.metalType}
-                  onChange={(e) =>
-                    handleMetalChange(index, "metalType", e.target.value)
-                  }
-                >
-                  <option value="">Select Metal Type</option>
-                  <option value="Gold">Gold</option>
-                  <option value="Silver">Silver</option>
-                  <option value="Platinum">Platinum</option>
-                  <option value="Palladium">Palladium</option>
-                </select>
-                <input
-                  type="number"
-                  placeholder="Weight (grams)"
-                  className="border border-gray-300 p-3 rounded-md w-full"
-                  value={metal.weight}
-                  onChange={(e) =>
-                    handleMetalChange(index, "weight", e.target.value)
-                  }
-                />
-                <input
-                  type="number"
-                  placeholder="Purchase Price (₹)"
-                  className="border border-gray-300 p-3 rounded-md w-full"
-                  value={metal.purchasePrice}
-                  onChange={(e) =>
-                    handleMetalChange(index, "purchasePrice", e.target.value)
-                  }
-                />
-                <input
-                  type="number"
-                  placeholder="Current Value (₹)"
-                  className="border border-gray-300 p-3 rounded-md w-full"
-                  value={metal.currentValue}
-                  onChange={(e) =>
-                    handleMetalChange(index, "currentValue", e.target.value)
-                  }
-                />
-              </div>
+      <Section className="bg-white p-6 rounded-lg shadow-md">
+        <h2 className="text-2xl font-semibold text-gray-800 mb-4">
+          Precious Metals
+        </h2>
+        {metals.map((metal, index) => (
+          <div key={index} className="mb-4 border-b pb-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+              <select
+                className="border-l-2 border-[#538d2dfd] p-3 rounded-md shadow-lg w-full"
+                value={metal.metalType}
+                onChange={(e) =>
+                  handleMetalChange(index, "metalType", e.target.value)
+                }
+              >
+                <option value="">Select Metal Type</option>
+                <option value="Gold">Gold</option>
+                <option value="Silver">Silver</option>
+                <option value="Platinum">Platinum</option>
+                <option value="Palladium">Palladium</option>
+              </select>
+
+              <InputWithIcon
+                icon={<FaDollarSign />}
+                placeholder="Weight (grams)"
+                value={metal.weight}
+                onChange={(e) =>
+                  handleMetalChange(index, "weight", e.target.value)
+                }
+              />
+
+              <InputWithIcon
+                icon={<FaDollarSign />}
+                placeholder="Purchase Price (₹)"
+                value={metal.purchasePrice}
+                onChange={(e) =>
+                  handleMetalChange(index, "purchasePrice", e.target.value)
+                }
+              />
+
+              <InputWithIcon
+                icon={<FaDollarSign />}
+                placeholder="Current Value (₹)"
+                value={metal.currentValue}
+                onChange={(e) =>
+                  handleMetalChange(index, "currentValue", e.target.value)
+                }
+              />
+
+              <InputWithIcon
+                icon={<FaFileUpload />}
+                placeholder="Description"
+                value={metal.description}
+                onChange={(e) =>
+                  handleMetalChange(index, "description", e.target.value)
+                }
+              />
             </div>
-          ))}
-          <button
-            onClick={addMetal}
-            className="bg-green-500 text-white py-2 px-4 rounded-md shadow-md hover:bg-green-600 mt-4"
-          >
-            <FaPlus className="inline mr-2" /> Add Metal
-          </button>
-        </section>
+          </div>
+        ))}
+        <button
+          onClick={addMetal}
+          className="bg-[#3d5e27fd] text-white py-3 px-8 rounded-md shadow-md hover:bg-[#4c7033fd] transition-all"
+        >
+          <FaPlus className="inline mr-2" /> Add Metal
+        </button>
+      </Section>
 
-        {/* Beneficiary Information */}
-        <section className="bg-white p-6 rounded-lg shadow-md">
-          <h2 className="text-2xl font-semibold text-gray-800 mb-4">
-            Beneficiary Information
-          </h2>
-          {beneficiaries.map((beneficiary, index) => (
-            <div key={index} className="mb-4 border-b pb-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <Section className="bg-white p-6 rounded-lg shadow-md">
+        <h2 className="text-2xl font-semibold text-gray-800 mb-4">
+          Beneficiary Information
+        </h2>
+        {beneficiaries.map((beneficiary, index) => (
+          <div key={index} className="mb-4 border-b pb-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <InputWithIcon
+                icon={<FaDollarSign />}
+                placeholder="Beneficiary Name"
+                value={beneficiary.name}
+                onChange={(e) =>
+                  handleBeneficiaryChange(index, "name", e.target.value)
+                }
+              />
+
+              <InputWithIcon
+                icon={<FaDollarSign />}
+                placeholder="Contact Number"
+                value={beneficiary.contact}
+                onChange={(e) =>
+                  handleBeneficiaryChange(index, "contact", e.target.value)
+                }
+              />
+
+              <InputWithIcon
+                icon={<FaDollarSign />}
+                placeholder="Email Address"
+                value={beneficiary.email}
+                onChange={(e) =>
+                  handleBeneficiaryChange(index, "email", e.target.value)
+                }
+              />
+
+              <InputWithIcon
+                icon={<FaDollarSign />}
+                placeholder="Percentage of Entitlement"
+                type='number'
+                value={beneficiary.entitlement}
+                onChange={(e) =>
+                  handleBeneficiaryChange(index, "entitlement", e.target.value)
+                }
+              />
+
+              <InputWithIcon
+                icon={<FaDollarSign />}
+                placeholder="Relationship"
+                value={beneficiary.relationship}
+                onChange={(e) =>
+                  handleBeneficiaryChange(index, "relationship", e.target.value)
+                }
+              />
+              <label className="inline-flex items-center mt-2">
                 <input
-                  type="text"
-                  placeholder="Beneficiary Name"
-                  className="border border-gray-300 p-3 rounded-md w-full"
-                  value={beneficiary.name}
+                  type="checkbox"
+                  className="mr-2"
+                  checked={beneficiary.notify}
                   onChange={(e) =>
-                    handleBeneficiaryChange(index, "name", e.target.value)
+                    handleBeneficiaryChange(index, "notify", e.target.checked)
                   }
                 />
-                <input
-                  type="text"
-                  placeholder="Contact Number"
-                  className="border border-gray-300 p-3 rounded-md w-full"
-                  value={beneficiary.contact}
-                  onChange={(e) =>
-                    handleBeneficiaryChange(index, "contact", e.target.value)
-                  }
-                />
-                <input
-                  type="email"
-                  placeholder="Email Address"
-                  className="border border-gray-300 p-3 rounded-md w-full"
-                  value={beneficiary.email}
-                  onChange={(e) =>
-                    handleBeneficiaryChange(index, "email", e.target.value)
-                  }
-                />
-                <input
-                  type="text"
-                  placeholder="Percentage of Entitlement"
-                  className="border border-gray-300 p-3 rounded-md w-full"
-                  value={beneficiary.entitlement}
-                  onChange={(e) =>
-                    handleBeneficiaryChange(
-                      index,
-                      "entitlement",
-                      e.target.value
-                    )
-                  }
-                />
-                <input
-                  type="text"
-                  placeholder="Relationship"
-                  className="border border-gray-300 p-3 rounded-md w-full"
-                  value={beneficiary.relationship}
-                  onChange={(e) =>
-                    handleBeneficiaryChange(
-                      index,
-                      "relationship",
-                      e.target.value
-                    )
-                  }
-                />
-                <label className="inline-flex items-center mt-2">
-                  <input
-                    type="checkbox"
-                    className="mr-2"
-                    checked={beneficiary.notify}
-                    onChange={(e) =>
-                      handleBeneficiaryChange(index, "notify", e.target.checked)
-                    }
-                  />
-                  Notify by Email
-                </label>
-              </div>
+                Notify by Email
+              </label>
             </div>
-          ))}
-          <button
-            onClick={addBeneficiary}
-            className="bg-blue-500 text-white py-2 px-4 rounded-md shadow-md hover:bg-blue-600 mt-4"
+          </div>
+        ))}
+        <button
+          onClick={addBeneficiary}
+          className="bg-[#3d5e27fd] text-white py-3 px-8 rounded-md shadow-md hover:bg-[#4c7033fd] transition-all"
+        >
+          <FaPlus className="inline mr-2" /> Add Beneficiary
+        </button>
+      </Section>
+
+      <Section className="mb-10 border-l-2 border-[#538d2dfd] p-6 rounded-lg shadow">
+        <h2 className="text-xl font-semibold mb-4">Document Upload</h2>
+
+        <div className="relative flex items-center">
+          <input
+            type="file"
+            accept="application/pdf, image/*"
+            onChange={handleDocumentUpload}
+            id="file-input"
+            className="hidden"
+          />
+          <label
+            htmlFor="file-input"
+            className="cursor-pointer bg-[#538d2dfd] text-white py-2 px-4 rounded-md shadow-md hover:bg-[#4c7033fd]"
           >
-            <FaPlus className="inline mr-2" /> Add Beneficiary
-          </button>
-        </section>
+            Choose a file
+          </label>
 
-        {/* Document Upload */}
-        <section className="bg-white p-6 rounded-lg shadow-md">
-          <h2 className="text-2xl font-semibold text-gray-800 mb-4">
-            Document Upload
-          </h2>
-          <button className="bg-blue-500 text-white py-2 px-6 rounded-md shadow-md hover:bg-blue-600">
-            <FaFileUpload className="inline mr-2" /> Upload Documents
-          </button>
-        </section>
-
-        {/* Educational Resources */}
-        <section className="bg-white p-6 rounded-lg shadow-md flex flex-col items-center">
-          <h3 className="text-xl font-semibold text-gray-800 mb-2">
-            Educational Resources
-          </h3>
-          <p className="text-gray-600 text-center mb-4">
-            Learn about investing and transferring precious metals.
-          </p>
-          <button className="bg-green-500 text-white py-2 px-4 rounded-md shadow-md hover:bg-green-600">
-            Explore Resources
-          </button>
-        </section>
-
-        {/* Save Button */}
-        <div className="flex justify-end">
-          <button className="bg-green-600 text-white py-3 px-8 rounded-md shadow-md hover:bg-green-700 transition-all">
-            Save Changes
-          </button>
+          {document && (
+            <span className="ml-4 text-sm text-gray-600">{document.name}</span>
+          )}
         </div>
+      </Section>
+
+      <div className="flex justify-center mb-4 mt-10">
+        <button
+          onClick={handleSubmit}
+          className="bg-[#538d2dfd] text-white py-3 px-8 rounded-md shadow-md hover:bg-[#4c7033fd] transition-all"
+        >
+          Submit Data
+        </button>
       </div>
+
+      <ToastContainer />
     </div>
   );
 }

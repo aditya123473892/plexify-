@@ -383,7 +383,7 @@ router.post(
       if (req.file) {
         try {
           documentData = fs.readFileSync(req.file.path);
-          console.log("✌️ documentData Buffer:", documentData);
+         
         } catch (err) {
           console.error("Error reading file:", err);
           return res.status(500).json({ msg: "Error reading document file" });
@@ -451,7 +451,7 @@ const queryDatabase = (query, params) => {
 
 router.post("/recurring_deposits", authMiddleware, async (req, res) => {
   console.log("✌️ req.body --->", req.body);
-  const { deposits, beneficiaries } = req.body;
+  const { deposits } = req.body;
   const user_id = req.user_id;
 
   try {
@@ -464,16 +464,19 @@ router.post("/recurring_deposits", authMiddleware, async (req, res) => {
         deposit.rdNumber,
       ]);
 
+      let rd_id;
+
       if (checkDepositResult[0].count > 0) {
-        // If the deposit already exists, update it instead of inserting a new one
+        // Update the existing deposit
         const updateDepositQuery = `
           UPDATE [dbo].[recurring_deposit]
           SET monthly_deposit_amount = ?, interest_rate = ?, start_date = ?, 
               maturity_date = ?, maturity_amount = ?, bank_name = ?, status = ?
+          OUTPUT INSERTED.rd_id
           WHERE rd_number = ?
         `;
 
-        await queryDatabase(updateDepositQuery, [
+        const updateResult = await queryDatabase(updateDepositQuery, [
           deposit.depositAmount,
           deposit.interestRate,
           deposit.startDate,
@@ -483,8 +486,10 @@ router.post("/recurring_deposits", authMiddleware, async (req, res) => {
           deposit.status || "Active",
           deposit.rdNumber,
         ]);
+
+        rd_id = updateResult[0].rd_id;
       } else {
-        // If deposit does not exist, insert a new one using OUTPUT to get the inserted ID
+        // Insert a new deposit and get the inserted ID
         const insertDepositQuery = `
           INSERT INTO [dbo].[recurring_deposit] (
             user_id, rd_number, monthly_deposit_amount, interest_rate, start_date, 
@@ -506,33 +511,33 @@ router.post("/recurring_deposits", authMiddleware, async (req, res) => {
           deposit.status || "Active",
         ]);
 
-        const rd_id = insertDepositResult[0]?.rd_id; // Extract the inserted deposit ID
-        if (!rd_id) {
-          throw new Error("Failed to retrieve inserted deposit ID.");
-        }
-
-        console.log("Inserted Deposit ID:", rd_id);
-
-        for (const beneficiary of beneficiaries) {
-          const insertBeneficiaryQuery = `
-            INSERT INTO [dbo].[beneficiaries] (
-              rd_id, user_id, name, contact, email, entitlement, relationship, notify
-            )
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-          `;
-
-          await queryDatabase(insertBeneficiaryQuery, [
-            rd_id, // Inserted deposit ID
-            user_id,
-            beneficiary.name,
-            beneficiary.contact,
-            beneficiary.email,
-            parseInt(beneficiary.entitlement),
-            beneficiary.relationship,
-            beneficiary.notify ? 1 : 0,
-          ]);
-        }
+        rd_id = insertDepositResult[0].rd_id;
       }
+
+      console.log("Recurring Deposit ID:", rd_id);
+
+      // Handle the beneficiaries associated with each deposit
+      const beneficiaryPromises = deposit.beneficiaries.map((beneficiary) => {
+        const insertBeneficiaryQuery = `
+          INSERT INTO [dbo].[beneficiaries] (
+            rd_id, user_id, name, contact, email, entitlement, relationship, notify
+          )
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        `;
+
+        return queryDatabase(insertBeneficiaryQuery, [
+          rd_id,
+          user_id,
+          beneficiary.name,
+          beneficiary.contact,
+          beneficiary.email,
+          parseInt(beneficiary.entitlement),
+          beneficiary.relationship,
+          beneficiary.notify ? 1 : 0,
+        ]);
+      });
+
+      await Promise.all(beneficiaryPromises); // Insert beneficiaries only once per deposit
     }
 
     res.status(201).json({
@@ -620,5 +625,167 @@ router.post("/real_estate", authMiddleware, async (req, res) => {
     res.status(500).json({ msg: "Server error." });
   }
 });
+
+
+
+
+
+const documentStorage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, "uploads/mutualFundsDocuments");
+  },
+  filename: function (req, file, cb) {
+    cb(null, Date.now() + path.extname(file.originalname));
+  },
+});
+
+const mfupload = multer({
+  storage: documentStorage
+});
+
+router.post('/mutual-funds',authMiddleware, mfupload.single('document'), async (req, res) => {
+  try {
+    const funds = JSON.parse(req.body.funds); // Parse funds JSON from request body
+    const userId = req.user_id; // Assuming user_id is passed in the request body
+    const filePath = req.file ? req.file.path : null;
+
+    funds.forEach((fund) => {
+      const insertQuery = `
+        INSERT INTO mutual_funds (user_id, fund_name, fund_manager, investment_amount, current_value, fund_type, risk_level, notify, document)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+      `;
+      sql.query(connectionString,insertQuery, [
+        userId,
+        fund.fundName,
+        fund.fundManager,
+        fund.investmentAmount,
+        fund.currentValue,
+        fund.fundType,
+        fund.riskLevel,
+        fund.notify,
+        filePath ? fs.readFileSync(filePath) : null, // Convert file to binary data
+      ], (err, result) => {
+        if (err) {
+          console.error('Error inserting mutual fund:', err);
+          return res.status(500).json({ msg: 'Error inserting mutual fund' });
+        }
+      });
+    });
+
+    res.status(200).json({ msg: 'Mutual fund data saved successfully' });
+  } catch (error) {
+    console.error('Error saving mutual fund data:', error);
+    res.status(500).json({ msg: 'Failed to save mutual fund data' });
+  }
+});
+
+
+
+const pmStorage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, 'uploads/preciousMetalsDocuments');
+  },
+  filename: function (req, file, cb) {
+    cb(null, Date.now() + path.extname(file.originalname));
+  },
+});
+
+const pmUpload = multer({
+  storage: pmStorage,
+});
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+router.post('/precious-metal', authMiddleware, pmUpload.single('document'), async (req, res) => {
+  try {
+    console.log('✌️req.body --->', req.body);
+    const metals = JSON.parse(req.body.metals); // Metals data
+    const beneficiaries = JSON.parse(req.body.beneficiaries); // Shared beneficiaries
+    const userId = req.user_id;
+
+    let documentData = null;
+    if (req.file) {
+      documentData = fs.readFileSync(req.file.path);
+      console.log("Document Data Buffer:", documentData);
+    }
+
+    // Insert each metal record
+    const metalIds = await Promise.all(metals.map(async (metal) => {
+      const weight = parseFloat(metal.weight).toFixed(2);
+      const purchasePrice = parseFloat(metal.purchasePrice).toFixed(2);
+      const currentValue = parseFloat(metal.currentValue).toFixed(2);
+      const description = metal.description || '';
+
+      if (isNaN(weight) || isNaN(purchasePrice) || isNaN(currentValue)) {
+        throw new Error('Invalid numeric data for metal entry');
+      }
+
+      const insertMetalQuery = `
+        INSERT INTO precious_metals (user_id, metal_type, weight, purchase_price, current_value, description, document)
+        OUTPUT INSERTED.id
+        VALUES (?, ?, ?, ?, ?, ?, ?);
+      `;
+
+      const result = await queryDatabase(insertMetalQuery, [
+        userId,
+        metal.metalType,
+        weight,
+        purchasePrice,
+        currentValue,
+        description,
+        documentData || null,
+      ]);
+
+      console.log("Metal Insert Result:", result);
+      return result[0].id; // Get the inserted metal ID
+    }));
+
+    // Insert beneficiaries only once and link to the first metal ID or last inserted ID as per requirement
+    const pm_id = metalIds[0]; // Use the first metal ID (or use metalIds[metalIds.length - 1] for the last one)
+
+    await Promise.all(beneficiaries.map(async (beneficiary) => {
+      const entitlement = parseFloat(beneficiary.entitlement);
+      if (isNaN(entitlement)) {
+        throw new Error('Invalid entitlement data for beneficiary');
+      }
+
+      const insertBeneficiaryQuery = `
+        INSERT INTO realestate_Beneficiary (pm_id, user_id, name, contact, email, entitlement, relationship, notify)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+      `;
+
+      await queryDatabase(insertBeneficiaryQuery, [
+        pm_id,
+        userId,
+        beneficiary.name,
+        beneficiary.contact,
+        beneficiary.email,
+        entitlement,
+        beneficiary.relationship,
+        beneficiary.notify ? 1 : 0,
+      ]);
+    }));
+
+    res.status(200).json({ msg: 'Precious metals and beneficiaries data saved successfully' });
+  } catch (error) {
+    console.error('Error saving precious metals inheritance data:', error);
+    res.status(500).json({ msg: 'Failed to save data' });
+  }
+});
+
+
 
 module.exports = router;
