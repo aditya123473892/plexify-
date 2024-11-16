@@ -11,10 +11,28 @@ const fs = require("fs");
 const path = require("path");
 const authMiddleware = require("../auth/authMiddleware");
 const secret = "iwfhugafwofjwhig3hwigk3wnig3uwmgkmewoipj39gw8hqoijhi3hgwgkwni";
-const connectionString = 'Driver={ODBC Driver 17 for SQL Server};Server=DESKTOP-BBKLDAG\\SQLEXPRESS01;Database=DB;Trusted_Connection=yes;';
+const odbc = require("odbc");
+const connectionString =
+  "Driver={ODBC Driver 18 for SQL Server};Server=MOHIT\\SQLEXPRESS;Database=master;Trusted_Connection=yes;TrustServerCertificate=yes;";
 
+(async () => {
+  try {
+    // Updated connection string with TrustServerCertificate set to "yes"
 
+    // Establish the connection
+    const connection = await odbc.connect(connectionString);
 
+    console.log("Connected to SQL Server successfully!");
+
+    // Run a sample query
+    const result = await connection.query("SELECT name FROM sys.databases;");
+    console.log("Databases:", result);
+
+    // Close the connection
+    await connection.close();
+  } catch (error) {
+    console.error("Error connecting to SQL Server:", error);
+  }
   router.post("/signup", async (req, res) => {
     try {
       console.log("✌️const --->", req.body);
@@ -890,319 +908,6 @@ const connectionString = 'Driver={ODBC Driver 17 for SQL Server};Server=DESKTOP-
       }
     }
   );
-
-  router.post("/commodities", authMiddleware, async (req, res) => {
-    console.log("✌️ req.body --->", req.body);
-    const { commodities } = req.body;
-
-    let connection;
-    try {
-      connection = await initializeConnection(); // Initialize connection
-
-      const transaction = new sql.Transaction(connection);
-      await transaction.begin(); // Start transaction
-
-      for (const commodity of commodities) {
-        const {
-          CommodityID,
-          CommodityType,
-          Quantity,
-          PurchasePrice,
-          CurrentValue = null,
-          Notes = "",
-        } = commodity;
-
-        // Input validation
-        if (
-          !CommodityType ||
-          Quantity === undefined ||
-          PurchasePrice === undefined
-        ) {
-          throw new Error(
-            "CommodityType, Quantity, and PurchasePrice are required."
-          );
-        }
-
-        let existingCommodityCheckQuery = `
-        SELECT COUNT(*) AS count FROM Commodities WHERE CommodityID = @CommodityID
-      `;
-        const request = new sql.Request(transaction);
-        request.input("CommodityID", sql.Int, CommodityID);
-
-        const existingCommodityCheckResult = await request.query(
-          existingCommodityCheckQuery
-        );
-
-        if (existingCommodityCheckResult.recordset[0].count > 0) {
-          // Update existing commodity
-          const updateCommodityQuery = `
-          UPDATE Commodities
-          SET CommodityType = @CommodityType, Quantity = @Quantity, PurchasePrice = @PurchasePrice,
-              CurrentValue = @CurrentValue, Notes = @Notes, CreatedAt = GETDATE()
-          WHERE CommodityID = @CommodityID
-        `;
-          request.input("CommodityType", sql.NVarChar, CommodityType);
-          request.input("Quantity", sql.Float, Quantity);
-          request.input("PurchasePrice", sql.Float, PurchasePrice);
-          request.input("CurrentValue", sql.Float, CurrentValue);
-          request.input("Notes", sql.NVarChar, Notes);
-
-          await request.query(updateCommodityQuery);
-          console.log(`Updated Commodity ID: ${CommodityID}`);
-        } else {
-          // Insert new commodity
-          const insertCommodityQuery = `
-          INSERT INTO Commodities (CommodityType, Quantity, PurchasePrice, CurrentValue, Notes, CreatedAt)
-          OUTPUT INSERTED.CommodityID
-          VALUES (@CommodityType, @Quantity, @PurchasePrice, @CurrentValue, @Notes, GETDATE())
-        `;
-          request.input("CommodityType", sql.NVarChar, CommodityType);
-          request.input("Quantity", sql.Float, Quantity);
-          request.input("PurchasePrice", sql.Float, PurchasePrice);
-          request.input("CurrentValue", sql.Float, CurrentValue);
-          request.input("Notes", sql.NVarChar, Notes);
-
-          const insertCommodityResult = await request.query(
-            insertCommodityQuery
-          );
-          console.log(
-            `New Commodity ID: ${insertCommodityResult.recordset[0].CommodityID}`
-          );
-        }
-      }
-
-      await transaction.commit(); // Commit transaction
-      res.status(201).json({ msg: "Commodities added/updated successfully!" });
-    } catch (error) {
-      console.error("Error:", error);
-      if (connection) {
-        await connection.rollback(); // Rollback transaction on error
-      }
-      res.status(500).json({ msg: "Server error." });
-    } finally {
-      if (connection) {
-        connection.close(); // Close the connection
-      }
-    }
-  });
-
-
-  router.post("/stocks", authMiddleware, async (req, res) => {
-    console.log('✌️req.body --->', req.body);
-  
-    const { stocks, beneficiaries } = req.body;
-    const user_id = req.user_id;
-  
-    try {
-      // Define the SQL queries inside the route handler
-      const insertStockQuery = `
-        INSERT INTO [dbo].[stocks] 
-          (user_id, ticker_symbol, purchase_date, quantity, purchase_price, current_price)
-        OUTPUT INSERTED.id
-        VALUES (?, ?, ?, ?, ?, ?)
-      `;
-  
-      const updateStockQuery = `
-        UPDATE [dbo].[stocks]
-        SET purchase_date = ?, quantity = ?, purchase_price = ?, current_price = ?
-        WHERE ticker_symbol = ?
-      `;
-  
-      const insertBeneficiaryQuery = `
-        INSERT INTO [dbo].[bussiness_Beneficiary] 
-          (stock_id, user_id, name, contact, email, entitlement, relationship, notify)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-      `;
-  
-      // Process each stock record
-      for (const stock of stocks) {
-        const purchasePrice = parseFloat(stock.purchasePrice);  // Convert to float
-        const quantity = parseInt(stock.quantity);  // Convert to integer
-        const currentValue = parseFloat(stock.currentValue);  // Convert to float
-        const purchaseDate = new Date(stock.purchaseDate).toISOString();  // Convert to ISO string
-  
-        // Check if the stock already exists
-        const checkStockQuery = `
-          SELECT COUNT(*) AS count FROM [dbo].[stocks] WHERE ticker_symbol = ?
-        `;
-        const checkResult = await queryDatabase(checkStockQuery, [stock.symbol]);
-  
-        let stock_id;
-        if (checkResult[0].count > 0) {
-          // Stock exists, update the record
-          const updateResult = await queryDatabase(updateStockQuery, [
-            purchaseDate,
-            quantity,
-            purchasePrice,
-            currentValue,
-            stock.symbol,
-          ]);
-  
-          // Get the updated stock ID
-          const getStockIdQuery = `SELECT id FROM [dbo].[stocks] WHERE ticker_symbol = ?`;
-          const result = await queryDatabase(getStockIdQuery, [stock.symbol]);
-          stock_id = result[0].id;
-        } else {
-          // Stock does not exist, insert a new record
-          const result = await queryDatabase(insertStockQuery, [
-            user_id,
-            stock.symbol,
-            purchaseDate,
-            quantity,
-            purchasePrice,
-            currentValue,
-          ]);
-          stock_id = result[0]?.id;
-        }
-  
-        console.log(`Processing Stock: ${stock.symbol}, stock_id: ${stock_id}`);
-  
-        // Insert beneficiaries for this stock (only once for each stock)
-        for (const beneficiary of beneficiaries) {
-          const entitlement = parseFloat(beneficiary.entitlement);  // Ensure entitlement is a number
-  
-          // Insert beneficiary only if it doesn't exist already for this stock
-          const beneficiaryExistsQuery = `
-            SELECT COUNT(*) AS count 
-            FROM [dbo].[bussiness_Beneficiary] 
-            WHERE stock_id = ? AND user_id = ? AND email = ?
-          `;
-          const beneficiaryCheck = await queryDatabase(beneficiaryExistsQuery, [
-            stock_id,
-            user_id,
-            beneficiary.email,
-          ]);
-  
-          // If beneficiary doesn't already exist for the stock, insert them
-          if (beneficiaryCheck[0].count === 0) {
-            await queryDatabase(insertBeneficiaryQuery, [
-              stock_id, // Linking stock_id as foreign key
-              user_id,
-              beneficiary.name,
-              beneficiary.contact,
-              beneficiary.email,
-              entitlement,
-              beneficiary.relationship,
-              beneficiary.notify ? 1 : 0, // Convert boolean to 1 or 0
-            ]);
-          } else {
-            console.log(`Beneficiary ${beneficiary.email} already exists for stock_id ${stock_id}`);
-          }
-        }
-      }
-  
-      // If everything went successfully, send a response
-      res.status(201).json({ msg: "Stocks and beneficiaries saved successfully!" });
-    } catch (error) {
-      // Handle any errors
-      console.error("Error:", error);
-      res.status(500).json({ msg: "Failed to save data." });
-    }
-  });
-  
-
-
-
-  const bondUpload = multer({
-    storage: multer.diskStorage({
-      destination: (req, file, cb) => {
-        cb(null, "uploads/bond"); // File upload directory
-      },
-      filename: (req, file, cb) => {
-        const uniqueName = `${Date.now()}-${file.originalname}`;
-        cb(null, uniqueName);
-      },
-    }),
-  });
-  
-  router.post(
-    "/bonds",
-    authMiddleware,
-    bondUpload.single("document"), // Middleware to handle file uploads
-    async (req, res) => {
-      try {
-        console.log("Request Body:", req.body);
-  
-        const bonds = JSON.parse(req.body.bonds); // Bond data from frontend
-        const beneficiaries = JSON.parse(req.body.beneficiaries); // Shared beneficiaries
-        const userId = req.user_id; // Extracted from authMiddleware
-  
-        let documentData = null;
-        if (req.file) {
-          documentData = fs.readFileSync(req.file.path); // Read document file
-          console.log("Document Data Buffer:", documentData);
-        }
-  
-        // Insert each bond record
-        const bondIds = await Promise.all(
-          bonds.map(async (bond) => {
-            // Parse the values to ensure they are numbers
-            const bondValue = parseFloat(bond.faceValue);
-            const interestRate = parseFloat(bond.interestRate);
-            const marketValue = parseFloat(bond.marketValue);
-            const description = bond.description || "";
-  
-            if (isNaN(bondValue) || isNaN(interestRate) || isNaN(marketValue)) {
-              throw new Error("Invalid numeric data for bond entry");
-            }
-  
-            const insertBondQuery = `
-              INSERT INTO bond (user_id, bond_name, bond_value, maturity_date, description, document)
-              OUTPUT INSERTED.bond_id
-              VALUES (?, ?, ?, ?, ?, ?);
-            `;
-  
-            const result = await queryDatabase(insertBondQuery, [
-              userId,
-              bond.issuer,  // Updated to bond.issuer instead of bond.name
-              bondValue.toFixed(2),  // Use bondValue as the value to be inserted
-              bond.maturityDate,
-              description,
-              documentData || null,
-            ]);
-  
-            console.log("Bond Insert Result:", result);
-            return result[0].bond_id; // Get the inserted bond ID
-          })
-        );
-  
-        // Insert beneficiaries and associate them with the first bond ID or any other as required
-        const bondId = bondIds[0]; // Use the first bond ID (or bondIds[bondIds.length - 1] for the last one)
-  
-        await Promise.all(
-          beneficiaries.map(async (beneficiary) => {
-            const entitlement = parseFloat(beneficiary.entitlement);
-            if (isNaN(entitlement)) {
-              throw new Error("Invalid entitlement data for beneficiary");
-            }
-  
-            const insertBeneficiaryQuery = `
-              INSERT INTO bond_beneficiary (bond_id, user_id, name, contact, email, entitlement, relationship, notify)
-              VALUES (?, ?, ?, ?, ?, ?, ?, ?);
-            `;
-  
-            await queryDatabase(insertBeneficiaryQuery, [
-              bondId,
-              userId,
-              beneficiary.name,
-              beneficiary.contact,
-              beneficiary.email,
-              entitlement,
-              beneficiary.relationship,
-              beneficiary.notify ? 1 : 0,
-            ]);
-          })
-        );
-  
-        res.status(200).json({
-          msg: "Bonds and beneficiaries data saved successfully",
-        });
-      } catch (error) {
-        console.error("Error saving bond data:", error);
-        res.status(500).json({ msg: "Failed to save data" });
-      }
-    }
-  );
-  
+})();
 
 module.exports = router;
