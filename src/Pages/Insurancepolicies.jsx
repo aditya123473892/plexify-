@@ -143,6 +143,22 @@ function InsurancePage() {
             value={formData.policyPeriod}
             onChange={handleChange}
           />
+                <InputWithIcon
+            icon={<FaClipboard />}
+            placeholder="Nominee Name"
+            name="nomineeName"
+            type="text"
+            value={formData.nomineeName}
+            onChange={handleChange}
+          />
+                <InputWithIcon
+            icon={<FaClipboard />}
+            placeholder="Nominee Relation"
+            name="nomineeRelation"
+            type="text"
+            value={formData.nomineeRelation}
+            onChange={handleChange}
+          />
           <InputWithIcon
             icon={<FaDollarSign />}
             placeholder="Premium Amount"

@@ -25,15 +25,13 @@ const ManageDeposits = () => {
   const handleInputChange = (e) => {
     const { name, value } = e.target;
 
-    // Restrict depositAmount, interestRate, and maturityAmount to two decimal places
-    if (["depositAmount", "interestRate", "maturityAmount"].includes(name)) {
+    if (["interestRate"].includes(name)) {
       let formattedValue = value;
 
       if (value) {
         formattedValue = parseFloat(value).toFixed(2); // Fix to two decimal places
       }
 
-      // Only allow valid values (greater than or equal to 0)
       if (!isNaN(formattedValue) && parseFloat(formattedValue) >= 0) {
         setDepositDetails((prevDetails) => ({
           ...prevDetails,
@@ -126,7 +124,7 @@ const ManageDeposits = () => {
           <InputWithIcon
             icon={<FaTag />}
             name="accountNumber"
-            type="number"
+            type="text"
             placeholder="Account Number"
             value={depositDetails.accountNumber}
             onChange={handleInputChange}
