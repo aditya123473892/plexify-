@@ -15,6 +15,7 @@ import PaymentsSlider from "../Components/PaymentsSlider";
 import Accordion from "../Components/Accordion";
 import { FaLightbulb, FaEye } from "react-icons/fa";
 import Chartsline from "./Chartsline";
+import VideoChat from "../Components/Videochat";
 
 ChartJS.register(ArcElement, Tooltip, Legend);
 
@@ -140,18 +141,11 @@ const Home = () => {
                 चिंतामुक्त भविष्य, विरासत का सुखद सफर
               </h2>
             </div>
-
-            <div className="text-center mt-2">
-              <img
-                className="w-2/5 mx-auto rounded-full filter brightness-[20.5]"
-                src={video_pic}
-                alt="Video Consultation Booking"
-              />
-              <p className="pt-2">Video Consultation Booking</p>
-            </div>
           </div>
         </div>
       </header>
+
+      <VideoChat></VideoChat>
 
       <div>
         <div className="grid md:grid-cols-3 gap-7">
@@ -292,8 +286,8 @@ const Home = () => {
 
             {/* Footer Actions */}
             <div className="flex justify-around border-t-2 pt-3 mt-3 text-white">
-                  {/* {["Statement", "Manage", "Spends"].map((text, index) => ( */}
-                  {["View All"].map((text, index) => (
+              {/* {["Statement", "Manage", "Spends"].map((text, index) => ( */}
+              {["View All"].map((text, index) => (
                 <React.Fragment key={index}>
                   <div>{text}</div>
                   {index < 0 && <span className="mx-2">|</span>}
@@ -365,8 +359,8 @@ const Home = () => {
 
             {/* Footer Actions */}
             <div className="flex justify-around border-t-2 pt-3 mt-3 text-white">
-                   {/* {["Statement", "Manage", "Spends"].map((text, index) => ( */}
-                   {["View All"].map((text, index) => (
+              {/* {["Statement", "Manage", "Spends"].map((text, index) => ( */}
+              {["View All"].map((text, index) => (
                 <React.Fragment key={index}>
                   <div>{text}</div>
                   {index < 0 && <span className="mx-2">|</span>}
@@ -377,113 +371,6 @@ const Home = () => {
         </div>
 
         {/* charts */}
-        <div className="mt-10">
-          {/* Metrics Overview Heading */}
-
-          {/* Metrics Cards Section */}
-          <div className="flex flex-wrap justify-center space-x-4">
-            <div className="mt-10">
-              {/* Metrics Overview Heading */}
-              <div className="text-2xl font-bold text-center text-[#538d2d] mb-6">
-                Metrics Overview
-              </div>
-
-              {/* Metrics Cards Section */}
-              <div className="flex flex-wrap justify-center space-x-4">
-                {metrics.map((metric, index) => (
-                  <MetricCard
-                    key={index}
-                    {...metric}
-                    className="flex-1 min-h-[500px] rounded-2xl p-6 my-6 text-white shadow-2xl bg-[#f5f5f5] border-l-8 border-[#85bb65]"
-                  />
-                ))}
-
-              </div>
-            </div>
-
-            {/* Main Card Section */}
-            <div className="w-full md:w-4/12 p-6 my-6 rounded-2xl text-white shadow-2xl bg-[#538d2dfd] z-40 relative border-l-8 border-[#538d2dfd] flex flex-col items-center space-y-6 min-h-[500px]">
-              <div className="absolute inset-0 opacity-40 bg-slate-200 rounded-2xl"></div>
-
-              {/* Header Icon Section */}
-              <div className="flex justify-end w-full mb-6 pr-4 z-10">
-                {/* <MdOutlineQueryStats className="text-3xl p-3 rounded-full shadow-lg bg-white text-[#538d2dfd]" /> */}
-              </div>
-
-              {/* Circle Chart Section */}
-              <div className="relative flex justify-center items-center mb-8 h-[300px] z-10">
-                {/* Circle 1 */}
-                <div className="w-24 h-24 bg-[#85bb65] rounded-full opacity-90 absolute left-5 bottom-10 flex flex-col items-center justify-center text-white text-sm font-semibold shadow-lg">
-                  <div>25%</div>
-                  <div className="text-xs">Current Liabilities</div>
-                </div>
-
-                {/* Circle 2 */}
-                <div className="w-44 h-44 bg-[#5cace4] rounded-full opacity-90 absolute -top-10 flex flex-col items-center justify-center text-white text-lg font-semibold shadow-lg">
-                  <div>70%</div>
-                  <div className="text-sm">Net Worth</div>
-                </div>
-
-                {/* Circle 3 */}
-                <div className="w-28 h-28 bg-[#f3a541] rounded-full opacity-90 absolute top-24 right-5 flex flex-col items-center justify-center text-white text-base font-semibold shadow-lg">
-                  <div>45%</div>
-                  <div className="text-xs">In this month</div>
-                </div>
-              </div>
-
-              {/* Stats and Progress Bars Section */}
-              <div className="w-full space-y-4 z-10">
-                {/* Stat 1 */}
-                <div className="flex flex-col">
-                  <div className="flex justify-between text-white text-lg font-semibold mb-1">
-                    <span>Current Liabilities</span>
-                    <span className="text-green-400 flex items-center">
-                      <FaArrowTrendUp className="inline-block mr-1" /> 70%
-                    </span>
-                  </div>
-                  <div className="w-full bg-gray-300 rounded-full h-4 shadow-inner">
-                    <div
-                      className="bg-[#85bb65] h-4 rounded-full"
-                      style={{ width: "45%" }}
-                    ></div>
-                  </div>
-                </div>
-
-                {/* Stat 2 */}
-                <div className="flex flex-col">
-                  <div className="flex justify-between text-white text-lg font-semibold mb-1">
-                    <span>Net Worth</span>
-                    <span className="text-blue-700 flex items-center">
-                      <FaArrowTrendUp className="inline-block mr-1" /> 45%
-                    </span>
-                  </div>
-                  <div className="w-full bg-gray-300 rounded-full h-4 shadow-inner">
-                    <div
-                      className="bg-[#5cace4] h-4 rounded-full"
-                      style={{ width: "30%" }}
-                    ></div>
-                  </div>
-                </div>
-
-                {/* Stat 3 */}
-                <div className="flex flex-col">
-                  <div className="flex justify-between text-white text-lg font-semibold mb-1">
-                    <span>In this month</span>
-                    <span className="text-yellow-700 flex items-center">
-                      <FaArrowTrendUp className="inline-block mr-1" /> 25%
-                    </span>
-                  </div>
-                  <div className="w-full bg-gray-300 rounded-full h-4 shadow-inner">
-                    <div
-                      className="bg-[#f3a541] h-4 rounded-full"
-                      style={{ width: "25%" }}
-                    ></div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
 
         <Chartsline></Chartsline>
 

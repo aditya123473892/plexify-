@@ -6,27 +6,34 @@ import {
   FaInfoCircle,
   FaPlus,
   FaCheckCircle,
+  FaCalendarAlt,
+  FaBuilding,
+  FaWeightHanging,
 } from "react-icons/fa";
 import InputWithIcon from "../Components/InputWithIcon";
 import FieldSection from "../Components/FieldSection";
-import Section from "../Components/Section";
-import { AuthContext } from "../Contexts/Context"; // Assuming you have an AuthContext providing the token
+import { AuthContext } from "../Contexts/Context"; // Assumes AuthContext provides a token
 
 const CommodityManagement = () => {
-  const { token } = useContext(AuthContext); // Get token from AuthContext
+  const { token } = useContext(AuthContext);
   const [commodities, setCommodities] = useState([
     {
+      commodityName: "",
       commodityType: "",
-      quantity: "",
-      purchasePrice: "",
-      currentValue: "",
-      notes: "",
+      unitOfMeasure: "",
+      marketPrice: "",
+      stockQuantity: "",
+      provider: "",
+      acquisitionDate: "",
+      expiryDate: "",
+      description: "",
+      status: "Available",
     },
   ]);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
 
-  const API_URL = "http://localhost:3523/commodities"; // Ensure full URL and correct port
+  const API_URL = "http://localhost:3523/commodities"; // Update with your actual backend URL
 
   const handleCommodityChange = (index, field, value) => {
     const newCommodities = [...commodities];
@@ -38,11 +45,16 @@ const CommodityManagement = () => {
     setCommodities([
       ...commodities,
       {
+        commodityName: "",
         commodityType: "",
-        quantity: "",
-        purchasePrice: "",
-        currentValue: "",
-        notes: "",
+        unitOfMeasure: "",
+        marketPrice: "",
+        stockQuantity: "",
+        provider: "",
+        acquisitionDate: "",
+        expiryDate: "",
+        description: "",
+        status: "Available",
       },
     ]);
   };
@@ -50,21 +62,24 @@ const CommodityManagement = () => {
   const validateCommodities = () => {
     for (const commodity of commodities) {
       if (
+        !commodity.commodityName ||
         !commodity.commodityType ||
-        !commodity.quantity ||
-        !commodity.purchasePrice
+        !commodity.unitOfMeasure ||
+        !commodity.marketPrice ||
+        !commodity.stockQuantity ||
+        !commodity.acquisitionDate
       ) {
         setMessage(
-          "Commodity Type, Quantity, and Purchase Price are required."
+          "Commodity Name, Type, Unit of Measure, Market Price, Stock Quantity, and Acquisition Date are required."
         );
         return false;
       }
-      if (isNaN(commodity.quantity) || commodity.quantity <= 0) {
-        setMessage("Quantity must be a positive number.");
+      if (isNaN(commodity.marketPrice) || commodity.marketPrice <= 0) {
+        setMessage("Market Price must be a positive number.");
         return false;
       }
-      if (isNaN(commodity.purchasePrice) || commodity.purchasePrice <= 0) {
-        setMessage("Purchase Price must be a positive number.");
+      if (isNaN(commodity.stockQuantity) || commodity.stockQuantity < 0) {
+        setMessage("Stock Quantity must be a non-negative number.");
         return false;
       }
     }
@@ -82,7 +97,7 @@ const CommodityManagement = () => {
         { commodities },
         {
           headers: {
-            Authorization: `Bearer ${token}`, // Include the token in the Authorization header
+            Authorization: `Bearer ${token}`,
             "Content-Type": "application/json",
           },
         }
@@ -90,11 +105,16 @@ const CommodityManagement = () => {
       setMessage("Commodities saved successfully!");
       setCommodities([
         {
+          commodityName: "",
           commodityType: "",
-          quantity: "",
-          purchasePrice: "",
-          currentValue: "",
-          notes: "",
+          unitOfMeasure: "",
+          marketPrice: "",
+          stockQuantity: "",
+          provider: "",
+          acquisitionDate: "",
+          expiryDate: "",
+          description: "",
+          status: "Available",
         },
       ]); // Reset form
     } catch (error) {
@@ -123,46 +143,91 @@ const CommodityManagement = () => {
           <InputWithIcon
             icon={<FaSeedling className="text-[#538d2dfd] mx-2" />}
             type="text"
-            placeholder="Commodity Type (e.g., Gold, Silver)"
+            placeholder="Commodity Name (e.g., Gold, Silver)"
+            value={commodity.commodityName}
+            onChange={(e) =>
+              handleCommodityChange(index, "commodityName", e.target.value)
+            }
+          />
+          <InputWithIcon
+            icon={<FaSeedling className="text-[#538d2dfd] mx-2" />}
+            type="text"
+            placeholder="Commodity Type"
             value={commodity.commodityType}
             onChange={(e) =>
               handleCommodityChange(index, "commodityType", e.target.value)
             }
           />
           <InputWithIcon
-            icon={<FaMoneyBillWave className="text-[#538d2dfd] mx-2" />}
-            type="number"
-            placeholder="Quantity"
-            value={commodity.quantity}
+            icon={<FaWeightHanging className="text-[#538d2dfd] mx-2" />}
+            type="text"
+            placeholder="Unit of Measure (e.g., kg, barrel)"
+            value={commodity.unitOfMeasure}
             onChange={(e) =>
-              handleCommodityChange(index, "quantity", e.target.value)
+              handleCommodityChange(index, "unitOfMeasure", e.target.value)
             }
           />
           <InputWithIcon
             icon={<FaMoneyBillWave className="text-[#538d2dfd] mx-2" />}
             type="number"
-            placeholder="Purchase Price"
-            value={commodity.purchasePrice}
+            placeholder="Market Price"
+            value={commodity.marketPrice}
             onChange={(e) =>
-              handleCommodityChange(index, "purchasePrice", e.target.value)
+              handleCommodityChange(index, "marketPrice", e.target.value)
             }
           />
           <InputWithIcon
             icon={<FaMoneyBillWave className="text-[#538d2dfd] mx-2" />}
             type="number"
-            placeholder="Current Value"
-            value={commodity.currentValue}
+            placeholder="Stock Quantity"
+            value={commodity.stockQuantity}
             onChange={(e) =>
-              handleCommodityChange(index, "currentValue", e.target.value)
+              handleCommodityChange(index, "stockQuantity", e.target.value)
+            }
+          />
+          <InputWithIcon
+            icon={<FaBuilding className="text-[#538d2dfd] mx-2" />}
+            type="text"
+            placeholder="Provider"
+            value={commodity.provider}
+            onChange={(e) =>
+              handleCommodityChange(index, "provider", e.target.value)
+            }
+          />
+          <InputWithIcon
+            icon={<FaCalendarAlt className="text-[#538d2dfd] mx-2" />}
+            type="date"
+            placeholder="Acquisition Date"
+            value={commodity.acquisitionDate}
+            onChange={(e) =>
+              handleCommodityChange(index, "acquisitionDate", e.target.value)
+            }
+          />
+          <InputWithIcon
+            icon={<FaCalendarAlt className="text-[#538d2dfd] mx-2" />}
+            type="date"
+            placeholder="Expiry Date"
+            value={commodity.expiryDate}
+            onChange={(e) =>
+              handleCommodityChange(index, "expiryDate", e.target.value)
             }
           />
           <InputWithIcon
             icon={<FaInfoCircle className="text-[#538d2dfd] mx-2" />}
             type="text"
-            placeholder="Additional Notes"
-            value={commodity.notes}
+            placeholder="Description"
+            value={commodity.description}
             onChange={(e) =>
-              handleCommodityChange(index, "notes", e.target.value)
+              handleCommodityChange(index, "description", e.target.value)
+            }
+          />
+          <InputWithIcon
+            icon={<FaCheckCircle className="text-[#538d2dfd] mx-2" />}
+            type="text"
+            placeholder="Status (e.g., Available, Out of Stock)"
+            value={commodity.status}
+            onChange={(e) =>
+              handleCommodityChange(index, "status", e.target.value)
             }
           />
         </FieldSection>
@@ -174,15 +239,6 @@ const CommodityManagement = () => {
       >
         <FaPlus className="inline mr-2" /> Add Commodity
       </button>
-
-      <Section title="Educational Resources">
-        <p className="text-gray-600 mb-4">
-          Explore our educational resources on commodity investments.
-        </p>
-        <button className="text-white py-2 px-4 rounded-md shadow-md bg-[#3a5e22fd] hover:bg-[#2f4b1dfd]">
-          <FaMoneyBillWave className="inline mr-2" /> Learn More
-        </button>
-      </Section>
 
       <button
         type="button"

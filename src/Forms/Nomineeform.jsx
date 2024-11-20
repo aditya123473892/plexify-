@@ -64,7 +64,7 @@ const NomineeForm = () => {
 
   const handleFileUpload = (e) => {
     const files = Array.from(e.target.files);
-    const maxFileSize = 2 * 1024 * 1024; 
+    const maxFileSize = 2 * 1024 * 1024;
     const supportedFormats = ["image/jpeg", "image/png", "application/pdf"];
 
     const validFiles = files.filter((file) => {
@@ -117,7 +117,9 @@ const NomineeForm = () => {
 
   return (
     <div className=" mx-auto p-6  rounded-2xl bg-[#3d5e27fd] min-h-96">
-      <h1 className="text-3xl font-bold mb-8 text-white">Nominee Information</h1>
+      <h1 className="text-3xl font-bold mb-8 text-white">
+        Nominee Information
+      </h1>
       {nominees.map((nominee, index) => (
         <div key={index} className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
           <div>
@@ -198,7 +200,9 @@ const NomineeForm = () => {
         />
         {uploadedFiles.length > 0 && (
           <div className="mt-4">
-            <h3 className="text-lg font-semibold mb-2 text-white">Uploaded Files:</h3>
+            <h3 className="text-lg font-semibold mb-2 text-white">
+              Uploaded Files:
+            </h3>
             <ul className="list-disc pl-5 text-white">
               {uploadedFiles.map((file, index) => (
                 <li key={index}>{file.name}</li>
@@ -209,7 +213,7 @@ const NomineeForm = () => {
       </div>
 
       <h2 className="text-2xl font-bold mb-4 text-white">Premium Calculator</h2>
-  
+
       {formError && <p className="text-red-500">{formError}</p>}
       <button
         onClick={calculatePremium}
