@@ -241,3 +241,19 @@ input[type="radio"] {
     flex: 1 1 100%;
   }
 }
+.sidebar {
+  transition: all 0.3s ease;
+  display: block;
+}
+
+@media (max-width: 1200px) {
+  .sidebar {
+    display: none; }
+  
+
+
+    
+  }
+    
+
+  
