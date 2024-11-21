@@ -1,6 +1,7 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
 .navbar {
     background-color: #282c34;
     padding: 1rem;
@@ -257,3 +258,216 @@ input[type="radio"] {
     
 
   
+/* General Layout */
+.profile-container {
+  display: flex;
+  gap: 20px;
+  font-family: Arial, sans-serif;
+  margin: 20px;
+  background-color: #f9f9f9;
+  padding: 20px;
+  border-radius: 10px;
+}
+
+.left-section,
+.right-section {
+  flex: 1;
+  min-width: 300px;
+  padding: 20px;
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0px 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+.profile-header {
+  text-align: left;
+  margin-bottom: 20px;
+}
+
+.profile-name {
+  font-size: 22px;
+  font-weight: bold;
+  color: #333;
+}
+
+.profile-title {
+  font-size: 16px;
+  color: #777;
+  margin-top: 5px;
+}
+
+.profile-desc {
+  color: #555;
+  font-size: 14px;
+}
+
+.status {
+  margin-top: 15px;
+}
+
+.status-active {
+  color: green;
+  font-weight: bold;
+}
+
+.member-info {
+  margin-top: 5px;
+}
+
+.section-title {
+  font-size: 18px;
+  font-weight: bold;
+  margin-bottom: 15px;
+  color: #444;
+}
+
+.similar-profiles {
+  margin-top: 30px;
+}
+
+.beneficiary-list {
+  display: flex;
+  gap: 15px;
+}
+
+.beneficiary {
+  text-align: center;
+}
+
+.beneficiary img {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  border: 2px solid #ddd;
+}
+
+.beneficiary p {
+  font-size: 14px;
+  margin-top: 5px;
+  color: #333;
+}
+
+/* Right Section */
+.about-section p,
+.experience-section ul,
+.education-section ul {
+  margin-bottom: 10px;
+}
+
+ul {
+  padding-left: 20px;
+  list-style-type: none;
+}
+
+ul li::before {
+  content: "• ";
+  color: teal;
+  font-weight: bold;
+  display: inline-block;
+  width: 1em;
+}
+/* General Layout */
+.profile-container {
+  display: flex;
+  gap: 20px;
+  font-family: Arial, sans-serif;
+  margin: 20px;
+  background-color: #f9f9f9;
+  padding: 20px;
+  border-radius: 10px;
+}
+
+.left-section,
+.right-section {
+  flex: 1;
+  min-width: 300px;
+  padding: 20px;
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0px 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+.profile-header {
+  text-align: left;
+  margin-bottom: 20px;
+}
+
+.profile-name {
+  font-size: 22px;
+  font-weight: bold;
+  color: #333;
+}
+
+.profile-title {
+  font-size: 16px;
+  color: #777;
+  margin-top: 5px;
+}
+
+.profile-desc {
+  color: #555;
+  font-size: 14px;
+}
+
+.status {
+  margin-top: 15px;
+}
+
+.status-active {
+  color: green;
+  font-weight: bold;
+}
+
+.member-info {
+  margin-top: 5px;
+}
+
+.section-title {
+  font-size: 18px;
+  font-weight: bold;
+  margin-bottom: 15px;
+  color: #444;
+}
+
+.similar-profiles {
+  margin-top: 30px;
+}
+
+.beneficiary-list {
+  display: flex;
+  gap: 15px;
+}
+
+.beneficiary {
+  text-align: center;
+}
+
+.beneficiary img {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  border: 2px solid #ddd;
+}
+
+.beneficiary p {
+  font-size: 14px;
+  margin-top: 5px;
+  color: #333;
+}
+
+/* Button Styles */
+.add-beneficiary-btn {
+  margin-top: 20px;
+  padding: 10px 20px;
+  background-color: #4caf50;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: bold;
+}
+
+.add-beneficiary-btn:hover {
+  background-color: #45a049;
+}
