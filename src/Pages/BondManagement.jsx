@@ -10,6 +10,7 @@ import {
   FaCheckCircle,
   FaUser,
   FaEnvelope,
+  FaPhone
 } from 'react-icons/fa';
 import axios from 'axios';
 import InputWithIcon from '../Components/InputWithIcon';
@@ -20,14 +21,19 @@ import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
 const BondManagement = () => {
-  const { API, token } = useContext(AuthContext);
+  const [addedBeneficiaries, setAddedBeneficiaries] = useState([]);
+
+  const { API, token,beneficiaryUser } = useContext(AuthContext);
   const [bonds, setBonds] = useState([
     { issuer: '', type: '', maturityDate: '', faceValue: '', interestRate: '', marketValue: '' },
   ]);
   const [beneficiaries, setBeneficiaries] = useState([
-    { name: '', contact: '', email: '', entitlement: '', relationship: '', notify: false },
+  
   ]);
-  const [showBeneficiaries, setShowBeneficiaries] = useState(false);
+  const [errors, setErrors] = useState({
+    stocks: [],
+    beneficiaries: [],
+  });
   const [documentFile, setDocumentFile] = useState(null); // State to hold the uploaded file
 
   const handleBondChange = (index, field, value) => {
@@ -46,9 +52,7 @@ const BondManagement = () => {
     setBeneficiaries(newBeneficiaries);
   };
 
-  const addBeneficiary = () => {
-    setBeneficiaries([...beneficiaries, { name: '', contact: '', email: '', entitlement: '', relationship: '', notify: false }]);
-  };
+
 
   const handleFileChange = (event) => {
     setDocumentFile(event.target.files[0]); // Capture the selected file
@@ -61,12 +65,7 @@ const BondManagement = () => {
         return false;
       }
     }
-    for (const beneficiary of beneficiaries) {
-      if (!beneficiary.name || !beneficiary.entitlement || !beneficiary.email || !beneficiary.relationship) {
-        toast.error('Please fill all beneficiary details fields.');
-        return false;
-      }
-    }
+ 
     return true;
   };
 
@@ -76,13 +75,13 @@ const BondManagement = () => {
     const formData = new FormData(); // Use FormData to handle file upload
     formData.append('document', documentFile); // Attach the file
     formData.append('bonds', JSON.stringify(bonds)); // Attach bond data as a JSON string
-    formData.append('beneficiaries', JSON.stringify(beneficiaries)); // Attach beneficiary data as a JSON string
+    formData.append('beneficiaries', JSON.stringify(beneficiaries.map((beneficiary) => beneficiary.beneficiary_id))); // Attach beneficiary data as a JSON string
 
     try {
       const response = await axios.post(`${API}/bonds`, formData, {
         headers: {
           Authorization: `Bearer ${token}`,
-          'Content-Type': 'multipart/form-data', // Ensure multipart form data
+          'Content-Type': 'multipart/form-data', 
         },
       });
       toast.success('Bond details saved successfully!');
@@ -91,7 +90,26 @@ const BondManagement = () => {
       toast.error('Error saving bond details. Please try again later.');
     }
   };
+  const handleAddBeneficiary = (userIndex) => {
+    if (beneficiaryUser.length > 0 && !addedBeneficiaries.includes(userIndex)) {
+      const user = beneficiaryUser[userIndex];
+      console.log('✌️beneficiaryUser --->', beneficiaryUser);
+      const newBeneficiary = {
+        beneficiary_id: user.beneficiary_id || "",
+        name: user.name || "",
+        contact: user.contact || "",
+        email: user.email || "",
+        entitlement: user.entitlement || "",
+        relationship: user.relationship || "",
+        notify: false,
+      };
 
+      setBeneficiaries([...beneficiaries, newBeneficiary]);
+      setAddedBeneficiaries([...addedBeneficiaries, userIndex]);
+    } else {
+      toast.error("This user has already been added or no users are available.");
+    }
+  };
   return (
     <div className="min-h-screen shadow-2xl bg-white p-6 rounded-lg md:mt-10 mt-20">
       <header className="mb-8">
@@ -154,61 +172,8 @@ const BondManagement = () => {
         <FaPlus className="inline mr-2" /> Add Bond
       </button>
 
-      <div className="mt-6">
-        <label className="inline-flex items-center">
-          <input
-            type="checkbox"
-            className="form-checkbox h-5 w-5 text-[#538d2dfd]"
-            checked={showBeneficiaries}
-            onChange={(e) => setShowBeneficiaries(e.target.checked)}
-          />
-          <span className="ml-2 text-gray-700">Add Beneficiaries</span>
-        </label>
-      </div>
 
-      {showBeneficiaries && (
-        <div className="mt-4">
-          {beneficiaries.map((beneficiary, index) => (
-            <FieldSection key={`beneficiary-${index}`} title={`Beneficiary ${index + 1}`}>
-              <InputWithIcon
-                icon={<FaUser className="text-[#538d2dfd] mx-2" />}
-                type="text"
-                placeholder="Beneficiary Name"
-                value={beneficiary.name}
-                onChange={(e) => handleBeneficiaryChange(index, 'name', e.target.value)}
-              />
-              <InputWithIcon
-                icon={<FaDollarSign className="text-[#538d2dfd] mx-2" />}
-                type="number"
-                placeholder="Entitlement Percentage"
-                value={beneficiary.entitlement}
-                onChange={(e) => handleBeneficiaryChange(index, 'entitlement', e.target.value)}
-              />
-              <InputWithIcon
-                icon={<FaEnvelope className="text-[#538d2dfd] mx-2" />}
-                type="email"
-                placeholder="Email"
-                value={beneficiary.email}
-                onChange={(e) => handleBeneficiaryChange(index, "email", e.target.value)}
-              />
-              <InputWithIcon
-                icon={<FaUser className="text-[#538d2dfd] mx-2" />}
-                type="text"
-                placeholder="Relationship"
-                value={beneficiary.relationship} 
-                onChange={(e) => handleBeneficiaryChange(index, "relationship", e.target.value)}
-              />
-            </FieldSection>
-          ))}
-
-          <button
-            onClick={addBeneficiary}
-            className="text-white py-2 px-4 rounded-md shadow-md bg-[#3a5e22fd] hover:bg-[#2f4b1dfd] mt-4"
-          >
-            <FaPlus className="inline mr-2" /> Add Beneficiary
-          </button>
-        </div>
-      )}
+   
 
       <Section title="Document Upload">
         <div className="flex items-center border-l-2 border-[#538d2dfd] py-2">
@@ -218,6 +183,80 @@ const BondManagement = () => {
           </label>
         </div>
       </Section>
+      <Section>
+      <h3 className="font-semibold text-xl">Beneficiaries</h3>
+      <div className="mb-6">
+          <select
+            onChange={(e) => handleAddBeneficiary(e.target.value)}
+            className="border-l-2 border-[#538d2dfd] shadow-lg p-2 text-white rounded-md w-full outline-0 bg-[#538d2dfd]"
+          >
+            <option value="" disabled selected>Select a beneficiary</option>
+            {beneficiaryUser &&
+              beneficiaryUser
+                .filter((user, index) => !addedBeneficiaries.includes(index))
+                .map((user, index) => (
+                  <option key={index} value={index}>
+                    {user.name}
+                  </option>
+                ))}
+          </select>
+        </div>
+      {/* Beneficiary Details Section */}
+      {beneficiaries.map((beneficiary, index) => (
+        <FieldSection key={index} title={`Beneficiary ${index + 1}`}>
+          <InputWithIcon
+            icon={<FaUser className="text-[#538d2dfd] mx-2" />}
+            type="text"
+            placeholder="Beneficiary Name"
+            value={beneficiary.name}
+            onChange={(e) => handleBeneficiaryChange(index, "name", e.target.value)}
+          />
+          {errors.beneficiaries[index]?.name && (
+            <p className="text-red-500 text-sm">{errors.beneficiaries[index].name}</p>
+          )}
+          <InputWithIcon
+            icon={<FaPhone className="text-[#538d2dfd] mx-2" />}
+            type="text"
+            placeholder="Contact"
+            value={beneficiary.contact}
+            onChange={(e) => handleBeneficiaryChange(index, "contact", e.target.value)}
+          />
+          {errors.beneficiaries[index]?.contact && (
+            <p className="text-red-500 text-sm">{errors.beneficiaries[index].contact}</p>
+          )}
+          <InputWithIcon
+            icon={<FaEnvelope className="text-[#538d2dfd] mx-2" />}
+            type="email"
+            placeholder="Email"
+            value={beneficiary.email}
+            onChange={(e) => handleBeneficiaryChange(index, "email", e.target.value)}
+          />
+          {errors.beneficiaries[index]?.email && (
+            <p className="text-red-500 text-sm">{errors.beneficiaries[index].email}</p>
+          )}
+          <InputWithIcon
+            icon={<FaPercent className="text-[#538d2dfd] mx-2" />}
+            type="number"
+            placeholder="Entitlement Percentage"
+            value={beneficiary.entitlement}
+            onChange={(e) => handleBeneficiaryChange(index, "entitlement", e.target.value)}
+          />
+          {errors.beneficiaries[index]?.entitlement && (
+            <p className="text-red-500 text-sm">{errors.beneficiaries[index].entitlement}</p>
+          )}
+          <InputWithIcon
+            icon={<FaUser className="text-[#538d2dfd] mx-2" />}
+            type="text"
+            placeholder="Relationship"
+            value={beneficiary.relationship}  // Add the relationship field here
+            onChange={(e) => handleBeneficiaryChange(index, "relationship", e.target.value)}
+          />
+          {errors.beneficiaries[index]?.relationship && (
+            <p className="text-red-500 text-sm">{errors.beneficiaries[index].relationship}</p>
+          )}
+        </FieldSection>
+      ))}
+    </Section>
 
       <div className="mt-8">
         <button

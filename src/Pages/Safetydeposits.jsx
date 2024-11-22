@@ -148,7 +148,7 @@ function SafetyDepositsInheritanceManagement() {
           ))}
           <button
             onClick={addDeposit}
-            className="bg-green-500 text-white py-2 px-4 rounded-md shadow-md hover:bg-green-600 mt-4"
+            className="bg-[#538d2dfd] text-white py-2 px-4 rounded-md shadow-md hover:bg-[#4c7033fd] mt-4"
           >
             <FaPlus className="inline mr-2" /> Add Safety Deposit Box
           </button>
@@ -261,7 +261,7 @@ function SafetyDepositsInheritanceManagement() {
           <p className="text-gray-600 text-center mb-4">
             Learn more about managing safety deposit boxes and inheritance.
           </p>
-          <button className="bg-green-500 text-white py-2 px-4 rounded-md shadow-md hover:bg-green-600">
+          <button className="bg-[#538d2dfd] text-white py-2 px-4 rounded-md shadow-md hover:bg-[#4c7033fd]">
             Explore Resources
           </button>
         </section>

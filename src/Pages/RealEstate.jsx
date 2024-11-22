@@ -1,11 +1,8 @@
-// File path: /src/pages/RealEstateManagement.js
-
 import React, { useState, useEffect, useContext } from "react";
 import axios from "axios";
 import InputWithIcon from "../Components/InputWithIcon";
 import FieldSection from "../Components/FieldSection";
 import { FaEnvelope } from "react-icons/fa";
-
 import {
   FaHome,
   FaMapMarkerAlt,
@@ -20,10 +17,11 @@ import {
 } from "react-icons/fa";
 import { AuthContext } from "../Contexts/Context";
 import { toast, ToastContainer } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
+import Section from "../Components/Section";
 
 function RealEstateManagement() {
-  const { API, token } = useContext(AuthContext);
+  const [addedBeneficiaries, setAddedBeneficiaries] = useState([]);
+  const { API, token, beneficiaryUser } = useContext(AuthContext);
   const [properties, setProperties] = useState([
     {
       propertyName: "",
@@ -41,16 +39,7 @@ function RealEstateManagement() {
     },
   ]);
 
-  const [beneficiaries, setBeneficiaries] = useState([
-    {
-      name: "",
-      contact: "",
-      email: "",
-      entitlement: "",
-      relationship: "",
-      notify: false,
-    },
-  ]);
+  const [beneficiaries, setBeneficiaries] = useState([]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -140,14 +129,11 @@ function RealEstateManagement() {
     setProperties(updatedProperties);
   };
 
-  const handleBeneficiaryChange = (index, field, value) => {
-    const updatedBeneficiaries = [...beneficiaries];
-    updatedBeneficiaries[index][field] = value;
-    setBeneficiaries(updatedBeneficiaries);
-  };
+
 
   const validateForm = () => {
     for (let property of properties) {
+console.log('✌️property --->', property);
       if (
         !property.propertyName ||
         !property.propertyType ||
@@ -179,35 +165,7 @@ function RealEstateManagement() {
       }
     }
 
-    for (let beneficiary of beneficiaries) {
-      if (
-        !beneficiary.name ||
-        !beneficiary.contact ||
-        !beneficiary.email ||
-        !beneficiary.entitlement ||
-        !beneficiary.relationship
-      ) {
-        toast.error("All beneficiary fields are required.");
-        return false;
-      }
-      const emailRegex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$/;
-      if (!emailRegex.test(beneficiary.email)) {
-        toast.error("Invalid email address.", {
-          position: "bottom-right",
-        });
-        return false;
-      }
-      if (
-        isNaN(beneficiary.entitlement) ||
-        beneficiary.entitlement <= 0 ||
-        beneficiary.entitlement > 100
-      ) {
-        toast.error(
-          "Entitlement percentage should be a number between 0 and 100."
-        );
-        return false;
-      }
-    }
+
 
     return true;
   };
@@ -217,10 +175,9 @@ function RealEstateManagement() {
 
     if (!validateForm()) return;
 
-    const data = {
-      properties,
-      beneficiaries,
-    };
+   const beneficiaryIds = beneficiaries.map((beneficiary) => beneficiary.beneficiary_id); 
+  
+    const data = { properties, beneficiaries: beneficiaryIds };
 
     try {
       const response = await axios.post(`${API}/real_estate`, data, {
@@ -237,6 +194,31 @@ function RealEstateManagement() {
       toast.error("Error submitting data. Please try again.");
     }
   };
+
+
+  const handleAddBeneficiary = (userIndex) => {
+    if (beneficiaryUser.length > 0 && !addedBeneficiaries.includes(userIndex)) {
+      const user = beneficiaryUser[userIndex];
+      console.log('✌️beneficiaryUser --->', beneficiaryUser);
+      const newBeneficiary = {
+        beneficiary_id: user.beneficiary_id || "",
+        name: user.name || "",
+        contact: user.contact || "",
+        email: user.email || "",
+        entitlement: user.entitlement || "",
+        relationship: user.relationship || "",
+        notify: false,
+      };
+
+      setBeneficiaries([...beneficiaries, newBeneficiary]);
+      setAddedBeneficiaries([...addedBeneficiaries, userIndex]);
+    } else {
+      toast.error("This user has already been added or no users are available.");
+    }
+  };
+
+
+
 
   return (
     <div className="min-h-screen shadow-2xl bg-white p-6 rounded-lg md:mt-10 mt-20">
@@ -364,91 +346,88 @@ function RealEstateManagement() {
           </FieldSection>
         </div>
       ))}
+
       <button
+        className="bg-[#538d2dfd] text-white py-2 px-4 rounded-md shadow-md hover:bg-[#4c7033fd] transition-colors"
         onClick={addProperty}
-        className="bg-[#3d5e27fd] hover:bg-[#2f4b1dfd] text-white py-2 px-4 rounded-md shadow-md mt-4"
       >
-        <FaPlus className="inline mx-2" /> Add Property
+        <FaPlus /> Add Property
       </button>
 
-      {beneficiaries.map((beneficiary, index) => (
-        <div key={index} className="mb-4 border-b pb-4">
-          <FieldSection title="Beneficiary Information">
-            <InputWithIcon
-              icon={<FaUser />}
-              type="text"
-              placeholder="Name"
-              value={beneficiary.name}
-              onChange={(e) =>
-                handleBeneficiaryChange(index, "name", e.target.value)
-              }
-            />
-            <InputWithIcon
-              icon={<FaPhone />}
-              type="text"
-              placeholder="Contact"
-              value={beneficiary.contact}
-              onChange={(e) =>
-                handleBeneficiaryChange(index, "contact", e.target.value)
-              }
-            />
-            <InputWithIcon
-              icon={<FaEnvelope />}
-              type="email"
-              placeholder="Email"
-              value={beneficiary.email}
-              onChange={(e) =>
-                handleBeneficiaryChange(index, "email", e.target.value)
-              }
-            />
-            <InputWithIcon
-              icon={<FaPercent />}
-              type="number"
-              placeholder="Entitlement (%)"
-              value={beneficiary.entitlement}
-              onChange={(e) =>
-                handleBeneficiaryChange(index, "entitlement", e.target.value)
-              }
-            />
-            <InputWithIcon
-              icon={<FaLink />}
-              type="text"
-              placeholder="Relationship"
-              value={beneficiary.relationship}
-              onChange={(e) =>
-                handleBeneficiaryChange(index, "relationship", e.target.value)
-              }
-            />
-            <div className="flex items-center">
-              <input
-                type="checkbox"
-                checked={beneficiary.notify}
-                onChange={(e) =>
-                  handleBeneficiaryChange(index, "notify", e.target.checked)
-                }
-                className="mr-2"
-              />
-              <span>Notify Beneficiary</span>
-            </div>
-          </FieldSection>
+
+      <Section>
+        <h3 className="font-semibold text-xl">Beneficiaries</h3>
+        <div className="mb-6">
+          <select
+            onChange={(e) => handleAddBeneficiary(e.target.value)}
+            className="border-l-2 border-[#538d2dfd] shadow-lg p-2 text-white rounded-md w-full outline-0 bg-[#538d2dfd]"
+          >
+            <option value="" disabled selected>Select a beneficiary</option>
+            {beneficiaryUser &&
+              beneficiaryUser
+                .filter((user, index) => !addedBeneficiaries.includes(index))
+                .map((user, index) => (
+                  <option key={index} value={index}>
+                    {user.name}
+                  </option>
+                ))}
+          </select>
         </div>
-      ))}
-      <button
-        onClick={addBeneficiary}
-        className="bg-[#3d5e27fd] hover:bg-[#2f4b1dfd] text-white py-2 px-4 rounded-md shadow-md mt-4"
-      >
-        <FaPlus className="inline mx-2" /> Add Beneficiary
-      </button>
+        <div className="grid mb-4">
+          {beneficiaries.map((beneficiary, index) => (
+              <FieldSection title="Beneficiary Details"  key={index}>
+                <InputWithIcon
+                  icon={<FaUser />}
+                  type="text"
+                  placeholder="Name"
+                  value={beneficiary.name}
 
-      <ToastContainer />
-      <div className="text-end">
+                />
+                <InputWithIcon
+                  icon={<FaPhone />}
+                  type="text"
+                  placeholder="Contact"
+                  value={beneficiary.contact}
+
+                />
+                <InputWithIcon
+                  icon={<FaEnvelope />}
+                  type="email"
+                  placeholder="Email"
+                  value={beneficiary.email}
+
+                />
+                <InputWithIcon
+                  icon={<FaPercent />}
+                  type="number"
+                  placeholder="Entitlement %"
+                  value={beneficiary.entitlement}
+
+                />
+                <InputWithIcon
+                  icon={<FaLink />}
+                  type="text"
+                  placeholder="Relationship"
+                  value={beneficiary.relationship}
+
+                />
+              </FieldSection>
+          ))}
+        </div>
+
+      
+      </Section>
+
+
+      <div className="mt-10">
         <button
+          className="bg-[#538d2dfd] text-white py-2 px-4 rounded-md shadow-md hover:bg-[#4c7033fd] transition-colors"
           onClick={handleSubmit}
-          className="bg-[#538d2dfd] hover:bg-[#4c7033fd] text-white py-2 px-4 rounded-md shadow-md mt-4"
         >
           Submit
         </button>
       </div>
+      <ToastContainer />
     </div>
   );
 }

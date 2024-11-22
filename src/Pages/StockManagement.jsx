@@ -20,7 +20,8 @@ import { AuthContext } from "../Contexts/Context";
 import { toast, ToastContainer } from "react-toastify";
 
 const StockManagement = () => {
-  const { API, token } = useContext(AuthContext);
+  const [addedBeneficiaries, setAddedBeneficiaries] = useState([]);
+  const { API, token,beneficiaryUser } = useContext(AuthContext);
   const [stocks, setStocks] = useState([
     {
       symbol: "",
@@ -31,16 +32,7 @@ const StockManagement = () => {
       totalInvestment: "",
     },
   ]);
-  const [beneficiaries, setBeneficiaries] = useState([
-    {
-      name: "",
-      contact: "",
-      email: "",
-      entitlement: "",
-      relationship: "",  // Add relationship field
-      notify: false,
-    },
-  ]);
+  const [beneficiaries, setBeneficiaries] = useState([  ]);
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({
     stocks: [],
@@ -102,35 +94,21 @@ const StockManagement = () => {
     return stockErrors;
   };
 
-  const validateBeneficiaries = () => {
-    let beneficiaryErrors = [];
-    beneficiaries.forEach((beneficiary, index) => {
-      const beneficiaryError = {};
-      if (!beneficiary.name) beneficiaryError.name = "Name is required";
-      if (!beneficiary.contact) beneficiaryError.contact = "Contact is required";
-      if (!beneficiary.email) beneficiaryError.email = "Email is required";
-      if (!beneficiary.entitlement) beneficiaryError.entitlement = "Entitlement percentage is required";
-      if (!beneficiary.relationship) beneficiaryError.relationship = "Relationship is required"; // Validate relationship field
-      if (Object.keys(beneficiaryError).length > 0) beneficiaryErrors[index] = beneficiaryError;
-    });
-    return beneficiaryErrors;
-  };
 
   const handleSubmit = async () => {
     setLoading(true);
     
     const stockErrors = validateStocks();
-    const beneficiaryErrors = validateBeneficiaries();
     
-    if (stockErrors.length > 0 || beneficiaryErrors.length > 0) {
-      setErrors({ stocks: stockErrors, beneficiaries: beneficiaryErrors });
+    if (stockErrors.length > 0) {
+      setErrors({ stocks: stockErrors });
       setLoading(false);
       return;
     }
-
+    const beneficiaryIds = beneficiaries.map((beneficiary) => beneficiary.beneficiary_id); 
     const payload = {
       stocks,
-      beneficiaries,
+      beneficiaries: beneficiaryIds ,
     };
 
     try {
@@ -144,6 +122,27 @@ const StockManagement = () => {
       toast.error("An error occurred while saving your details.");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleAddBeneficiary = (userIndex) => {
+    if (beneficiaryUser.length > 0 && !addedBeneficiaries.includes(userIndex)) {
+      const user = beneficiaryUser[userIndex];
+      console.log('✌️beneficiaryUser --->', beneficiaryUser);
+      const newBeneficiary = {
+        beneficiary_id: user.beneficiary_id || "",
+        name: user.name || "",
+        contact: user.contact || "",
+        email: user.email || "",
+        entitlement: user.entitlement || "",
+        relationship: user.relationship || "",
+        notify: false,
+      };
+
+      setBeneficiaries([...beneficiaries, newBeneficiary]);
+      setAddedBeneficiaries([...addedBeneficiaries, userIndex]);
+    } else {
+      toast.error("This user has already been added or no users are available.");
     }
   };
 
@@ -230,6 +229,24 @@ const StockManagement = () => {
         <FaPlus className="inline mr-2" /> Add Stock
       </button>
 
+      <Section>
+      <h3 className="font-semibold text-xl">Beneficiaries</h3>
+      <div className="mb-6">
+          <select
+            onChange={(e) => handleAddBeneficiary(e.target.value)}
+            className="border-l-2 border-[#538d2dfd] shadow-lg p-2 text-white rounded-md w-full outline-0 bg-[#538d2dfd]"
+          >
+            <option value="" disabled selected>Select a beneficiary</option>
+            {beneficiaryUser &&
+              beneficiaryUser
+                .filter((user, index) => !addedBeneficiaries.includes(index))
+                .map((user, index) => (
+                  <option key={index} value={index}>
+                    {user.name}
+                  </option>
+                ))}
+          </select>
+        </div>
       {/* Beneficiary Details Section */}
       {beneficiaries.map((beneficiary, index) => (
         <FieldSection key={index} title={`Beneficiary ${index + 1}`}>
@@ -285,12 +302,7 @@ const StockManagement = () => {
           )}
         </FieldSection>
       ))}
-      <button
-        onClick={addBeneficiary}
-        className="text-white py-2 px-4 rounded-md shadow-md bg-[#3a5e22fd] hover:bg-[#2f4b1dfd]"
-      >
-        <FaPlus className="inline mr-2" /> Add Beneficiary
-      </button>
+    </Section>
 
       {/* Submit Button */}
       <button
