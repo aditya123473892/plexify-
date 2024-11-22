@@ -1,5 +1,6 @@
 const express = require("express");
 const router = express.Router();
+const User = require("../model/Signup");
 const jweb = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
 const crypto = require("crypto");
@@ -10,11 +11,28 @@ const fs = require("fs");
 const path = require("path");
 const authMiddleware = require("../auth/authMiddleware");
 const secret = "iwfhugafwofjwhig3hwigk3wnig3uwmgkmewoipj39gw8hqoijhi3hgwgkwni";
+const odbc = require("odbc");
 const connectionString =
-  "Driver={ODBC Driver 17 for SQL Server};Server=DESKTOP-BBKLDAG\\SQLEXPRESS01;Database=DB;Trusted_Connection=yes;TrustServerCertificate=yes;";
+  "Driver={ODBC Driver 18 for SQL Server};Server=MOHIT\\SQLEXPRESS;Database=master;Trusted_Connection=yes;TrustServerCertificate=yes;";
 
-  // Server=DESKTOP-BBKLDAG\\SQLEXPRESS01;Database=DB;Trusted_Connection=yes;';
+(async () => {
+  try {
+    // Updated connection string with TrustServerCertificate set to "yes"
 
+    // Establish the connection
+    const connection = await odbc.connect(connectionString);
+
+    console.log("Connected to SQL Server successfully!");
+
+    // Run a sample query
+    const result = await connection.query("SELECT name FROM sys.databases;");
+    console.log("Databases:", result);
+
+    // Close the connection
+    await connection.close();
+  } catch (error) {
+    console.error("Error connecting to SQL Server:", error);
+  }
   router.post("/signup", async (req, res) => {
     try {
       console.log("✌️const --->", req.body);
@@ -102,7 +120,100 @@ const connectionString =
     }
   });
 
+  router.post("/commodities", authMiddleware, async (req, res) => {
+    console.log("✌️ req.body --->", req.body);
+    const { commodities } = req.body;
 
+    let connection;
+    try {
+      connection = await initializeConnection(); // Initialize connection
+
+      const transaction = new sql.Transaction(connection);
+      await transaction.begin(); // Start transaction
+
+      for (const commodity of commodities) {
+        const {
+          CommodityID,
+          CommodityType,
+          Quantity,
+          PurchasePrice,
+          CurrentValue = null,
+          Notes = "",
+        } = commodity;
+
+        // Input validation
+        if (
+          !CommodityType ||
+          Quantity === undefined ||
+          PurchasePrice === undefined
+        ) {
+          throw new Error(
+            "CommodityType, Quantity, and PurchasePrice are required."
+          );
+        }
+
+        let existingCommodityCheckQuery = `
+        SELECT COUNT(*) AS count FROM Commodities WHERE CommodityID = @CommodityID
+      `;
+        const request = new sql.Request(transaction);
+        request.input("CommodityID", sql.Int, CommodityID);
+
+        const existingCommodityCheckResult = await request.query(
+          existingCommodityCheckQuery
+        );
+
+        if (existingCommodityCheckResult.recordset[0].count > 0) {
+          // Update existing commodity
+          const updateCommodityQuery = `
+          UPDATE Commodities
+          SET CommodityType = @CommodityType, Quantity = @Quantity, PurchasePrice = @PurchasePrice,
+              CurrentValue = @CurrentValue, Notes = @Notes, CreatedAt = GETDATE()
+          WHERE CommodityID = @CommodityID
+        `;
+          request.input("CommodityType", sql.NVarChar, CommodityType);
+          request.input("Quantity", sql.Float, Quantity);
+          request.input("PurchasePrice", sql.Float, PurchasePrice);
+          request.input("CurrentValue", sql.Float, CurrentValue);
+          request.input("Notes", sql.NVarChar, Notes);
+
+          await request.query(updateCommodityQuery);
+          console.log(`Updated Commodity ID: ${CommodityID}`);
+        } else {
+          // Insert new commodity
+          const insertCommodityQuery = `
+          INSERT INTO Commodities (CommodityType, Quantity, PurchasePrice, CurrentValue, Notes, CreatedAt)
+          OUTPUT INSERTED.CommodityID
+          VALUES (@CommodityType, @Quantity, @PurchasePrice, @CurrentValue, @Notes, GETDATE())
+        `;
+          request.input("CommodityType", sql.NVarChar, CommodityType);
+          request.input("Quantity", sql.Float, Quantity);
+          request.input("PurchasePrice", sql.Float, PurchasePrice);
+          request.input("CurrentValue", sql.Float, CurrentValue);
+          request.input("Notes", sql.NVarChar, Notes);
+
+          const insertCommodityResult = await request.query(
+            insertCommodityQuery
+          );
+          console.log(
+            `New Commodity ID: ${insertCommodityResult.recordset[0].CommodityID}`
+          );
+        }
+      }
+
+      await transaction.commit(); // Commit transaction
+      res.status(201).json({ msg: "Commodities added/updated successfully!" });
+    } catch (error) {
+      console.error("Error:", error);
+      if (connection) {
+        await connection.rollback(); // Rollback transaction on error
+      }
+      res.status(500).json({ msg: "Server error." });
+    } finally {
+      if (connection) {
+        connection.close(); // Close the connection
+      }
+    }
+  });
   router.post("/signin", async (req, res) => {
     try {
       const { email, password } = req.body;
@@ -145,90 +256,110 @@ const connectionString =
   router.post("/add-beneficiary", async (req, res) => {
     try {
       const {
-        Name,
-        AadhaarNumber,
-        ContactNumber,
-        Email,
-        Address,
-        Relationship,
-        DateOfBirth,
-        IDOrPassportNumber,
-        EntitlementPercentage,
+        userId,
+        name,
+        contact,
+        email,
+        entitlement,
+        notify,
+        relationship,
       } = req.body;
 
-      // Check if all required fields are provided
-      if (
-        !Name ||
-        !AadhaarNumber ||
-        !ContactNumber ||
-        !Email ||
-        !Address ||
-        !Relationship ||
-        !DateOfBirth ||
-        !IDOrPassportNumber ||
-        !EntitlementPercentage
-      ) {
-        return res.status(400).json({ msg: "Fill all fields" });
+      // Validate input
+      if (!userId || !name || !entitlement || !relationship) {
+        return res
+          .status(400)
+          .json({ msg: "Please fill all required fields." });
       }
 
-      // Query to check if Aadhaar Number already exists in the database
-      const checkAadhaarQuery = `SELECT * FROM Beneficiaries WHERE AadhaarNumber = ?`;
-
-      sql.query(
-        connectionString,
-        checkAadhaarQuery,
-        [AadhaarNumber],
-        (err, existingBeneficiary) => {
-          if (err) {
-            console.error("Error executing query:", err);
-            return res.status(500).json({ msg: "Server Error" });
-          }
-
-          if (existingBeneficiary.length > 0) {
-            return res
-              .status(400)
-              .json({ msg: "Aadhaar number already exists" });
-          }
-
-          // Insert Beneficiary details into the Beneficiaries table
-          const insertBeneficiaryQuery = `
-          INSERT INTO Beneficiaries 
-          (Name, AadhaarNumber, ContactNumber, Email, Address, Relationship, DateOfBirth, IDOrPassportNumber, EntitlementPercentage) 
-          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-        `;
-
-          sql.query(
-            connectionString,
-            insertBeneficiaryQuery,
-            [
-              Name,
-              AadhaarNumber,
-              ContactNumber,
-              Email,
-              Address,
-              Relationship,
-              DateOfBirth,
-              IDOrPassportNumber,
-              EntitlementPercentage,
-            ],
-            (err, result) => {
-              if (err) {
-                console.error("Error inserting beneficiary:", err);
-                return res.status(500).json({ msg: "Server Error" });
-              }
-
-              // Successful insertion response
-              res.status(201).json({
-                msg: "Beneficiary added successfully",
-                beneficiaryId: result.insertId, // Optional: Include inserted record's ID.
-              });
-            }
-          );
+      // Check if user_id exists
+      const checkUserQuery = `SELECT user_id FROM dbo.registration WHERE user_id = ?`;
+      sql.query(connectionString, checkUserQuery, [userId], (err, result) => {
+        if (err) {
+          console.error("Error checking user_id:", err);
+          return res.status(500).json({ msg: "Server error." });
         }
-      );
+        if (result.length === 0) {
+          return res
+            .status(400)
+            .json({ msg: "Invalid user_id. Please register the user first." });
+        }
+
+        // Insert the beneficiary
+        const insertBeneficiaryQuery = `
+          INSERT INTO dbo.beneficiaries 
+          (user_id, name, contact, email, entitlement, relationship, notify) 
+          VALUES (?, ?, ?, ?, ?, ?, ?)
+        `;
+        sql.query(
+          connectionString,
+          insertBeneficiaryQuery,
+          [
+            userId,
+            name,
+            contact || null,
+            email || null,
+            entitlement,
+            relationship,
+            notify || 0,
+          ],
+          (err, result) => {
+            if (err) {
+              console.error("Error inserting beneficiary:", err);
+              return res.status(500).json({ msg: "Server error." });
+            }
+
+            res.status(201).json({
+              msg: "Beneficiary added successfully",
+              beneficiaryId: result.insertId,
+            });
+          }
+        );
+      });
     } catch (error) {
       console.error("Error adding beneficiary:", error);
-      res.status(500).json({ msg: "Server Error" });
+      res.status(500).json({ msg: "Server error." });
+    }
+  });
+  router.get("/beneficiaries", async (req, res) => {
+    try {
+      const { userId, beneficiaryId } = req.query; // Accept query parameters for filtering
+
+      // Base query
+      let fetchQuery = `SELECT * FROM dbo.beneficiaries`;
+      const queryParams = [];
+
+      // Add conditions dynamically
+      if (userId) {
+        fetchQuery += ` WHERE user_id = ?`;
+        queryParams.push(userId);
+      }
+      if (beneficiaryId) {
+        fetchQuery += userId
+          ? ` AND beneficiary_id = ?`
+          : ` WHERE beneficiary_id = ?`;
+        queryParams.push(beneficiaryId);
+      }
+
+      // Execute the query
+      sql.query(connectionString, fetchQuery, queryParams, (err, results) => {
+        if (err) {
+          console.error("Error fetching beneficiaries:", err);
+          return res.status(500).json({ msg: "Server error." });
+        }
+
+        if (results.length === 0) {
+          return res.status(404).json({ msg: "No beneficiaries found." });
+        }
+
+        res.status(200).json({
+          msg: "Beneficiaries retrieved successfully",
+          beneficiaries: results,
+        });
+      });
+    } catch (error) {
+      console.error("Error fetching beneficiaries:", error);
+      res.status(500).json({ msg: "Server error." });
     }
   });
 
@@ -550,185 +681,181 @@ const connectionString =
     });
   };
 
-
   router.post("/recurring_deposits", authMiddleware, async (req, res) => {
+    console.log("✌️ req.body --->", req.body);
+    const { deposits } = req.body;
+    const user_id = req.user_id;
+
     try {
-      console.log("✌️ req.body --->", req.body);
-      const { deposits, beneficiaries } = req.body;
-      const user_id = req.user_id;
-  
-      const beneficiariesString = beneficiaries.join(',');
-  
       for (const deposit of deposits) {
-        const {
-          bankName,
-          depositAmount,
-          interestRate,
-          startDate,
-          maturityDate,
-          maturityAmount,
-          rdNumber,
-        } = deposit;
-  
-        // Insert query for the recurring deposit
-        const insertDepositQuery = `
-          INSERT INTO [dbo].[recurring_deposit] 
-          (user_id, beneficiarie_user, monthly_deposit_amount, interest_rate, start_date, maturity_date, maturity_amount, bank_name)
-          VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        const checkDepositQuery = `
+          SELECT COUNT(*) AS count FROM [dbo].[recurring_deposit] WHERE rd_number = ?
         `;
-        const depositParams = [
-          user_id,
-          beneficiariesString, 
-          depositAmount,
-          interestRate,
-          startDate,
-          maturityDate,
-          maturityAmount || null,
-          bankName,
-        ];
-  
-        await queryDatabase(insertDepositQuery, depositParams);
+
+        const checkDepositResult = await queryDatabase(checkDepositQuery, [
+          deposit.rdNumber,
+        ]);
+
+        let rd_id;
+
+        if (checkDepositResult[0].count > 0) {
+          // Update the existing deposit
+          const updateDepositQuery = `
+            UPDATE [dbo].[recurring_deposit]
+            SET monthly_deposit_amount = ?, interest_rate = ?, start_date = ?, 
+                maturity_date = ?, maturity_amount = ?, bank_name = ?, status = ?
+            OUTPUT INSERTED.rd_id
+            WHERE rd_number = ?
+          `;
+
+          const updateResult = await queryDatabase(updateDepositQuery, [
+            deposit.depositAmount,
+            deposit.interestRate,
+            deposit.startDate,
+            deposit.maturityDate,
+            deposit.maturityAmount,
+            deposit.bankName,
+            deposit.status || "Active",
+            deposit.rdNumber,
+          ]);
+
+          rd_id = updateResult[0].rd_id;
+        } else {
+          // Insert a new deposit and get the inserted ID
+          const insertDepositQuery = `
+            INSERT INTO [dbo].[recurring_deposit] (
+              user_id, rd_number, monthly_deposit_amount, interest_rate, start_date, 
+              maturity_date, maturity_amount, bank_name, status
+            )
+            OUTPUT INSERTED.rd_id
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+          `;
+
+          const insertDepositResult = await queryDatabase(insertDepositQuery, [
+            user_id,
+            deposit.rdNumber,
+            deposit.depositAmount,
+            deposit.interestRate,
+            deposit.startDate,
+            deposit.maturityDate,
+            deposit.maturityAmount,
+            deposit.bankName,
+            deposit.status || "Active",
+          ]);
+
+          rd_id = insertDepositResult[0].rd_id;
+        }
+
+        console.log("Recurring Deposit ID:", rd_id);
+
+        // Handle the beneficiaries associated with each deposit
+        const beneficiaryPromises = deposit.beneficiaries.map((beneficiary) => {
+          const insertBeneficiaryQuery = `
+            INSERT INTO [dbo].[beneficiaries] (
+              rd_id, user_id, name, contact, email, entitlement, relationship, notify
+            )
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+          `;
+
+          return queryDatabase(insertBeneficiaryQuery, [
+            rd_id,
+            user_id,
+            beneficiary.name,
+            beneficiary.contact,
+            beneficiary.email,
+            parseInt(beneficiary.entitlement),
+            beneficiary.relationship,
+            beneficiary.notify ? 1 : 0,
+          ]);
+        });
+
+        await Promise.all(beneficiaryPromises); // Insert beneficiaries only once per deposit
       }
-  
-      res.status(201).json({ msg: 'Recurring deposit(s) inserted successfully' });
-    } catch (err) {
-      console.error('Error inserting data:', err);
-      res.status(500).json({ msg: 'Server Error' });
+
+      res.status(201).json({
+        msg: "Recurring deposits and beneficiaries added/updated successfully!",
+      });
+    } catch (error) {
+      console.error("Error:", error);
+      res.status(500).json({ msg: "Server error." });
     }
   });
-
-  
-
-  
-
   router.post("/real_estate", authMiddleware, async (req, res) => {
     console.log("✌️ req.body --->", req.body);
-    const { properties, beneficiaries } = req.body;
+    const { properties } = req.body;
     const user_id = req.user_id;
-    const beneficiariesString = beneficiaries.join(',');
-  
-    const insertPropertyQuery = `
-      INSERT INTO [dbo].[properties] (
-        property_name, property_type, location, area_in_sqft, purchase_date, purchase_price, 
-        current_value, ownership_status, rental_income, tenant_name, tenant_contact, 
-        status, user_id, beneficiarie_user
-      )
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,?);
-    `;
-  
+
     try {
-      for (let property of properties) {
-        const {
-          propertyName, propertyType, location, areaInSqft, purchaseDate, purchasePrice,
-          currentValue, ownershipStatus, rentalIncome, tenantName, tenantContact, status
-        } = property;
-        
-        await queryDatabase(insertPropertyQuery, [
-          propertyName, propertyType, location, areaInSqft, purchaseDate, purchasePrice, 
-          currentValue, ownershipStatus, rentalIncome, tenantName, tenantContact, status, user_id, beneficiariesString
+      for (const property of properties) {
+        const checkPropertyQuery = `
+          SELECT COUNT(*) AS count FROM [dbo].[property] WHERE property_name = ? AND user_id = ?
+        `;
+
+        const checkPropertyResult = await queryDatabase(checkPropertyQuery, [
+          property.propertyName,
+          user_id,
         ]);
+
+        if (checkPropertyResult[0].count > 0) {
+          // If the property already exists, update it
+          const updatePropertyQuery = `
+            UPDATE [dbo].[property]
+            SET property_type = ?, location = ?, area_in_sqft = ?, purchase_date = ?, 
+                purchase_price = ?, current_value = ?, ownership_status = ?, rental_income = ?, 
+                tenant_name = ?, tenant_contact = ?, status = ?, updated_at = GETDATE()
+            WHERE property_name = ? AND user_id = ?
+          `;
+
+          await queryDatabase(updatePropertyQuery, [
+            property.propertyType,
+            property.location,
+            parseInt(property.areaInSqft),
+            property.purchaseDate,
+            parseFloat(property.purchasePrice),
+            parseFloat(property.currentValue),
+            property.ownershipStatus,
+            parseFloat(property.rentalIncome),
+            property.tenantName,
+            property.tenantContact,
+            property.status || "Active",
+            property.propertyName,
+            user_id,
+          ]);
+        } else {
+          // If property does not exist, insert a new one
+          const insertPropertyQuery = `
+            INSERT INTO [dbo].[property] (
+              user_id, property_name, property_type, location, area_in_sqft, 
+              purchase_date, purchase_price, current_value, ownership_status, 
+              rental_income, tenant_name, tenant_contact, status, created_at, updated_at
+            )
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, GETDATE(), GETDATE())
+          `;
+
+          await queryDatabase(insertPropertyQuery, [
+            user_id,
+            property.propertyName,
+            property.propertyType,
+            property.location,
+            parseInt(property.areaInSqft),
+            property.purchaseDate,
+            parseFloat(property.purchasePrice),
+            parseFloat(property.currentValue),
+            property.ownershipStatus,
+            parseFloat(property.rentalIncome),
+            property.tenantName,
+            property.tenantContact,
+            property.status || "Active",
+          ]);
+        }
       }
-  
+
       res.status(201).json({ msg: "Properties added/updated successfully!" });
     } catch (error) {
       console.error("Error:", error);
       res.status(500).json({ msg: "Server error." });
     }
   });
-
-
-    router.post("/stocks", authMiddleware, async (req, res) => {
-      const { stocks, beneficiaries } = req.body;
-      const user_id = req.user_id;
-    
-      const beneficiariesString = beneficiaries.join(',');
-      const insertStockQuery = `
-      INSERT INTO [dbo].[stocks] (
-        symbol, purchase_date, purchase_price, quantity, current_value, total_investment, user_id, beneficiarie_user
-      )
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?);
-    `;
-      try {
-        for (let stock of stocks) {
-          const { symbol, purchaseDate, purchasePrice, quantity, currentValue, totalInvestment } = stock;
-    
-          await queryDatabase(insertStockQuery, [
-            symbol, purchaseDate, purchasePrice, quantity, currentValue, totalInvestment, user_id, beneficiariesString
-          ]);
-        }
-    
-        res.status(201).json({ msg: "Stocks added successfully with beneficiaries!" });
-      } catch (error) {
-        console.error("Error:", error);
-        res.status(500).json({ msg: "Server error." });
-      }
-    });
-
-
-
-    const bond_storage = multer.diskStorage({
-      destination: function (req, file, cb) {
-        cb(null, "uploads/deposits");
-      },
-      filename: function (req, file, cb) {
-        cb(null, Date.now() + path.extname(file.originalname));
-      },
-    });
-  
-    const bond_upload = multer({
-      storage: bond_storage
-    });
-
-    router.post("/bonds", authMiddleware, bond_upload.single("document"), async (req, res) => {
-      try {
-        console.log('✌️req.body --->', req.body);
-    
-        // Parse the bonds and beneficiaries from stringified JSON
-        const bonds = JSON.parse(req.body.bonds);
-        const beneficiaries = JSON.parse(req.body.beneficiaries); // beneficiaries as an array
-    
-        const user_id = req.user_id;
-    
-        // Convert beneficiaries array into a comma-separated string (or handle as you prefer)
-        const beneficiariesString = beneficiaries.join(',');
-    
-        // Define the SQL insert query
-        const insertBondQuery = `
-          INSERT INTO [dbo].[bond] (
-            user_id, beneficiarie_user, issuer, bond_type, maturity_date, face_value, interest_rate, market_value, document
-          )
-          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);
-        `;
-    
-        // Loop through the bonds and insert them into the database
-        for (let bond of bonds) {
-          const { issuer, type, maturityDate, faceValue, interestRate, marketValue } = bond;
-    
-          // Assuming you have a way to handle the uploaded document file (stored in `req.file`)
-          const document = req.file ? req.file.buffer : null; // Assuming the document is uploaded and available in `req.file`
-    
-          // Ensure all parameters are in the correct format and types
-          await queryDatabase(insertBondQuery, [
-            user_id,
-            beneficiariesString, // Store the beneficiaries as a comma-separated string
-            issuer,
-            type,
-            maturityDate,
-            faceValue,
-            interestRate,
-            marketValue,
-            document // This should be a Buffer or null
-          ]);
-        }
-    
-        res.status(201).json({ msg: "Bonds added successfully with beneficiaries!" });
-    
-      } catch (error) {
-        console.error("Error:", error);
-        res.status(500).json({ msg: "Server error." });
-      }
-    });
-    
 
   const documentStorage = multer.diskStorage({
     destination: function (req, file, cb) {
@@ -891,113 +1018,6 @@ const connectionString =
       }
     }
   );
-
-
-  router.post("/commodities", authMiddleware, async (req, res) => {
-    console.log("✌️ req.body --->", req.body);
-    const { commodities } = req.body;
-
-    let connection;
-    try {
-      connection = await initializeConnection(); // Initialize connection
-
-      const transaction = new sql.Transaction(connection);
-      await transaction.begin(); // Start transaction
-
-      for (const commodity of commodities) {
-        const {
-          CommodityID,
-          CommodityType,
-          Quantity,
-          PurchasePrice,
-          CurrentValue = null,
-          Notes = "",
-        } = commodity;
-
-        // Input validation
-        if (
-          !CommodityType ||
-          Quantity === undefined ||
-          PurchasePrice === undefined
-        ) {
-          throw new Error(
-            "CommodityType, Quantity, and PurchasePrice are required."
-          );
-        }
-
-        let existingCommodityCheckQuery = `
-        SELECT COUNT(*) AS count FROM Commodities WHERE CommodityID = @CommodityID
-      `;
-        const request = new sql.Request(transaction);
-        request.input("CommodityID", sql.Int, CommodityID);
-
-        const existingCommodityCheckResult = await request.query(
-          existingCommodityCheckQuery
-        );
-
-        if (existingCommodityCheckResult.recordset[0].count > 0) {
-          // Update existing commodity
-          const updateCommodityQuery = `
-          UPDATE Commodities
-          SET CommodityType = @CommodityType, Quantity = @Quantity, PurchasePrice = @PurchasePrice,
-              CurrentValue = @CurrentValue, Notes = @Notes, CreatedAt = GETDATE()
-          WHERE CommodityID = @CommodityID
-        `;
-          request.input("CommodityType", sql.NVarChar, CommodityType);
-          request.input("Quantity", sql.Float, Quantity);
-          request.input("PurchasePrice", sql.Float, PurchasePrice);
-          request.input("CurrentValue", sql.Float, CurrentValue);
-          request.input("Notes", sql.NVarChar, Notes);
-
-          await request.query(updateCommodityQuery);
-          console.log(`Updated Commodity ID: ${CommodityID}`);
-        } else {
-          // Insert new commodity
-          const insertCommodityQuery = `
-          INSERT INTO Commodities (CommodityType, Quantity, PurchasePrice, CurrentValue, Notes, CreatedAt)
-          OUTPUT INSERTED.CommodityID
-          VALUES (@CommodityType, @Quantity, @PurchasePrice, @CurrentValue, @Notes, GETDATE())
-        `;
-          request.input("CommodityType", sql.NVarChar, CommodityType);
-          request.input("Quantity", sql.Float, Quantity);
-          request.input("PurchasePrice", sql.Float, PurchasePrice);
-          request.input("CurrentValue", sql.Float, CurrentValue);
-          request.input("Notes", sql.NVarChar, Notes);
-
-          const insertCommodityResult = await request.query(
-            insertCommodityQuery
-          );
-          console.log(
-            `New Commodity ID: ${insertCommodityResult.recordset[0].CommodityID}`
-          );
-        }
-      }
-
-      await transaction.commit(); // Commit transaction
-      res.status(201).json({ msg: "Commodities added/updated successfully!" });
-    } catch (error) {
-      console.error("Error:", error);
-      if (connection) {
-        await connection.rollback(); // Rollback transaction on error
-      }
-      res.status(500).json({ msg: "Server error." });
-    } finally {
-      if (connection) {
-        connection.close(); // Close the connection
-      }
-    }
-  });
-
-  router.get("/beneficiary_user", authMiddleware, async (req, res) => {
-    const user_id = req.user_id;
-    const query = `
-      SELECT * 
-      FROM [dbo].[beneficiaries]
-      WHERE user_id = ?
-    `;
-    const data = await queryDatabase(query, [user_id]);
-    res.status(200).json(data);
-  });
-  
+})();
 
 module.exports = router;

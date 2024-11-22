@@ -2,81 +2,11 @@
 @tailwind components;
 @tailwind utilities;
 
-.navbar {
-    background-color: #282c34;
-    padding: 1rem;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    color: white;
-  }
+body{
   
-  .nav-logo {
-    font-size: 1.5rem;
-    font-weight: bold;
-    cursor: pointer;
-  }
-  
-  .nav-links {
-    list-style: none;
-    display: flex;
-    gap: 1.5rem;
-  }
-  
-  .nav-item {
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-  }
-  
-  .nav-item:hover {
-    color: #61dafb;
-  }
-  
-  .hamburger-menu {
-    display: none;
-  }
-  
-  @media (max-width: 768px) {
-    .hamburger-menu {
-      display: block;
-      cursor: pointer;
-    }
-    
-    .nav-links {
-      flex-direction: column;
-      background-color: #333;
-      position: absolute;
-      top: 70px;
-      right: 0;
-      padding: 1rem;
-      display: none;
-    }
-  
-    .nav-links.open {
-      display: block;
-    }
-  }
-  
+  background: radial-gradient(circle, #538d2d 0%, rgba(253, 253, 253, 0.801) 100%), url('./assets/images/bg.jpg');
 
-
-  .transition-smooth {
-    transition: transform 1s ease-in-out; 
-  }
-  
-  .translate-x-full {
-    transform: translateX(100%); 
-  }
-  
-  .translate-x-0 {
-    transform: translateX(0); 
-  }
-  
-  .-translate-x-full {
-    transform: translateX(-100%); 
-  }
-  
+}
 
   /* .bg1 {
 
@@ -89,7 +19,7 @@
 
 
    .bg1 {
-    background: radial-gradient(circle, #538d2d 0%, rgba(253, 253, 253, 0.801) 100%), url('./assets/images/bg.jpg');
+
     background-attachment: fixed;
     background-size: cover;
     background-position: center;
@@ -255,7 +185,7 @@ input[type="radio"] {
 
     
   }
-    
+
 
   
 /* General Layout */
