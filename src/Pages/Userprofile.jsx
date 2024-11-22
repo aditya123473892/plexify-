@@ -1,14 +1,30 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import axios from "axios";
 
 const UserProfile = () => {
-  const [beneficiaries, setBeneficiaries] = useState([
-    { name: "Kojstantin", img: "https://via.placeholder.com/50" },
-    { name: "James", img: "https://via.placeholder.com/50" },
-    { name: "Natie", img: "https://via.placeholder.com/50" },
-  ]);
+  const [beneficiaries, setBeneficiaries] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  // Fetch beneficiaries on component mount
+  useEffect(() => {
+    const fetchBeneficiaries = async () => {
+      setLoading(true);
+      try {
+        const response = await axios.get("http://localhost:3523/beneficiaries");
+        setBeneficiaries(response.data.beneficiaries || []);
+      } catch (err) {
+        console.error("Error fetching beneficiaries:", err);
+        setError("Failed to fetch beneficiaries. Please try again later.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchBeneficiaries();
+  }, []);
 
   const handleAddBeneficiaryRedirect = () => {
-    // Redirect logic
     window.location.href = "/beneficiary"; // Replace with your actual URL
   };
 
@@ -33,17 +49,28 @@ const UserProfile = () => {
           </div>
         </div>
 
-        {/* Similar Profiles */}
+        {/* Beneficiaries Section */}
         <div className="similar-profiles">
-          <h3 className="section-title">Similar Profiles</h3>
-          <div className="beneficiary-list">
-            {beneficiaries.map((beneficiary, index) => (
-              <div key={index} className="beneficiary">
-                <img src={beneficiary.img} alt={beneficiary.name} />
-                <p>{beneficiary.name}</p>
-              </div>
-            ))}
-          </div>
+          <h3 className="section-title">Beneficiaries</h3>
+          {loading ? (
+            <p>Loading beneficiaries...</p>
+          ) : error ? (
+            <p className="text-red-500">{error}</p>
+          ) : beneficiaries.length > 0 ? (
+            <div className="beneficiary-list">
+              {beneficiaries.map((beneficiary, index) => (
+                <div key={index} className="beneficiary">
+                  <img
+                    src={beneficiary.img || "https://via.placeholder.com/50"}
+                    alt={beneficiary.name}
+                  />
+                  <p>{beneficiary.name}</p>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p>No beneficiaries found.</p>
+          )}
           <button
             className="add-beneficiary-btn"
             onClick={handleAddBeneficiaryRedirect}

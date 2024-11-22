@@ -121,30 +121,6 @@ const Home = () => {
 
   return (
     <>
-      <header className="mb-8 text-white rounded-2xl bg-[#548831]">
-        <div className="  p-5 mt-4 rounded-xl">
-          <div className="flex justify-between text-white">
-            <div className="text-center">
-              <img
-                className="w-2/5 mx-auto filter brightness-[20.5]"
-                src={wealthlogo}
-                alt="Manage, Grow, Pass On"
-              />
-              <p className="pt-3 ">Manage, Grow, Pass On</p>
-            </div>
-
-            <div className="text-center flex flex-col justify-center">
-              <h2 className="text-6xl font-bold text-center py-5 text-[#daa431]">
-                Manage Grow Inherit
-              </h2>
-              <h2 className="text-lg text-center text-white">
-                चिंतामुक्त भविष्य, विरासत का सुखद सफर
-              </h2>
-            </div>
-          </div>
-        </div>
-      </header>
-
       <VideoChat></VideoChat>
 
       <div>
