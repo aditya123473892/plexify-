@@ -142,6 +142,96 @@ const connectionString =
     }
   });
 
+  router.post("/add-beneficiary", async (req, res) => {
+    try {
+      const {
+        Name,
+        AadhaarNumber,
+        ContactNumber,
+        Email,
+        Address,
+        Relationship,
+        DateOfBirth,
+        IDOrPassportNumber,
+        EntitlementPercentage,
+      } = req.body;
+
+      // Check if all required fields are provided
+      if (
+        !Name ||
+        !AadhaarNumber ||
+        !ContactNumber ||
+        !Email ||
+        !Address ||
+        !Relationship ||
+        !DateOfBirth ||
+        !IDOrPassportNumber ||
+        !EntitlementPercentage
+      ) {
+        return res.status(400).json({ msg: "Fill all fields" });
+      }
+
+      // Query to check if Aadhaar Number already exists in the database
+      const checkAadhaarQuery = `SELECT * FROM Beneficiaries WHERE AadhaarNumber = ?`;
+
+      sql.query(
+        connectionString,
+        checkAadhaarQuery,
+        [AadhaarNumber],
+        (err, existingBeneficiary) => {
+          if (err) {
+            console.error("Error executing query:", err);
+            return res.status(500).json({ msg: "Server Error" });
+          }
+
+          if (existingBeneficiary.length > 0) {
+            return res
+              .status(400)
+              .json({ msg: "Aadhaar number already exists" });
+          }
+
+          // Insert Beneficiary details into the Beneficiaries table
+          const insertBeneficiaryQuery = `
+          INSERT INTO Beneficiaries 
+          (Name, AadhaarNumber, ContactNumber, Email, Address, Relationship, DateOfBirth, IDOrPassportNumber, EntitlementPercentage) 
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        `;
+
+          sql.query(
+            connectionString,
+            insertBeneficiaryQuery,
+            [
+              Name,
+              AadhaarNumber,
+              ContactNumber,
+              Email,
+              Address,
+              Relationship,
+              DateOfBirth,
+              IDOrPassportNumber,
+              EntitlementPercentage,
+            ],
+            (err, result) => {
+              if (err) {
+                console.error("Error inserting beneficiary:", err);
+                return res.status(500).json({ msg: "Server Error" });
+              }
+
+              // Successful insertion response
+              res.status(201).json({
+                msg: "Beneficiary added successfully",
+                beneficiaryId: result.insertId, // Optional: Include inserted record's ID.
+              });
+            }
+          );
+        }
+      );
+    } catch (error) {
+      console.error("Error adding beneficiary:", error);
+      res.status(500).json({ msg: "Server Error" });
+    }
+  });
+
   router.post("/forgot-password", async (req, res) => {
     try {
       const { email } = req.body;
