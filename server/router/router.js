@@ -1,5 +1,6 @@
 const express = require("express");
 const router = express.Router();
+const User = require("../model/Signup");
 const jweb = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
 const crypto = require("crypto");
@@ -10,10 +11,10 @@ const fs = require("fs");
 const path = require("path");
 const authMiddleware = require("../auth/authMiddleware");
 const secret = "iwfhugafwofjwhig3hwigk3wnig3uwmgkmewoipj39gw8hqoijhi3hgwgkwni";
+const odbc = require("odbc");
 const connectionString =
-  "Driver={ODBC Driver 17 for SQL Server};Server=DESKTOP-BBKLDAG\\SQLEXPRESS01;Database=DB;Trusted_Connection=yes;TrustServerCertificate=yes;";
+  "Driver={ODBC Driver 18 for SQL Server};Server=MOHIT\\SQLEXPRESS;Database=master;Trusted_Connection=yes;TrustServerCertificate=yes;";
 
-  // Server=DESKTOP-BBKLDAG\\SQLEXPRESS01;Database=DB;Trusted_Connection=yes;';
 
   router.post("/signup", async (req, res) => {
     try {
@@ -145,92 +146,125 @@ const connectionString =
   router.post("/add-beneficiary", async (req, res) => {
     try {
       const {
-        Name,
-        AadhaarNumber,
-        ContactNumber,
-        Email,
-        Address,
-        Relationship,
-        DateOfBirth,
-        IDOrPassportNumber,
-        EntitlementPercentage,
+        userId,
+        name,
+        contact,
+        email,
+        entitlement,
+        notify,
+        relationship,
       } = req.body;
 
-      // Check if all required fields are provided
-      if (
-        !Name ||
-        !AadhaarNumber ||
-        !ContactNumber ||
-        !Email ||
-        !Address ||
-        !Relationship ||
-        !DateOfBirth ||
-        !IDOrPassportNumber ||
-        !EntitlementPercentage
-      ) {
-        return res.status(400).json({ msg: "Fill all fields" });
+      // Validate input
+      if (!userId || !name || !entitlement || !relationship) {
+        return res
+          .status(400)
+          .json({ msg: "Please fill all required fields." });
       }
 
-      // Query to check if Aadhaar Number already exists in the database
-      const checkAadhaarQuery = `SELECT * FROM Beneficiaries WHERE AadhaarNumber = ?`;
-
-      sql.query(
-        connectionString,
-        checkAadhaarQuery,
-        [AadhaarNumber],
-        (err, existingBeneficiary) => {
-          if (err) {
-            console.error("Error executing query:", err);
-            return res.status(500).json({ msg: "Server Error" });
-          }
-
-          if (existingBeneficiary.length > 0) {
-            return res
-              .status(400)
-              .json({ msg: "Aadhaar number already exists" });
-          }
-
-          // Insert Beneficiary details into the Beneficiaries table
-          const insertBeneficiaryQuery = `
-          INSERT INTO Beneficiaries 
-          (Name, AadhaarNumber, ContactNumber, Email, Address, Relationship, DateOfBirth, IDOrPassportNumber, EntitlementPercentage) 
-          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-        `;
-
-          sql.query(
-            connectionString,
-            insertBeneficiaryQuery,
-            [
-              Name,
-              AadhaarNumber,
-              ContactNumber,
-              Email,
-              Address,
-              Relationship,
-              DateOfBirth,
-              IDOrPassportNumber,
-              EntitlementPercentage,
-            ],
-            (err, result) => {
-              if (err) {
-                console.error("Error inserting beneficiary:", err);
-                return res.status(500).json({ msg: "Server Error" });
-              }
-
-              // Successful insertion response
-              res.status(201).json({
-                msg: "Beneficiary added successfully",
-                beneficiaryId: result.insertId, // Optional: Include inserted record's ID.
-              });
-            }
-          );
+      // Check if user_id exists
+      const checkUserQuery = `SELECT user_id FROM dbo.registration WHERE user_id = ?`;
+      sql.query(connectionString, checkUserQuery, [userId], (err, result) => {
+        if (err) {
+          console.error("Error checking user_id:", err);
+          return res.status(500).json({ msg: "Server error." });
         }
-      );
+        if (result.length === 0) {
+          return res
+            .status(400)
+            .json({ msg: "Invalid user_id. Please register the user first." });
+        }
+
+        // Insert the beneficiary
+        const insertBeneficiaryQuery = `
+          INSERT INTO dbo.beneficiaries 
+          (user_id, name, contact, email, entitlement, relationship, notify) 
+          VALUES (?, ?, ?, ?, ?, ?, ?)
+        `;
+        sql.query(
+          connectionString,
+          insertBeneficiaryQuery,
+          [
+            userId,
+            name,
+            contact || null,
+            email || null,
+            entitlement,
+            relationship,
+            notify || 0,
+          ],
+          (err, result) => {
+            if (err) {
+              console.error("Error inserting beneficiary:", err);
+              return res.status(500).json({ msg: "Server error." });
+            }
+
+            res.status(201).json({
+              msg: "Beneficiary added successfully",
+              beneficiaryId: result.insertId,
+            });
+          }
+        );
+      });
     } catch (error) {
       console.error("Error adding beneficiary:", error);
-      res.status(500).json({ msg: "Server Error" });
+      res.status(500).json({ msg: "Server error." });
     }
   });
+  router.get("/beneficiaries", async (req, res) => {
+    try {
+      const { userId, beneficiaryId } = req.query; // Accept query parameters for filtering
+
+      // Base query
+      let fetchQuery = `SELECT * FROM dbo.beneficiaries`;
+      const queryParams = [];
+
+      // Add conditions dynamically
+      if (userId) {
+        fetchQuery += ` WHERE user_id = ?`;
+        queryParams.push(userId);
+      }
+      if (beneficiaryId) {
+        fetchQuery += userId
+          ? ` AND beneficiary_id = ?`
+          : ` WHERE beneficiary_id = ?`;
+        queryParams.push(beneficiaryId);
+      }
+
+      // Execute the query
+      sql.query(connectionString, fetchQuery, queryParams, (err, results) => {
+        if (err) {
+          console.error("Error fetching beneficiaries:", err);
+          return res.status(500).json({ msg: "Server error." });
+        }
+
+        if (results.length === 0) {
+          return res.status(404).json({ msg: "No beneficiaries found." });
+        }
+
+        res.status(200).json({
+          msg: "Beneficiaries retrieved successfully",
+          beneficiaries: results,
+        });
+      });
+    } catch (error) {
+      console.error("Error fetching beneficiaries:", error);
+      res.status(500).json({ msg: "Server error." });
+    }
+  });
+
+  router.get("/beneficiary_user", authMiddleware, async (req, res) => {
+    const user_id = req.user_id;
+    const query = `
+      SELECT * 
+      FROM [dbo].[beneficiaries]
+      WHERE user_id = ?
+    `;
+    const data = await queryDatabase(query, [user_id]);
+    res.status(200).json(data);
+  });
+  
+
 
   router.post("/forgot-password", async (req, res) => {
     try {
@@ -360,6 +394,35 @@ const connectionString =
   });
 
   // insurance
+
+
+  router.get("/insurance", authMiddleware, async (req, res) => {
+    const user_id = req.user_id;
+  
+    const getInsurancePolicyQuery = `
+      SELECT policy_name, policy_number, provider, policy_type, policy_period, 
+             premium_amount, coverage_limit, maturity_amount, nominee_name, 
+             nominee_relation, status, document 
+      FROM insurance_policy 
+      WHERE user_id = ?
+    `;
+  
+    try {
+      // Using the helper function to query the database
+      const result = await queryDatabase(getInsurancePolicyQuery, [user_id]);
+  
+      if (result.length === 0) {
+        return res.status(404).json({ msg: "No insurance policies found for this user." });
+      }
+  
+      // Return the result as a JSON response
+      res.status(200).json(result);
+    } catch (error) {
+      console.error("Error fetching insurance policy:", error);
+      res.status(500).json({ msg: "Server Error" });
+    }
+  });
+
 
   const storage = multer.diskStorage({
     destination: function (req, file, cb) {
@@ -550,85 +613,175 @@ const connectionString =
     });
   };
 
-
   router.post("/recurring_deposits", authMiddleware, async (req, res) => {
+    console.log("✌️ req.body --->", req.body);
+    const { deposits } = req.body;
+    const user_id = req.user_id;
+
     try {
-      console.log("✌️ req.body --->", req.body);
-      const { deposits, beneficiaries } = req.body;
-      const user_id = req.user_id;
-  
-      const beneficiariesString = beneficiaries.join(',');
-  
       for (const deposit of deposits) {
-        const {
-          bankName,
-          depositAmount,
-          interestRate,
-          startDate,
-          maturityDate,
-          maturityAmount,
-          rdNumber,
-        } = deposit;
-  
-        // Insert query for the recurring deposit
-        const insertDepositQuery = `
-          INSERT INTO [dbo].[recurring_deposit] 
-          (user_id, beneficiarie_user, monthly_deposit_amount, interest_rate, start_date, maturity_date, maturity_amount, bank_name)
-          VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        const checkDepositQuery = `
+          SELECT COUNT(*) AS count FROM [dbo].[recurring_deposit] WHERE rd_number = ?
         `;
-        const depositParams = [
-          user_id,
-          beneficiariesString, 
-          depositAmount,
-          interestRate,
-          startDate,
-          maturityDate,
-          maturityAmount || null,
-          bankName,
-        ];
-  
-        await queryDatabase(insertDepositQuery, depositParams);
+
+        const checkDepositResult = await queryDatabase(checkDepositQuery, [
+          deposit.rdNumber,
+        ]);
+
+        let rd_id;
+
+        if (checkDepositResult[0].count > 0) {
+          // Update the existing deposit
+          const updateDepositQuery = `
+            UPDATE [dbo].[recurring_deposit]
+            SET monthly_deposit_amount = ?, interest_rate = ?, start_date = ?, 
+                maturity_date = ?, maturity_amount = ?, bank_name = ?, status = ?
+            OUTPUT INSERTED.rd_id
+            WHERE rd_number = ?
+          `;
+
+          const updateResult = await queryDatabase(updateDepositQuery, [
+            deposit.depositAmount,
+            deposit.interestRate,
+            deposit.startDate,
+            deposit.maturityDate,
+            deposit.maturityAmount,
+            deposit.bankName,
+            deposit.status || "Active",
+            deposit.rdNumber,
+          ]);
+
+          rd_id = updateResult[0].rd_id;
+        } else {
+          // Insert a new deposit and get the inserted ID
+          const insertDepositQuery = `
+            INSERT INTO [dbo].[recurring_deposit] (
+              user_id, rd_number, monthly_deposit_amount, interest_rate, start_date, 
+              maturity_date, maturity_amount, bank_name, status
+            )
+            OUTPUT INSERTED.rd_id
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+          `;
+
+          const insertDepositResult = await queryDatabase(insertDepositQuery, [
+            user_id,
+            deposit.rdNumber,
+            deposit.depositAmount,
+            deposit.interestRate,
+            deposit.startDate,
+            deposit.maturityDate,
+            deposit.maturityAmount,
+            deposit.bankName,
+            deposit.status || "Active",
+          ]);
+
+          rd_id = insertDepositResult[0].rd_id;
+        }
+
+        console.log("Recurring Deposit ID:", rd_id);
+
+        // Handle the beneficiaries associated with each deposit
+        const beneficiaryPromises = deposit.beneficiaries.map((beneficiary) => {
+          const insertBeneficiaryQuery = `
+            INSERT INTO [dbo].[beneficiaries] (
+              rd_id, user_id, name, contact, email, entitlement, relationship, notify
+            )
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+          `;
+
+          return queryDatabase(insertBeneficiaryQuery, [
+            rd_id,
+            user_id,
+            beneficiary.name,
+            beneficiary.contact,
+            beneficiary.email,
+            parseInt(beneficiary.entitlement),
+            beneficiary.relationship,
+            beneficiary.notify ? 1 : 0,
+          ]);
+        });
+
+        await Promise.all(beneficiaryPromises); // Insert beneficiaries only once per deposit
       }
-  
-      res.status(201).json({ msg: 'Recurring deposit(s) inserted successfully' });
-    } catch (err) {
-      console.error('Error inserting data:', err);
-      res.status(500).json({ msg: 'Server Error' });
+
+      res.status(201).json({
+        msg: "Recurring deposits and beneficiaries added/updated successfully!",
+      });
+    } catch (error) {
+      console.error("Error:", error);
+      res.status(500).json({ msg: "Server error." });
     }
   });
-
-  
-
-  
-
   router.post("/real_estate", authMiddleware, async (req, res) => {
     console.log("✌️ req.body --->", req.body);
-    const { properties, beneficiaries } = req.body;
+    const { properties } = req.body;
     const user_id = req.user_id;
-    const beneficiariesString = beneficiaries.join(',');
-  
-    const insertPropertyQuery = `
-      INSERT INTO [dbo].[properties] (
-        property_name, property_type, location, area_in_sqft, purchase_date, purchase_price, 
-        current_value, ownership_status, rental_income, tenant_name, tenant_contact, 
-        status, user_id, beneficiarie_user
-      )
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,?);
-    `;
-  
+
     try {
-      for (let property of properties) {
-        const {
-          propertyName, propertyType, location, areaInSqft, purchaseDate, purchasePrice,
-          currentValue, ownershipStatus, rentalIncome, tenantName, tenantContact, status
-        } = property;
-        
-        await queryDatabase(insertPropertyQuery, [
-          propertyName, propertyType, location, areaInSqft, purchaseDate, purchasePrice, 
-          currentValue, ownershipStatus, rentalIncome, tenantName, tenantContact, status, user_id, beneficiariesString
+      for (const property of properties) {
+        const checkPropertyQuery = `
+          SELECT COUNT(*) AS count FROM [dbo].[property] WHERE property_name = ? AND user_id = ?
+        `;
+
+        const checkPropertyResult = await queryDatabase(checkPropertyQuery, [
+          property.propertyName,
+          user_id,
         ]);
+
+        if (checkPropertyResult[0].count > 0) {
+          // If the property already exists, update it
+          const updatePropertyQuery = `
+            UPDATE [dbo].[property]
+            SET property_type = ?, location = ?, area_in_sqft = ?, purchase_date = ?, 
+                purchase_price = ?, current_value = ?, ownership_status = ?, rental_income = ?, 
+                tenant_name = ?, tenant_contact = ?, status = ?, updated_at = GETDATE()
+            WHERE property_name = ? AND user_id = ?
+          `;
+
+          await queryDatabase(updatePropertyQuery, [
+            property.propertyType,
+            property.location,
+            parseInt(property.areaInSqft),
+            property.purchaseDate,
+            parseFloat(property.purchasePrice),
+            parseFloat(property.currentValue),
+            property.ownershipStatus,
+            parseFloat(property.rentalIncome),
+            property.tenantName,
+            property.tenantContact,
+            property.status || "Active",
+            property.propertyName,
+            user_id,
+          ]);
+        } else {
+          // If property does not exist, insert a new one
+          const insertPropertyQuery = `
+            INSERT INTO [dbo].[property] (
+              user_id, property_name, property_type, location, area_in_sqft, 
+              purchase_date, purchase_price, current_value, ownership_status, 
+              rental_income, tenant_name, tenant_contact, status, created_at, updated_at
+            )
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, GETDATE(), GETDATE())
+          `;
+
+          await queryDatabase(insertPropertyQuery, [
+            user_id,
+            property.propertyName,
+            property.propertyType,
+            property.location,
+            parseInt(property.areaInSqft),
+            property.purchaseDate,
+            parseFloat(property.purchasePrice),
+            parseFloat(property.currentValue),
+            property.ownershipStatus,
+            parseFloat(property.rentalIncome),
+            property.tenantName,
+            property.tenantContact,
+            property.status || "Active",
+          ]);
+        }
       }
-  
+
       res.status(201).json({ msg: "Properties added/updated successfully!" });
     } catch (error) {
       console.error("Error:", error);
@@ -668,7 +821,7 @@ const connectionString =
 
     const bond_storage = multer.diskStorage({
       destination: function (req, file, cb) {
-        cb(null, "uploads/deposits");
+        cb(null, "uploads/bond");
       },
       filename: function (req, file, cb) {
         cb(null, Date.now() + path.extname(file.originalname));
@@ -679,56 +832,98 @@ const connectionString =
       storage: bond_storage
     });
 
-    router.post("/bonds", authMiddleware, bond_upload.single("document"), async (req, res) => {
-      try {
-        console.log('✌️req.body --->', req.body);
+    router.post(
+      "/bonds",
+      authMiddleware,
+      bond_upload.single("document"),
+      async (req, res) => {
+        try {
+          console.log("✌️req.body --->", req.body);
     
-        // Parse the bonds and beneficiaries from stringified JSON
-        const bonds = JSON.parse(req.body.bonds);
-        const beneficiaries = JSON.parse(req.body.beneficiaries); // beneficiaries as an array
+          const bonds = JSON.parse(req.body.bonds);
+          const beneficiaries = JSON.parse(req.body.beneficiaries);
     
-        const user_id = req.user_id;
+          const user_id = req.user_id;
     
-        // Convert beneficiaries array into a comma-separated string (or handle as you prefer)
-        const beneficiariesString = beneficiaries.join(',');
+          if (!Array.isArray(beneficiaries)) {
+            return res
+              .status(400)
+              .json({ msg: "Beneficiaries should be an array of user IDs." });
+          }
     
-        // Define the SQL insert query
-        const insertBondQuery = `
-          INSERT INTO [dbo].[bond] (
-            user_id, beneficiarie_user, issuer, bond_type, maturity_date, face_value, interest_rate, market_value, document
-          )
-          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);
-        `;
+          const beneficiariesString = beneficiaries
+            .map((id) => Number(id))
+            .join(",");
     
-        // Loop through the bonds and insert them into the database
-        for (let bond of bonds) {
-          const { issuer, type, maturityDate, faceValue, interestRate, marketValue } = bond;
+          const insertBondQuery = `
+            INSERT INTO [dbo].[bond] (
+              user_id, beneficiarie_user, issuer, bond_type, maturity_date, face_value, interest_rate, market_value, document
+            )
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);
+          `;
     
-          // Assuming you have a way to handle the uploaded document file (stored in `req.file`)
-          const document = req.file ? req.file.buffer : null; // Assuming the document is uploaded and available in `req.file`
+          let documentData = null;
+          if (req.file) {
+            documentData = fs.readFileSync(req.file.path);
+            console.log("Document Data Buffer:", documentData);
+          }
     
-          // Ensure all parameters are in the correct format and types
-          await queryDatabase(insertBondQuery, [
-            user_id,
-            beneficiariesString, // Store the beneficiaries as a comma-separated string
-            issuer,
-            type,
-            maturityDate,
-            faceValue,
-            interestRate,
-            marketValue,
-            document // This should be a Buffer or null
-          ]);
+          for (let bond of bonds) {
+            const {
+              issuer,
+              type: bondType,
+              maturityDate,
+              faceValue,
+              interestRate,
+              marketValue,
+            } = bond;
+    
+            const issuerValidated = String(issuer || "");
+            const bondTypeValidated = String(bondType || "");
+            const maturityDateValidated = maturityDate
+              ? new Date(maturityDate)
+              : null;
+            const faceValueValidated = Number(faceValue || 0);
+            const interestRateValidated = Number(interestRate || 0);
+            const marketValueValidated = Number(marketValue || 0);
+    
+            console.log("Values being inserted:");
+            console.log({
+              user_id,
+              beneficiariesString,
+              issuerValidated,
+              bondTypeValidated,
+              maturityDateValidated,
+              faceValueValidated,
+              interestRateValidated,
+              marketValueValidated,
+              documentType: documentData ? typeof documentData : null,
+            });
+    
+            await queryDatabase(insertBondQuery, [
+              user_id,
+              beneficiariesString,
+              issuerValidated,
+              bondTypeValidated,
+              maturityDateValidated,
+              faceValueValidated,
+              interestRateValidated,
+              marketValueValidated,
+              documentData, // This should be a Buffer or null
+            ]);
+          }
+    
+          res
+            .status(201)
+            .json({ msg: "Bonds added successfully with beneficiaries!" });
+        } catch (error) {
+          console.error("Error:", error);
+          res.status(500).json({ msg: "Server error." });
         }
-    
-        res.status(201).json({ msg: "Bonds added successfully with beneficiaries!" });
-    
-      } catch (error) {
-        console.error("Error:", error);
-        res.status(500).json({ msg: "Server error." });
       }
-    });
+    );
     
+
 
   const documentStorage = multer.diskStorage({
     destination: function (req, file, cb) {
@@ -811,193 +1006,438 @@ const connectionString =
     async (req, res) => {
       try {
         console.log("✌️req.body --->", req.body);
+        const beneficiaries = JSON.parse(req.body.beneficiaries);
         const metals = JSON.parse(req.body.metals); // Metals data
-        const beneficiaries = JSON.parse(req.body.beneficiaries); // Shared beneficiaries
         const userId = req.user_id;
-
+  
         let documentData = null;
         if (req.file) {
           documentData = fs.readFileSync(req.file.path);
           console.log("Document Data Buffer:", documentData);
         }
-
-        // Insert each metal record
-        const metalIds = await Promise.all(
-          metals.map(async (metal) => {
-            const weight = parseFloat(metal.weight).toFixed(2);
-            const purchasePrice = parseFloat(metal.purchasePrice).toFixed(2);
-            const currentValue = parseFloat(metal.currentValue).toFixed(2);
-            const description = metal.description || "";
-
-            if (isNaN(weight) || isNaN(purchasePrice) || isNaN(currentValue)) {
-              throw new Error("Invalid numeric data for metal entry");
-            }
-
-            const insertMetalQuery = `
-          INSERT INTO precious_metals (user_id, metal_type, weight, purchase_price, current_value, description, document)
-          OUTPUT INSERTED.id
-          VALUES (?, ?, ?, ?, ?, ?, ?);
-        `;
-
-            const result = await queryDatabase(insertMetalQuery, [
-              userId,
-              metal.metalType,
-              weight,
-              purchasePrice,
-              currentValue,
-              description,
-              documentData || null,
-            ]);
-
-            console.log("Metal Insert Result:", result);
-            return result[0].id; // Get the inserted metal ID
-          })
-        );
-
-        // Insert beneficiaries only once and link to the first metal ID or last inserted ID as per requirement
-        const pm_id = metalIds[0]; // Use the first metal ID (or use metalIds[metalIds.length - 1] for the last one)
-
-        await Promise.all(
-          beneficiaries.map(async (beneficiary) => {
-            const entitlement = parseFloat(beneficiary.entitlement);
-            if (isNaN(entitlement)) {
-              throw new Error("Invalid entitlement data for beneficiary");
-            }
-
-            const insertBeneficiaryQuery = `
-          INSERT INTO realestate_Beneficiary (pm_id, user_id, name, contact, email, entitlement, relationship, notify)
-          VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-        `;
-
-            await queryDatabase(insertBeneficiaryQuery, [
-              pm_id,
-              userId,
-              beneficiary.name,
-              beneficiary.contact,
-              beneficiary.email,
-              entitlement,
-              beneficiary.relationship,
-              beneficiary.notify ? 1 : 0,
-            ]);
-          })
-        );
-
+  
+        if (!Array.isArray(beneficiaries)) {
+          return res
+            .status(400)
+            .json({ msg: "Beneficiaries should be an array of user IDs." });
+        }
+  
+        const beneficiariesString = beneficiaries
+          .map((id) => Number(id))
+          .join(",");
+        for (let metal of metals) {
+          const weight = parseFloat(metal.weight).toFixed(2);
+          const purchasePrice = parseFloat(metal.purchasePrice).toFixed(2);
+          const currentValue = parseFloat(metal.currentValue).toFixed(2);
+          const description = metal.description || "";
+  
+          if (isNaN(weight) || isNaN(purchasePrice) || isNaN(currentValue)) {
+            throw new Error("Invalid numeric data for metal entry");
+          }
+  
+          const insertMetalQuery = `
+            INSERT INTO precious_metals (user_id, metal_type, weight, purchase_price, current_value, description, document,beneficiarie_user)
+            VALUES (?, ?, ?, ?, ?, ?, ?,?);
+          `;
+  
+          await queryDatabase(insertMetalQuery, [
+            userId,
+            metal.metalType,
+            weight,
+            purchasePrice,
+            currentValue,
+            description,
+            documentData || null,
+            beneficiariesString
+          ]);
+  
+          console.log(`Metal inserted: ${metal.metalType}`);
+        }
+  
         res.status(200).json({
-          msg: "Precious metals and beneficiaries data saved successfully",
+          msg: "Precious metals data saved successfully",
         });
       } catch (error) {
-        console.error("Error saving precious metals inheritance data:", error);
+        console.error("Error saving precious metals data:", error);
         res.status(500).json({ msg: "Failed to save data" });
       }
     }
   );
 
 
-  router.post("/commodities", authMiddleware, async (req, res) => {
-    console.log("✌️ req.body --->", req.body);
-    const { commodities } = req.body;
-
-    let connection;
+  router.post('/crypto',authMiddleware, async (req, res) => {
     try {
-      connection = await initializeConnection(); // Initialize connection
-
-      const transaction = new sql.Transaction(connection);
-      await transaction.begin(); // Start transaction
-
-      for (const commodity of commodities) {
-        const {
-          CommodityID,
-          CommodityType,
-          Quantity,
-          PurchasePrice,
-          CurrentValue = null,
-          Notes = "",
-        } = commodity;
-
-        // Input validation
-        if (
-          !CommodityType ||
-          Quantity === undefined ||
-          PurchasePrice === undefined
-        ) {
-          throw new Error(
-            "CommodityType, Quantity, and PurchasePrice are required."
-          );
-        }
-
-        let existingCommodityCheckQuery = `
-        SELECT COUNT(*) AS count FROM Commodities WHERE CommodityID = @CommodityID
+      console.log('✌️req.body --->', req.body);
+      const { cryptos, beneficiaryUser } = req.body;
+      const userId = req.user_id;
+      const insertCryptoQuery = `
+        INSERT INTO cryptocurrencies (name, amount_held, current_value, acquisition_date, wallet, user_id)
+        VALUES (?, ?, ?, ?, ?, ?);
       `;
-        const request = new sql.Request(transaction);
-        request.input("CommodityID", sql.Int, CommodityID);
-
-        const existingCommodityCheckResult = await request.query(
-          existingCommodityCheckQuery
-        );
-
-        if (existingCommodityCheckResult.recordset[0].count > 0) {
-          // Update existing commodity
-          const updateCommodityQuery = `
-          UPDATE Commodities
-          SET CommodityType = @CommodityType, Quantity = @Quantity, PurchasePrice = @PurchasePrice,
-              CurrentValue = @CurrentValue, Notes = @Notes, CreatedAt = GETDATE()
-          WHERE CommodityID = @CommodityID
-        `;
-          request.input("CommodityType", sql.NVarChar, CommodityType);
-          request.input("Quantity", sql.Float, Quantity);
-          request.input("PurchasePrice", sql.Float, PurchasePrice);
-          request.input("CurrentValue", sql.Float, CurrentValue);
-          request.input("Notes", sql.NVarChar, Notes);
-
-          await request.query(updateCommodityQuery);
-          console.log(`Updated Commodity ID: ${CommodityID}`);
-        } else {
-          // Insert new commodity
-          const insertCommodityQuery = `
-          INSERT INTO Commodities (CommodityType, Quantity, PurchasePrice, CurrentValue, Notes, CreatedAt)
-          OUTPUT INSERTED.CommodityID
-          VALUES (@CommodityType, @Quantity, @PurchasePrice, @CurrentValue, @Notes, GETDATE())
-        `;
-          request.input("CommodityType", sql.NVarChar, CommodityType);
-          request.input("Quantity", sql.Float, Quantity);
-          request.input("PurchasePrice", sql.Float, PurchasePrice);
-          request.input("CurrentValue", sql.Float, CurrentValue);
-          request.input("Notes", sql.NVarChar, Notes);
-
-          const insertCommodityResult = await request.query(
-            insertCommodityQuery
-          );
-          console.log(
-            `New Commodity ID: ${insertCommodityResult.recordset[0].CommodityID}`
-          );
-        }
-      }
-
-      await transaction.commit(); // Commit transaction
-      res.status(201).json({ msg: "Commodities added/updated successfully!" });
+  
+      // Loop through each crypto object and save to the database
+      const saveCryptoPromises = cryptos.map((crypto) => {
+        const { name, amountHeld, currentValue, acquisitionDate, wallet } = crypto;
+        const params = [
+          name,
+          amountHeld,
+          currentValue,
+          acquisitionDate,
+          wallet,
+          userId,
+        ];
+        return queryDatabase(insertCryptoQuery, params);
+      });
+  
+      // Execute all insert queries concurrently
+      await Promise.all(saveCryptoPromises);
+  
+      res.status(200).json({ msg: 'Cryptocurrency details saved successfully!' });
     } catch (error) {
-      console.error("Error:", error);
-      if (connection) {
-        await connection.rollback(); // Rollback transaction on error
-      }
-      res.status(500).json({ msg: "Server error." });
-    } finally {
-      if (connection) {
-        connection.close(); // Close the connection
-      }
+      console.error('Error saving cryptocurrency details:', error);
+      res.status(500).json({ msg: 'Error saving cryptocurrency details', error });
     }
   });
 
-  router.get("/beneficiary_user", authMiddleware, async (req, res) => {
-    const user_id = req.user_id;
-    const query = `
-      SELECT * 
-      FROM [dbo].[beneficiaries]
-      WHERE user_id = ?
-    `;
-    const data = await queryDatabase(query, [user_id]);
-    res.status(200).json(data);
+
+  router.post('/bank-accounts', authMiddleware, async (req, res) => {
+    try {
+      console.log('✌️req.body --->', req.body);
+      const { accounts, beneficiaryUser } = req.body;
+      const userId = req.user_id;
+  
+      const insertAccountQuery = `
+        INSERT INTO bank_accounts (account_holder, account_number, bank_name, account_type, balance, notes, user_id)
+        VALUES (?, ?, ?, ?, ?, ?, ?);
+      `;
+  
+      // Loop through each account object and save to the database
+      const saveAccountPromises = accounts.map((account) => {
+        const { accountHolder, accountNumber, bankName, accountType, balance, notes } = account;
+        const params = [
+          accountHolder,
+          accountNumber,
+          bankName,
+          accountType,
+          balance,
+          notes,
+          userId,
+        ];
+        return queryDatabase(insertAccountQuery, params);
+      });
+  
+      // Execute all insert queries concurrently
+      await Promise.all(saveAccountPromises);
+  
+      res.status(200).json({ msg: 'Bank account details saved successfully!' });
+    } catch (error) {
+      console.error('Error saving bank account details:', error);
+      res.status(500).json({ msg: 'Error saving bank account details', error });
+    }
   });
   
+
+  router.post('/retirement-accounts', authMiddleware, async (req, res) => {
+    try {
+      console.log('✌️ req.body --->', req.body);
+      const { accounts } = req.body;  // Destructure accounts from request body
+      const userId = req.user_id;  // Assuming the user ID is passed via authMiddleware
+  
+      const insertAccountQuery = `
+        INSERT INTO retirement_accounts (
+          account_holder, account_type, institution_name, current_balance, total_contributions, notes, user_id
+        )
+        VALUES (?, ?, ?, ?, ?, ?, ?);
+      `;
+      
+      // Loop through each account object and save to the database
+      const saveAccountPromises = accounts.map((account) => {
+        const { accountHolder, accountType, institutionName, currentBalance, contributions, notes } = account;
+        
+        // Prepare parameters for the insert query
+        const params = [
+          accountHolder,                         // account_holder
+          accountType,                            // account_type
+          institutionName,                        // institution_name
+          parseFloat(currentBalance),             // current_balance (convert string to number)
+          parseFloat(contributions),              // total_contributions (convert string to number)
+          notes,                                  // notes
+          userId                                  // user_id
+        ];
+  
+        return queryDatabase(insertAccountQuery, params);  // Execute the query
+      });
+  
+      // Execute all insert queries concurrently
+      await Promise.all(saveAccountPromises);
+  
+      res.status(200).json({ msg: 'Retirement account details saved successfully!' });
+    } catch (error) {
+      console.error('Error saving retirement account details:', error);
+      res.status(500).json({ msg: 'Error saving retirement account details', error });
+    }
+  });
+  
+  
+
+  router.post('/commodities', authMiddleware, async (req, res) => {
+    try {
+      console.log('✌️req.body --->', req.body);
+      const { commodities } = req.body;  // Extracting commodity array from the request body
+      const userId = req.user_id;  // User ID from the authentication middleware
+      
+      const insertCommodityQuery = `
+        INSERT INTO commodities (
+          commodity_name,
+          commodity_type,
+          unit_of_measure,
+          market_price,
+          stock_quantity,
+          provider,
+          acquisition_date,
+          expiry_date,
+          description,
+          status,
+          user_id
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+      `;
+      
+      const saveCommodityPromises = commodities.map((commodity) => {
+        const {
+          commodityName,
+          commodityType,
+          unitOfMeasure,
+          marketPrice,
+          stockQuantity,
+          provider,
+          acquisitionDate,
+          expiryDate,
+          description,
+          status
+        } = commodity;
+        
+        const params = [
+          commodityName,
+          commodityType,
+          unitOfMeasure,
+          marketPrice,
+          stockQuantity,
+          provider,
+          acquisitionDate,
+          expiryDate,
+          description,
+          status,
+          userId
+        ];
+        
+        return queryDatabase(insertCommodityQuery, params);
+      });
+      
+      await Promise.all(saveCommodityPromises);
+      
+      res.status(200).json({ msg: 'Commodity details saved successfully!' });
+    } catch (error) {
+      console.error('Error saving commodity details:', error);
+      res.status(500).json({ msg: 'Error saving commodity details', error });
+    }
+  });
+  
+  router.post('/other-investments', authMiddleware, async (req, res) => {
+    try {
+      console.log('✌️req.body --->', req.body);
+      const { investments } = req.body;  // Extracting investments array from the request body
+      const userId = req.user_id;  // User ID from the authentication middleware
+      
+      // SQL query to insert the other investment details into the database
+      const insertInvestmentQuery = `
+        INSERT INTO other_investments (
+          investment_type,
+          amount_invested,
+          current_value,
+          notes,
+          user_id
+        ) VALUES (?, ?, ?, ?, ?);
+      `;
+      
+      // Creating an array of promises to save each investment
+      const saveInvestmentPromises = investments.map((investment) => {
+        const {
+          investmentType,
+          amountInvested,
+          currentValue,
+          notes
+        } = investment;
+        
+        const params = [
+          investmentType,
+          amountInvested,
+          currentValue,
+          notes,
+          userId
+        ];
+        
+        return queryDatabase(insertInvestmentQuery, params);
+      });
+      
+      // Wait for all investment details to be saved
+      await Promise.all(saveInvestmentPromises);
+      
+      res.status(200).json({ msg: 'Investment details saved successfully!' });
+    } catch (error) {
+      console.error('Error saving investment details:', error);
+      res.status(500).json({ msg: 'Error saving investment details', error });
+    }
+  });
+
+  router.get('/networth', authMiddleware, async (req, res) => {
+    try {
+      const userId = req.user_id;
+  
+      const fetchNetWorthQuery = `
+        SELECT 
+          asset_name,
+          asset_value,
+          asset_type,
+          liability_name,
+          liability_value,
+          liability_type,
+          savings,
+          property_value,
+          other_income,
+          net_worth
+        FROM net_worth
+        WHERE user_id = ?;
+      `;
+  
+      const results = await queryDatabase(fetchNetWorthQuery, [userId]);
+  
+      const assets = [];
+      const liabilities = [];
+      let savings, property, otherIncome, netWorth;
+  
+      results.forEach((row) => {
+        if (row.asset_name && row.asset_value) {
+          assets.push({
+            name: row.asset_name,
+            value: row.asset_value,
+            type: row.asset_type
+          });
+        }
+  
+        if (row.liability_name && row.liability_value) {
+          liabilities.push({
+            name: row.liability_name,
+            value: row.liability_value,
+            type: row.liability_type
+          });
+        }
+  
+        // Only set values if they haven't been set yet (allows for nulls to persist)
+        if (savings === undefined) savings = row.savings;
+        if (property === undefined) property = row.property_value;
+        if (otherIncome === undefined) otherIncome = row.other_income;
+        if (netWorth === undefined) netWorth = row.net_worth;
+      });
+  
+      res.status(200).json({
+        assets,
+        liabilities,
+        savings,
+        property,
+        otherIncome,
+        netWorth
+      });
+    } catch (error) {
+      console.error('Error fetching net worth details:', error);
+      res.status(500).json({ msg: 'Error fetching net worth details', error: error.message });
+    }
+  });
+  
+
+  
+
+  router.post('/networth', authMiddleware, async (req, res) => {
+    try {
+      console.log('✌️req.body --->', req.body);
+      const { assets, liabilities, savings, property, otherIncome, netWorth } = req.body;
+      const userId = req.user_id;  // User ID from the authentication middleware
+      
+      // Define the insert query for net worth details
+      const insertNetWorthQuery = `
+        INSERT INTO net_worth (
+          asset_name,
+          asset_value,
+          asset_type,
+          liability_name,
+          liability_value,
+          liability_type,
+          savings,
+          property_value,
+          other_income,
+          net_worth,
+          user_id
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+      `;
+      
+      // Array to hold all promises
+      const saveNetWorthPromises = [];
+      
+      // Insert assets
+      assets.forEach((asset) => {
+        const params = [
+          asset.name,              // Asset name
+          parseFloat(asset.value), // Asset value (convert to float)
+          asset.type,              // Asset type
+          null,                    // No liability for this row
+          null,                    // No liability for this row
+          null,                    // No liability type
+          parseFloat(savings),    // Savings (convert to float)
+          parseFloat(property),   // Property value (convert to float)
+          parseFloat(otherIncome),// Other income (convert to float)
+          parseFloat(netWorth),   // Net worth (convert to float)
+          userId                  // User ID from the auth middleware
+        ];
+        saveNetWorthPromises.push(queryDatabase(insertNetWorthQuery, params));
+      });
+  
+      // Insert liabilities
+      liabilities.forEach((liability) => {
+        const params = [
+          null,                    // No asset for this row
+          null,                    // No asset for this row
+          null,                    // No asset name
+          liability.name,          // Liability name
+          parseFloat(liability.value), // Liability value (convert to float)
+          liability.type,          // Liability type
+          parseFloat(savings),     // Savings (convert to float)
+          parseFloat(property),    // Property value (convert to float)
+          parseFloat(otherIncome), // Other income (convert to float)
+          parseFloat(netWorth),    // Net worth (convert to float)
+          userId                   // User ID from the auth middleware
+        ];
+        saveNetWorthPromises.push(queryDatabase(insertNetWorthQuery, params));
+      });
+    
+      // Wait for all net worth data to be saved
+      await Promise.all(saveNetWorthPromises);
+    
+      res.status(200).json({ msg: 'Net worth details saved successfully!' });
+    } catch (error) {
+      console.error('Error saving net worth details:', error);
+      res.status(500).json({ msg: 'Error saving net worth details', error });
+    }
+  });
+  
+
+
+
+
+
+
+
+
+
+
+
 
 module.exports = router;
