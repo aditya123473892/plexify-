@@ -2,10 +2,10 @@ import React, { useState, useEffect, useContext } from "react";
 import axios from "axios";
 import InputWithIcon from "../Components/InputWithIcon";
 import FieldSection from "../Components/FieldSection";
-import { FaMoneyBillWave, FaCalendarAlt, FaUser, FaPhone, FaEnvelope, FaPercent, FaHashtag, FaPlus } from "react-icons/fa";
+import { FaMoneyBillWave, FaCalendarAlt, FaUser,FaLink, FaPhone, FaEnvelope, FaPercent, FaHashtag, FaPlus } from "react-icons/fa";
 import { AuthContext } from "../Contexts/Context";
 import { toast, ToastContainer } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
+
 import Section from "../Components/Section";
 
 function RecurringDepositManagement() {
@@ -242,27 +242,8 @@ console.log('✌️beneficiaryUser --->', beneficiaryUser);
           </button>
         </div>
 
-        <section>
+        <Section>
           <h3 className="font-semibold text-xl">Beneficiaries</h3>
-          <div className="grid grid-cols-3 gap-4 mb-4">
-            {beneficiaries.map((beneficiary, index) => (
-              <div key={index} className="border rounded-lg p-4 shadow-md">
-                <div>
-                  <label className="font-bold text-lg">{beneficiary.name}</label>
-                  <p className="text-sm text-gray-600">{beneficiary.contact}</p>
-                  <p className="text-sm text-gray-600">{beneficiary.email}</p>
-                </div>
-                <div className="mt-4 flex justify-between">
-                  <button
-                    onClick={() => handleBeneficiaryChange(index, "notify", !beneficiary.notify)}
-                    className="text-green-600"
-                  >
-                    {beneficiary.notify ? "Stop Notification" : "Start Notification"}
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
 
           <div className="mb-6">
             <label className="block font-medium">Select Beneficiaries:</label>
@@ -281,7 +262,50 @@ console.log('✌️beneficiaryUser --->', beneficiaryUser);
                   ))}
             </select>
           </div>
-        </section>
+
+          <div className="grid mb-4">
+          {beneficiaries.map((beneficiary, index) => (
+              <FieldSection title="Beneficiary Details"  key={index}>
+                <InputWithIcon
+                  icon={<FaUser />}
+                  type="text"
+                  placeholder="Name"
+                  value={beneficiary.name}
+
+                />
+                <InputWithIcon
+                  icon={<FaPhone />}
+                  type="text"
+                  placeholder="Contact"
+                  value={beneficiary.contact}
+
+                />
+                <InputWithIcon
+                  icon={<FaEnvelope />}
+                  type="email"
+                  placeholder="Email"
+                  value={beneficiary.email}
+
+                />
+                <InputWithIcon
+                  icon={<FaPercent />}
+                  type="number"
+                  placeholder="Entitlement %"
+                  value={beneficiary.entitlement}
+
+                />
+                <InputWithIcon
+                  icon={<FaLink />}
+                  type="text"
+                  placeholder="Relationship"
+                  value={beneficiary.relationship}
+
+                />
+              </FieldSection>
+          ))}
+        </div>
+
+        </Section>
 
         <div className="flex justify-center mb-6">
           <button

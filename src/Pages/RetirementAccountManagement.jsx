@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import React, { useState,useContext } from "react";
+import axios from "axios";
 import {
   FaUser,
   FaMoneyBillWave,
@@ -10,8 +11,10 @@ import {
 import InputWithIcon from "../Components/InputWithIcon";
 import FieldSection from "../Components/FieldSection";
 import Section from "../Components/Section";
-
+import { toast, ToastContainer } from "react-toastify"; 
+import { AuthContext } from "../Contexts/Context";
 const RetirementAccountManagement = () => {
+  const { API, token, beneficiaryUser } = useContext(AuthContext);
   const [accounts, setAccounts] = useState([
     {
       accountHolder: "",
@@ -22,6 +25,8 @@ const RetirementAccountManagement = () => {
       notes: "",
     },
   ]);
+  const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState("");
 
   const handleAccountChange = (index, field, value) => {
     const newAccounts = [...accounts];
@@ -41,6 +46,69 @@ const RetirementAccountManagement = () => {
         notes: "",
       },
     ]);
+  };
+
+  const validateAccounts = () => {
+    for (const account of accounts) {
+      if (
+        !account.accountHolder ||
+        !account.accountType ||
+        !account.institutionName ||
+        !account.currentBalance ||
+        !account.contributions
+      ) {
+        setMessage("Account Holder, Type, Institution, Balance, and Contributions are required.");
+        return false;
+      }
+      if (isNaN(account.currentBalance) || account.currentBalance <= 0) {
+        setMessage("Current Balance must be a positive number.");
+        return false;
+      }
+      if (isNaN(account.contributions) || account.contributions < 0) {
+        setMessage("Contributions must be a non-negative number.");
+        return false;
+      }
+    }
+    return true;
+  };
+
+  const handleSubmit = async () => {
+    if (!validateAccounts()) return;
+
+    setLoading(true);
+    setMessage("");
+    try {
+      const response = await axios.post(
+        `${API}/retirement-accounts`, // API endpoint for retirement accounts
+        { accounts },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`
+          },
+        }
+      );
+
+      if (response.status === 200) {
+        setMessage("Retirement account details saved successfully!");
+        setAccounts([
+          {
+            accountHolder: "",
+            accountType: "",
+            institutionName: "",
+            currentBalance: "",
+            contributions: "",
+            notes: "",
+          },
+        ]); // Reset the form
+        toast.success("Retirement account details saved successfully!"); // Success toast
+      }
+    } catch (error) {
+      console.error("Error saving retirement account details:", error);
+      setMessage("An error occurred while saving retirement account details.");
+      toast.error("An error occurred while saving retirement account details."); // Error toast
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -133,11 +201,24 @@ const RetirementAccountManagement = () => {
       </Section>
 
       <button
-        type="submit"
-        className="bg-[#3a5e22fd] hover:bg-[#2f4b1dfd] text-white py-2 px-4 rounded ms-auto flex items-center mt-6"
+        type="button"
+        onClick={handleSubmit}
+        disabled={loading}
+        className={`bg-[#3a5e22fd] hover:bg-[#2f4b1dfd] text-white py-2 px-4 rounded ms-auto flex items-center mt-6 ${
+          loading ? "opacity-50 cursor-not-allowed" : ""
+        }`}
       >
-        <FaCheckCircle className="mr-2" /> Save Retirement Account Details
+        {loading ? (
+          <span>Saving...</span>
+        ) : (
+          <>
+            <FaCheckCircle className="mr-2" /> Save Retirement Account Details
+          </>
+        )}
       </button>
+
+      {/* Toast Container for notifications */}
+      <ToastContainer />
     </div>
   );
 };

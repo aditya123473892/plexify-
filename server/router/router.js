@@ -11,9 +11,9 @@ const fs = require("fs");
 const path = require("path");
 const authMiddleware = require("../auth/authMiddleware");
 const secret = "iwfhugafwofjwhig3hwigk3wnig3uwmgkmewoipj39gw8hqoijhi3hgwgkwni";
-const odbc = require("odbc");
-const connectionString =
-  "Driver={ODBC Driver 18 for SQL Server};Server=MOHIT\\SQLEXPRESS;Database=master;Trusted_Connection=yes;TrustServerCertificate=yes;";
+// const connectionString =
+//   "Driver={ODBC Driver 18 for SQL Server};Server=MOHIT\\SQLEXPRESS;Database=master;Trusted_Connection=yes;TrustServerCertificate=yes;";
+  const connectionString = 'Driver={ODBC Driver 17 for SQL Server};Server=DESKTOP-BBKLDAG\\SQLEXPRESS01;Database=DB;Trusted_Connection=yes;';
 
 
   router.post("/signup", async (req, res) => {
@@ -532,6 +532,7 @@ const connectionString =
     authMiddleware,
     deposits_upload.single("document"),
     async (req, res) => {
+      console.log('✌️req.body fffff--->', req.body);
       try {
         const {
           depositType,
@@ -543,6 +544,7 @@ const connectionString =
           interestRate,
           maturityAmount,
         } = req.body;
+
 
         let documentData = null;
         if (req.file) {
@@ -615,103 +617,55 @@ const connectionString =
 
   router.post("/recurring_deposits", authMiddleware, async (req, res) => {
     console.log("✌️ req.body --->", req.body);
-    const { deposits } = req.body;
-    const user_id = req.user_id;
-
+    const { deposits,beneficiaries } = req.body; // Array of deposits
+    const user_id = req.user_id; // Authenticated user ID
+    const beneficiariesString = beneficiaries.join(',');
     try {
       for (const deposit of deposits) {
-        const checkDepositQuery = `
-          SELECT COUNT(*) AS count FROM [dbo].[recurring_deposit] WHERE rd_number = ?
+        // Insert each deposit into the database
+        const insertDepositQuery = `
+          INSERT INTO [dbo].[recurring_deposit] (
+            user_id, 
+            beneficiarie_user, 
+            monthly_deposit_amount, 
+            interest_rate, 
+            start_date, 
+            maturity_date, 
+            maturity_amount, 
+            bank_name, 
+            status, 
+            created_at, 
+            updated_at
+          )
+          OUTPUT INSERTED.id
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, GETDATE(), GETDATE())
         `;
-
-        const checkDepositResult = await queryDatabase(checkDepositQuery, [
-          deposit.rdNumber,
+        const insertDepositResult = await queryDatabase(insertDepositQuery, [
+          user_id,
+          beneficiariesString || null, // Nullable field
+          deposit.depositAmount,
+          deposit.interestRate,
+          deposit.startDate,
+          deposit.maturityDate,
+          deposit.maturityAmount,
+          deposit.bankName,
+          deposit.status || "Active", // Default status if not provided
         ]);
-
-        let rd_id;
-
-        if (checkDepositResult[0].count > 0) {
-          // Update the existing deposit
-          const updateDepositQuery = `
-            UPDATE [dbo].[recurring_deposit]
-            SET monthly_deposit_amount = ?, interest_rate = ?, start_date = ?, 
-                maturity_date = ?, maturity_amount = ?, bank_name = ?, status = ?
-            OUTPUT INSERTED.rd_id
-            WHERE rd_number = ?
-          `;
-
-          const updateResult = await queryDatabase(updateDepositQuery, [
-            deposit.depositAmount,
-            deposit.interestRate,
-            deposit.startDate,
-            deposit.maturityDate,
-            deposit.maturityAmount,
-            deposit.bankName,
-            deposit.status || "Active",
-            deposit.rdNumber,
-          ]);
-
-          rd_id = updateResult[0].rd_id;
-        } else {
-          // Insert a new deposit and get the inserted ID
-          const insertDepositQuery = `
-            INSERT INTO [dbo].[recurring_deposit] (
-              user_id, rd_number, monthly_deposit_amount, interest_rate, start_date, 
-              maturity_date, maturity_amount, bank_name, status
-            )
-            OUTPUT INSERTED.rd_id
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-          `;
-
-          const insertDepositResult = await queryDatabase(insertDepositQuery, [
-            user_id,
-            deposit.rdNumber,
-            deposit.depositAmount,
-            deposit.interestRate,
-            deposit.startDate,
-            deposit.maturityDate,
-            deposit.maturityAmount,
-            deposit.bankName,
-            deposit.status || "Active",
-          ]);
-
-          rd_id = insertDepositResult[0].rd_id;
-        }
-
-        console.log("Recurring Deposit ID:", rd_id);
-
-        // Handle the beneficiaries associated with each deposit
-        const beneficiaryPromises = deposit.beneficiaries.map((beneficiary) => {
-          const insertBeneficiaryQuery = `
-            INSERT INTO [dbo].[beneficiaries] (
-              rd_id, user_id, name, contact, email, entitlement, relationship, notify
-            )
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-          `;
-
-          return queryDatabase(insertBeneficiaryQuery, [
-            rd_id,
-            user_id,
-            beneficiary.name,
-            beneficiary.contact,
-            beneficiary.email,
-            parseInt(beneficiary.entitlement),
-            beneficiary.relationship,
-            beneficiary.notify ? 1 : 0,
-          ]);
-        });
-
-        await Promise.all(beneficiaryPromises); // Insert beneficiaries only once per deposit
+  
+        const rd_id = insertDepositResult[0].id;
+        console.log("Inserted Recurring Deposit ID:", rd_id);
       }
-
+  
       res.status(201).json({
-        msg: "Recurring deposits and beneficiaries added/updated successfully!",
+        msg: "Recurring deposits added successfully!",
       });
     } catch (error) {
       console.error("Error:", error);
       res.status(500).json({ msg: "Server error." });
     }
   });
+  
+  
   router.post("/real_estate", authMiddleware, async (req, res) => {
     console.log("✌️ req.body --->", req.body);
     const { properties } = req.body;
@@ -1065,7 +1019,7 @@ const connectionString =
   );
 
 
-  router.post('/crypto',authMiddleware, async (req, res) => {
+  router.post('/cryptocurrencies',authMiddleware, async (req, res) => {
     try {
       console.log('✌️req.body --->', req.body);
       const { cryptos, beneficiaryUser } = req.body;
@@ -1430,14 +1384,235 @@ const connectionString =
   
 
 
+  const npsStorage = multer.diskStorage({
+    destination: function (req, file, cb) {
+      cb(null, "uploads/nps");
+    },
+    filename: function (req, file, cb) {
+      cb(null, Date.now() + path.extname(file.originalname));
+    },
+  });
+
+  const npsUpload = multer({
+    storage: npsStorage,
+  });
 
 
 
+  router.post('/nps_data', npsUpload.single("document"), authMiddleware, async (req, res) => {
+    try {
+      console.log('✌️ req.body --->', req.body);
+      const { data } = req.body;  // Get the data field from the body
+      
+      if (!data) {
+        return res.status(400).json({ msg: "No NPS data provided" });
+      }
+  
+      // Parse the JSON string to access npsDetails
+      const parsedData = JSON.parse(data);
+      const { npsDetails } = parsedData;  // Extract npsDetails from the parsed data
+  
+      if (!npsDetails || !Array.isArray(npsDetails)) {
+        return res.status(400).json({ msg: "Invalid NPS data structure" });
+      }
+  
+      const userId = req.user_id; // User ID from the authentication middleware
+      let documentData = null;
+      if (req.file) {
+        try {
+          documentData = fs.readFileSync(req.file.path);
+        } catch (err) {
+          console.error("Error reading file:", err);
+          return res.status(500).json({ msg: "Error reading document file" });
+        }
+      }
+  
+      if (!documentData) {
+        return res.status(400).json({ msg: "No document data to upload" });
+      }
+  
+      const insertNpsQuery = `
+        INSERT INTO nps_details (
+          user_id,
+          name,
+          phone,
+          email,
+          nps_number,
+          contribution,
+          nominee,
+          document,
+          status
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);
+      `;
+  
+      // Creating an array of promises to save each NPS detail
+      const saveNpsPromises = npsDetails.map((nps) => {
+        const { name, phone, email, npsNumber, contribution, nominee, documentPath, status } = nps;
+  
+        const params = [
+          userId,        // User ID (foreign key)
+          name,          // Account holder name
+          phone,         // Contact number
+          email || null, // Email address (optional)
+          npsNumber,     // NPS account number
+          parseFloat(contribution), // Contribution amount (convert to float)
+          nominee,       // Nominee name
+          documentData || null, // Document path (optional)
+          status || 'Active',   // Status (default: Active)
+        ];
+  
+        return queryDatabase(insertNpsQuery, params);
+      });
+  
+      // Wait for all NPS details to be saved
+      await Promise.all(saveNpsPromises);
+  
+      res.status(200).json({ msg: 'NPS details saved successfully!' });
+    } catch (error) {
+      console.error('Error saving NPS details:', error);
+      res.status(500).json({ msg: 'Error saving NPS details', error: error.message || error });
+    }
+  });
+  
 
 
 
+  const ppfstorage = multer.diskStorage({
+    destination: (req, file, cb) => {
+      cb(null, 'uploads/ppf');  
+    },
+    filename: (req, file, cb) => {
+      cb(null, Date.now() + path.extname(file.originalname)); 
+    },
+  });
+  
+  const ppfUpload = multer({ storage: ppfstorage });
+  
+  // API to upload PPF data with file
+  router.post('/ppf_data', ppfUpload.single("document"), authMiddleware, async (req, res) => {
+    try {
+      console.log('✌️ req.body --->', req.body); // Log incoming request body
+  
+      const { data } = req.body;  // Get the data field from the request body
+  
+      if (!data) {
+        return res.status(400).json({ msg: "No PPF data provided" });
+      }
+  
+      const parsedData = JSON.parse(data);
+      const { ppfDetails } = parsedData;  // Extract ppfDetails from parsed data
+  
+      if (!ppfDetails || !Array.isArray(ppfDetails)) {
+        return res.status(400).json({ msg: "Invalid PPF data structure" });
+      }
+  
+      const userId = req.user_id;
+  
+      let documentData = null;
+  
+      if (req.file) {
+        try {
+          documentData = fs.readFileSync(req.file.path);  // Read the document file
+        } catch (err) {
+          console.error("Error reading file:", err);
+          return res.status(500).json({ msg: "Error reading document file" });
+        }
+      }
+  
+      // If there's no document, return an error
+      if (!documentData) {
+        return res.status(400).json({ msg: "No document data to upload" });
+      }
+  
+      // SQL query to insert data into ppf_details table
+      const insertPpfQuery = `
+        INSERT INTO ppf_details (
+          user_id,
+          name,
+          phone,
+          email,
+          ppf_account_number,
+          contribution,
+          nominee,
+          document,
+          status
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);
+      `;
+  
+      // Create an array of promises to insert each PPF detail
+      const savePpfPromises = ppfDetails.map((ppf) => {
+        const { name, phone, email, ppfAccountNumber, contribution, nominee, documentPath, status } = ppf;
+  
+        // Parameters for the SQL query
+        const params = [
+          userId,         // User ID (foreign key)
+          name,           // Account holder name
+          phone,          // Contact number
+          email || null,  // Email address (optional)
+          ppfAccountNumber, // PPF account number
+          parseFloat(contribution), // Contribution amount (convert to float)
+          nominee,        // Nominee name
+          documentData || null,  // Document path (optional)
+          status || 'Active',    // Status (default: Active)
+        ];
+  
+        return queryDatabase(insertPpfQuery, params);
+      });
+  
+      // Wait for all PPF details to be saved
+      await Promise.all(savePpfPromises);
+  
+      res.status(200).json({ msg: 'PPF details saved successfully!' });
+    } catch (error) {
+      console.error('Error saving PPF details:', error);
+      res.status(500).json({ msg: 'Error saving PPF details', error: error.message || error });
+    }
+  });
 
 
+  const epfstorage = multer.diskStorage({
+    destination: (req, file, cb) => {
+      cb(null, 'uploads/epf');
+    },
+    filename: (req, file, cb) => {
+      cb(null, Date.now() + path.extname(file.originalname));
+    },
+  });
+  
+  const epfupload = multer({ storage: epfstorage });
+  
+  // API to handle EPF data submission
+  router.post('/epf_data', epfupload.single('document'), authMiddleware, async (req, res) => {
+    try {
+      console.log('✌️req.body --->', req.body);
+      const { data } = req.body; // EPF details
+      const parsedData = JSON.parse(data);
+      const { epfDetails } = parsedData;
+      const userId = req.user_id;
+      const document = req.file ? fs.readFileSync(req.file.path) : null;
+  
+      // Example query for inserting EPF data into a database
+      const insertQuery = `
+        INSERT INTO epf_details (name,user_id, phone, email, epf_account_number, contribution, nominee, document)
+        VALUES (?, ?, ?, ?, ?, ?, ?,?)
+      `;
+  
+      // Save each EPF detail entry
+      const insertPromises = epfDetails.map((epf) => {
+        const { name, phone, email, epfAccountNumber, contribution, nominee } = epf;
+        const params = [name,userId, phone, email, epfAccountNumber, contribution, nominee, document];
+        return queryDatabase(insertQuery, params);
+      });
+  
+      await Promise.all(insertPromises);
+  
+      res.status(200).json({ message: 'EPF details saved successfully!' });
+    } catch (error) {
+      console.error('Error saving EPF data:', error);
+      res.status(500).json({ message: 'Error saving EPF data' });
+    }
+  });
+  
 
 
 module.exports = router;

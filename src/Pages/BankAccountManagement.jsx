@@ -3,11 +3,19 @@ import { FaUser, FaMoneyBillWave, FaBuilding, FaInfoCircle, FaPlus, FaCheckCircl
 import InputWithIcon from '../Components/InputWithIcon';
 import FieldSection from '../Components/FieldSection';
 import Section from '../Components/Section';
+import { toast, ToastContainer } from "react-toastify"; // Importing toast components
+import "react-toastify/dist/ReactToastify.css"; // Importing toast styles
+import axios from 'axios'; // Import Axios for API requests
+import { useContext } from "react";
+import { AuthContext } from "../Contexts/Context"; // Your context for global state like API and token
 
 const BankAccountManagement = () => {
   const [accounts, setAccounts] = useState([
     { accountHolder: '', accountNumber: '', bankName: '', accountType: '', balance: '', notes: '' },
   ]);
+  
+  // Extract API and token from context
+  const { API, token } = useContext(AuthContext);
 
   const handleAccountChange = (index, field, value) => {
     const newAccounts = [...accounts];
@@ -17,6 +25,28 @@ const BankAccountManagement = () => {
 
   const addAccount = () => {
     setAccounts([...accounts, { accountHolder: '', accountNumber: '', bankName: '', accountType: '', balance: '', notes: '' }]);
+  };
+
+  const handleSave = async () => {
+    try {
+      const response = await axios.post(
+        `${API}/bank-accounts`, // API endpoint
+        { accounts }, // Data you are sending in the request
+        {
+          headers: {
+            Authorization: `Bearer ${token}`, // Authorization token from context
+            'Content-Type': 'application/json', // Content-Type header
+          }
+        }
+      );
+
+      if (response.status === 200) {
+        toast.success("Bank account details saved successfully!");
+      }
+    } catch (error) {
+      console.error("Error saving data", error);
+      toast.error("There was an error saving your bank account details. Please try again.");
+    }
   };
 
   return (
@@ -91,12 +121,17 @@ const BankAccountManagement = () => {
         </button>
       </Section>
 
+      {/* Save Button */}
       <button
-        type="submit"
+        type="button"
+        onClick={handleSave}
         className="bg-[#3a5e22fd] hover:bg-[#2f4b1dfd] text-white py-2 px-4 rounded ms-auto flex items-center mt-6"
       >
         <FaCheckCircle className="mr-2" /> Save Bank Account Details
       </button>
+
+      {/* ToastContainer - required to render toasts */}
+      <ToastContainer />
     </div>
   );
 };

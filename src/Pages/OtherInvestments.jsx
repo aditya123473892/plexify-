@@ -1,13 +1,17 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import { FaBriefcase, FaMoneyBillWave, FaInfoCircle, FaPlus, FaCheckCircle } from 'react-icons/fa';
+import axios from 'axios';
+import { AuthContext } from '../Contexts/Context';  // Import the AuthContext
 import InputWithIcon from '../Components/InputWithIcon';
 import FieldSection from '../Components/FieldSection';
 import Section from '../Components/Section';
+import { toast, ToastContainer } from 'react-toastify';  // Import toastify for notifications
 
 const OtherInvestments = () => {
   const [investments, setInvestments] = useState([
     { investmentType: '', amountInvested: '', currentValue: '', notes: '' },
   ]);
+  const { API, token } = useContext(AuthContext); // Use context to get API and token
 
   const handleInvestmentChange = (index, field, value) => {
     const newInvestments = [...investments];
@@ -17,6 +21,27 @@ const OtherInvestments = () => {
 
   const addInvestment = () => {
     setInvestments([...investments, { investmentType: '', amountInvested: '', currentValue: '', notes: '' }]);
+  };
+
+  const handleSubmit = async () => {
+    try {
+      const response = await axios.post(
+        `${API}/other-investments`, // Backend API endpoint
+        { investments }, // Send investments data
+        {
+          headers: {
+            Authorization: `Bearer ${token}`, // Include the authorization token
+          },
+        }
+      );
+
+      if (response.status === 200) {
+        toast.success('Investment details saved successfully!'); // Success toast
+      }
+    } catch (error) {
+      console.error('Error saving investment details:', error);
+      toast.error('An error occurred while saving investments.'); // Error toast
+    }
   };
 
   return (
@@ -78,11 +103,15 @@ const OtherInvestments = () => {
       </Section>
 
       <button
-        type="submit"
+        type="button"
+        onClick={handleSubmit} // Handle form submission here
         className="bg-[#3a5e22fd] hover:bg-[#2f4b1dfd] text-white py-2 px-4 rounded ms-auto flex items-center mt-6"
       >
         <FaCheckCircle className="mr-2" /> Save Other Investment Details
       </button>
+
+      {/* Toast Container for displaying notifications */}
+      <ToastContainer />
     </div>
   );
 };
