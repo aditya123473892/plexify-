@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from "react";
 import {
   FaUser,
   FaDollarSign,
@@ -8,15 +8,23 @@ import {
   FaPlus,
   FaFileUpload,
   FaCheckCircle,
-} from 'react-icons/fa';
-import InputWithIcon from '../Components/InputWithIcon';
-import FieldSection from '../Components/FieldSection';
-import Section from '../Components/Section';
+} from "react-icons/fa";
+import InputWithIcon from "../Components/InputWithIcon";
+import FieldSection from "../Components/FieldSection";
+import Section from "../Components/Section";
+import { toast, ToastContainer } from "react-toastify";
+
+import axios from "axios";
+import { AuthContext } from "../Contexts/Context";
 
 const NPSManagement = () => {
+  const { API, token } = useContext(AuthContext);
+
   const [npsDetails, setNpsDetails] = useState([
-    { name: '', phone: '', email: '', npsNumber: '', contribution: '', nominee: '' },
+    { name: "", phone: "", email: "", npsNumber: "", contribution: "", nominee: "" },
   ]);
+
+  const [uploadedFile, setUploadedFile] = useState(null);
 
   const handleNpsChange = (index, field, value) => {
     const newNpsDetails = [...npsDetails];
@@ -25,11 +33,44 @@ const NPSManagement = () => {
   };
 
   const addNpsDetail = () => {
-    setNpsDetails([...npsDetails, { name: '', phone: '', email: '', npsNumber: '', contribution: '', nominee: '' }]);
+    setNpsDetails([...npsDetails, { name: "", phone: "", email: "", npsNumber: "", contribution: "", nominee: "" }]);
+  };
+
+  const handleFileChange = (e) => {
+    setUploadedFile(e.target.files[0]);
+  };
+
+  const handleSubmit = async () => {
+    const data = { npsDetails };
+
+    try {
+      const formData = new FormData();
+      formData.append("data", JSON.stringify(data));
+      if (uploadedFile) {
+        formData.append("document", uploadedFile);
+      }
+
+      const response = await axios.post(`${API}/nps_data`, formData, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "multipart/form-data",
+        },
+      });
+
+      if (response.status === 200 || response.status === 201) {
+        toast.success("NPS details saved successfully!");
+      } else {
+        toast.error("Failed to save NPS details. Please try again.");
+      }
+    } catch (error) {
+      console.error("Error saving NPS details:", error);
+      toast.error("An error occurred while saving NPS details.");
+    }
   };
 
   return (
     <div className="min-h-screen shadow-2xl bg-white p-6 rounded-lg md:mt-10 mt-20">
+      <ToastContainer />
       <header className="mb-8">
         <h1 className="text-3xl font-bold text-gray-800 mb-2">Manage Your NPS</h1>
         <p className="text-gray-600">
@@ -44,49 +85,49 @@ const NPSManagement = () => {
             type="text"
             placeholder="Account Holder Name"
             value={nps.name}
-            onChange={(e) => handleNpsChange(index, 'name', e.target.value)}
+            onChange={(e) => handleNpsChange(index, "name", e.target.value)}
           />
           <InputWithIcon
             icon={<FaPhone className="text-[#538d2dfd] mx-2" />}
             type="text"
             placeholder="Contact Number"
             value={nps.phone}
-            onChange={(e) => handleNpsChange(index, 'phone', e.target.value)}
+            onChange={(e) => handleNpsChange(index, "phone", e.target.value)}
           />
           <InputWithIcon
             icon={<FaEnvelope className="text-[#538d2dfd] mx-2" />}
             type="email"
             placeholder="Email Address"
             value={nps.email}
-            onChange={(e) => handleNpsChange(index, 'email', e.target.value)}
+            onChange={(e) => handleNpsChange(index, "email", e.target.value)}
           />
           <InputWithIcon
             icon={<FaIdCard className="text-[#538d2dfd] mx-2" />}
             type="text"
             placeholder="NPS Account Number"
             value={nps.npsNumber}
-            onChange={(e) => handleNpsChange(index, 'npsNumber', e.target.value)}
+            onChange={(e) => handleNpsChange(index, "npsNumber", e.target.value)}
           />
           <InputWithIcon
-            icon={<span className="text-[#538d2dfd] mx-2 font-extrabold" >₹ </span>}
+            icon={<span className="text-[#538d2dfd] mx-2 font-extrabold">₹</span>}
             type="number"
             placeholder="Annual Contribution"
             value={nps.contribution}
-            onChange={(e) => handleNpsChange(index, 'contribution', e.target.value)}
+            onChange={(e) => handleNpsChange(index, "contribution", e.target.value)}
           />
           <InputWithIcon
             icon={<FaUser className="text-[#538d2dfd] mx-2" />}
             type="text"
             placeholder="Nominee Name"
             value={nps.nominee}
-            onChange={(e) => handleNpsChange(index, 'nominee', e.target.value)}
+            onChange={(e) => handleNpsChange(index, "nominee", e.target.value)}
           />
         </FieldSection>
       ))}
 
       <button
         onClick={addNpsDetail}
-        className="text-white py-2 px-4 rounded-md shadow-md bg-[#3a5e22fd] hover:bg-[#2f4b1dfd]"
+        className="text-white py-2 px-4 rounded-md shadow-md bg-[#3a5e22fd] hover:bg-[#2f4b1dfd] mt-4"
       >
         <FaPlus className="inline mr-2" /> Add NPS Detail
       </button>
@@ -94,15 +135,16 @@ const NPSManagement = () => {
       <Section title="Document Upload">
         <div className="flex items-center border-l-2 border-[#538d2dfd] rounded-md shadow-lg mb-4">
           <FaFileUpload className="text-[#538d2dfd] mx-2" />
-          <input type="file" className="border-0 rounded-md p-3 w-full bg-transparent" />
+          <input
+            type="file"
+            className="border-0 rounded-md p-3 w-full bg-transparent"
+            onChange={handleFileChange}
+          />
         </div>
-        <button className="text-white py-2 px-4 rounded-md shadow-md bg-[#3a5e22fd] hover:bg-[#2f4b1dfd]">
-          Upload Document
-        </button>
       </Section>
 
       <button
-        type="submit"
+        onClick={handleSubmit}
         className="bg-[#3a5e22fd] hover:bg-[#2f4b1dfd] text-white py-2 px-4 rounded ms-auto flex items-center mt-6"
       >
         <FaCheckCircle className="mr-2" /> Save NPS Details

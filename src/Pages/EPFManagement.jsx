@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState,useContext } from 'react';
 import {
   FaUser,
   FaDollarSign,
@@ -9,24 +9,71 @@ import {
   FaFileUpload,
   FaCheckCircle,
 } from 'react-icons/fa';
+import axios from 'axios';
 import InputWithIcon from '../Components/InputWithIcon';
 import FieldSection from '../Components/FieldSection';
 import Section from '../Components/Section';
-
+import { AuthContext } from "../Contexts/Context";
+import { toast, ToastContainer } from "react-toastify";
 const EPFManagement = () => {
+  const { API, token } = useContext(AuthContext);
   const [epfDetails, setEpfDetails] = useState([
     { name: '', phone: '', email: '', epfAccountNumber: '', contribution: '', nominee: '' },
   ]);
+  const [file, setFile] = useState(null); // To store the selected file
+  const [loading, setLoading] = useState(false);
+  const [successMessage, setSuccessMessage] = useState('');
 
+  // Handle changes in EPF details fields
   const handleEpfChange = (index, field, value) => {
     const newEpfDetails = [...epfDetails];
     newEpfDetails[index][field] = value;
     setEpfDetails(newEpfDetails);
   };
 
+  // Add a new EPF entry
   const addEpfDetail = () => {
-    setEpfDetails([...epfDetails, { name: '', phone: '', email: '', epfAccountNumber: '', contribution: '', nominee: '' }]);
+    setEpfDetails([
+      ...epfDetails,
+      { name: '', phone: '', email: '', epfAccountNumber: '', contribution: '', nominee: '' },
+    ]);
   };
+
+  // Handle file selection for upload
+  const handleFileChange = (e) => {
+    const selectedFile = e.target.files[0];
+    setFile(selectedFile);
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+  
+    const formData = new FormData();
+    // Append EPF data
+    formData.append('data', JSON.stringify({ epfDetails }));
+    // Append the file if it exists
+    if (file) {
+      formData.append('document', file);
+    }
+  
+    try {
+      const response = await axios.post(`${API}/epf_data`, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+          'Authorization': `Bearer ${token}`, // Include the token if necessary
+        },
+      });
+  
+      setSuccessMessage('EPF details saved successfully!');
+      toast.success("EPF details saved successfully!");
+    } catch (error) {
+      console.error('Error saving EPF details:', error);
+      setLoading(false);
+      toast.error("Error saving EPF details!"); // Show error message
+    }
+  };
+  
 
   return (
     <div className="min-h-screen shadow-2xl bg-white p-6 rounded-lg md:mt-10 mt-20">
@@ -37,6 +84,7 @@ const EPFManagement = () => {
         </p>
       </header>
 
+      {/* EPF Details Section */}
       {epfDetails.map((epf, index) => (
         <FieldSection title={`EPF Detail ${index + 1}`} key={index}>
           <InputWithIcon
@@ -68,7 +116,7 @@ const EPFManagement = () => {
             onChange={(e) => handleEpfChange(index, 'epfAccountNumber', e.target.value)}
           />
           <InputWithIcon
-           icon={<span className="text-[#538d2dfd] mx-2 font-extrabold" >₹</span>}
+            icon={<span className="text-[#538d2dfd] mx-2 font-extrabold">₹</span>}
             type="number"
             placeholder="Monthly Contribution"
             value={epf.contribution}
@@ -91,22 +139,41 @@ const EPFManagement = () => {
         <FaPlus className="inline mr-2" /> Add EPF Detail
       </button>
 
+      {/* Document Upload Section */}
       <Section title="Document Upload">
         <div className="flex items-center border-l-2 border-[#538d2dfd] rounded-md shadow-lg mb-4">
           <FaFileUpload className="text-[#538d2dfd] mx-2" />
-          <input type="file" className="border-0 rounded-md p-3 w-full bg-transparent" />
+          <input
+            type="file"
+            className="border-0 rounded-md p-3 w-full bg-transparent"
+            onChange={handleFileChange}
+          />
         </div>
-        <button className="text-white py-2 px-4 rounded-md shadow-md bg-[#3a5e22fd] hover:bg-[#2f4b1dfd]">
+        <button
+          className="text-white py-2 px-4 rounded-md shadow-md bg-[#3a5e22fd] hover:bg-[#2f4b1dfd]"
+        >
           Upload Document
         </button>
       </Section>
 
+      {/* Submit Button */}
       <button
         type="submit"
+        onClick={handleSubmit}
         className="bg-[#3a5e22fd] hover:bg-[#2f4b1dfd] text-white py-2 px-4 rounded ms-auto flex items-center mt-6"
+        disabled={loading}
       >
-        <FaCheckCircle className="mr-2" /> Save EPF Details
+        {loading ? 'Saving...' : <><FaCheckCircle className="mr-2" /> Save EPF Details</>}
       </button>
+
+      {/* Success Message */}
+      {successMessage && (
+        <div className="mt-4 text-green-600">
+          <FaCheckCircle className="mr-2" />
+          {successMessage}
+        </div>
+      )}
+      <ToastContainer/>
     </div>
   );
 };

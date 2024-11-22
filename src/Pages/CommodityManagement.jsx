@@ -13,9 +13,10 @@ import {
 import InputWithIcon from "../Components/InputWithIcon";
 import FieldSection from "../Components/FieldSection";
 import { AuthContext } from "../Contexts/Context"; // Assumes AuthContext provides a token
+import { toast, ToastContainer } from "react-toastify"; // For toast notifications
 
 const CommodityManagement = () => {
-  const { token } = useContext(AuthContext);
+  const { API, token } = useContext(AuthContext); // Make sure API is coming from context
   const [commodities, setCommodities] = useState([
     {
       commodityName: "",
@@ -32,8 +33,6 @@ const CommodityManagement = () => {
   ]);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
-
-  const API_URL = "http://localhost:3523/commodities"; // Update with your actual backend URL
 
   const handleCommodityChange = (index, field, value) => {
     const newCommodities = [...commodities];
@@ -92,8 +91,9 @@ const CommodityManagement = () => {
     setLoading(true);
     setMessage("");
     try {
-      await axios.post(
-        API_URL,
+      // Use the correct API endpoint from context
+      const response = await axios.post(
+        `${API}/commodities`, // Ensure you're using the API URL from context
         { commodities },
         {
           headers: {
@@ -102,24 +102,30 @@ const CommodityManagement = () => {
           },
         }
       );
-      setMessage("Commodities saved successfully!");
-      setCommodities([
-        {
-          commodityName: "",
-          commodityType: "",
-          unitOfMeasure: "",
-          marketPrice: "",
-          stockQuantity: "",
-          provider: "",
-          acquisitionDate: "",
-          expiryDate: "",
-          description: "",
-          status: "Available",
-        },
-      ]); // Reset form
+
+      // Display success and reset form if commodities are saved successfully
+      if (response.status === 200) {
+        setMessage("Commodities saved successfully!");
+        setCommodities([
+          {
+            commodityName: "",
+            commodityType: "",
+            unitOfMeasure: "",
+            marketPrice: "",
+            stockQuantity: "",
+            provider: "",
+            acquisitionDate: "",
+            expiryDate: "",
+            description: "",
+            status: "Available",
+          },
+        ]); // Reset form
+        toast.success("Commodities saved successfully!"); // Success toast
+      }
     } catch (error) {
       console.error("Error saving commodities:", error);
       setMessage("An error occurred while saving commodities.");
+      toast.error("An error occurred while saving commodities."); // Error toast
     } finally {
       setLoading(false);
     }
@@ -260,6 +266,9 @@ const CommodityManagement = () => {
       {message && (
         <div className="mt-4 text-center text-gray-700">{message}</div>
       )}
+
+      {/* Toast Container for notifications */}
+      <ToastContainer />
     </div>
   );
 };

@@ -1,13 +1,19 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import { FaBitcoin, FaCoins, FaDollarSign, FaCalendarAlt, FaWallet, FaPlus, FaCheckCircle } from 'react-icons/fa';
 import InputWithIcon from '../Components/InputWithIcon';
 import FieldSection from '../Components/FieldSection';
 import Section from '../Components/Section';
+import { AuthContext } from "../Contexts/Context"; // Your AuthContext to get API and token
+import axios from 'axios'; // Axios for API calls
+import { toast, ToastContainer } from "react-toastify"; // Toast notifications
+import "react-toastify/dist/ReactToastify.css";
 
 const CryptoManagement = () => {
   const [cryptos, setCryptos] = useState([
     { name: '', amountHeld: '', currentValue: '', acquisitionDate: '', wallet: '' },
   ]);
+
+  const { API, token } = useContext(AuthContext); // Getting API and token from context
 
   const handleCryptoChange = (index, field, value) => {
     const newCryptos = [...cryptos];
@@ -17,6 +23,29 @@ const CryptoManagement = () => {
 
   const addCrypto = () => {
     setCryptos([...cryptos, { name: '', amountHeld: '', currentValue: '', acquisitionDate: '', wallet: '' }]);
+  };
+
+  // Handle saving the cryptocurrency details
+  const handleSave = async () => {
+    try {
+      const response = await axios.post(
+        `${API}/cryptocurrencies`, // Your backend endpoint
+        { cryptos }, // Data to be sent
+        {
+          headers: {
+            Authorization: `Bearer ${token}`, // Add authorization token
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+
+      if (response.status === 200) {
+        toast.success("Cryptocurrency details saved successfully!");
+      }
+    } catch (error) {
+      console.error("Error saving cryptocurrency details", error);
+      toast.error("There was an error saving the cryptocurrency details. Please try again.");
+    }
   };
 
   return (
@@ -30,7 +59,7 @@ const CryptoManagement = () => {
 
       {/* Cryptocurrency Section */}
       {cryptos.map((crypto, index) => (
-        <FieldSection title={`Cryptocurrency ${index + 1}`}>
+        <FieldSection title={`Cryptocurrency ${index + 1}`} key={index}>
           <InputWithIcon
             icon={<FaBitcoin className="text-[#538d2dfd] mx-2" />}
             type="text"
@@ -84,12 +113,17 @@ const CryptoManagement = () => {
         </button>
       </Section>
 
+      {/* Save Button */}
       <button
-        type="submit"
+        type="button"
+        onClick={handleSave}
         className="bg-[#3a5e22fd] hover:bg-[#2f4b1dfd] text-white py-2 px-4 rounded ms-auto flex items-center mt-6"
       >
         <FaCheckCircle className="mr-2" /> Save Cryptocurrency Details
       </button>
+
+      {/* ToastContainer - required to render toasts */}
+      <ToastContainer />
     </div>
   );
 };

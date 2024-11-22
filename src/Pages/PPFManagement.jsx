@@ -1,10 +1,9 @@
-import React, { useState } from "react";
+import React, { useState, useContext } from "react";
 import {
   FaUser,
-  FaDollarSign,
-  FaIdCard,
   FaPhone,
   FaEnvelope,
+  FaIdCard,
   FaPlus,
   FaFileUpload,
   FaCheckCircle,
@@ -12,8 +11,13 @@ import {
 import InputWithIcon from "../Components/InputWithIcon";
 import FieldSection from "../Components/FieldSection";
 import Section from "../Components/Section";
+import axios from "axios";
+import { AuthContext } from "../Contexts/Context";
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";  // Import Toast styles
 
 const PPFManagement = () => {
+  const { API, token } = useContext(AuthContext);
   const [ppfDetails, setPpfDetails] = useState([
     {
       name: "",
@@ -25,12 +29,16 @@ const PPFManagement = () => {
     },
   ]);
 
+  const [uploadedFile, setUploadedFile] = useState(null);
+
+  // Handle changes in PPF details
   const handlePpfChange = (index, field, value) => {
     const newPpfDetails = [...ppfDetails];
     newPpfDetails[index][field] = value;
     setPpfDetails(newPpfDetails);
   };
 
+  // Add a new PPF detail entry
   const addPpfDetail = () => {
     setPpfDetails([
       ...ppfDetails,
@@ -45,15 +53,46 @@ const PPFManagement = () => {
     ]);
   };
 
+  // Handle file change
+  const handleFileChange = (e) => {
+    setUploadedFile(e.target.files[0]);
+  };
+
+  // Submit form data
+  const handleSubmit = async () => {
+    const data = { ppfDetails };
+
+    try {
+      const formData = new FormData();
+      formData.append("data", JSON.stringify(data));
+      if (uploadedFile) {
+        formData.append("document", uploadedFile);
+      }
+
+      const response = await axios.post(`${API}/ppf_data`, formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+          Authorization: `Bearer ${token}`,  // Make sure you send the token if necessary
+        },
+      });
+
+      if (response.status === 200 || response.status === 201) {
+        toast.success("PPF details saved successfully!");
+      } else {
+        toast.error("Failed to save PPF details. Please try again.");
+      }
+    } catch (error) {
+      console.error("Error saving PPF details:", error);
+      toast.error("An error occurred while saving PPF details.");
+    }
+  };
+
   return (
     <div className="min-h-screen shadow-2xl bg-white p-6 rounded-lg md:mt-10 mt-20">
       <header className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-800 mb-2">
-          Manage Your PPF
-        </h1>
+        <h1 className="text-3xl font-bold text-gray-800 mb-2">Manage Your PPF</h1>
         <p className="text-gray-600">
-          Keep track of your Public Provident Fund (PPF) investments
-          effortlessly.
+          Keep track of your Public Provident Fund (PPF) investments effortlessly.
         </p>
       </header>
 
@@ -90,17 +129,11 @@ const PPFManagement = () => {
             }
           />
           <InputWithIcon
-            icon={
-              <span className="text-[#538d2dfd] mx-2 font-extrabold text-xl">
-                ₹{" "}
-              </span>
-            }
+            icon={<span className="text-[#538d2dfd] mx-2 font-extrabold text-xl">₹ </span>}
             type="number"
             placeholder="Annual Contribution"
             value={ppf.contribution}
-            onChange={(e) =>
-              handlePpfChange(index, "contribution", e.target.value)
-            }
+            onChange={(e) => handlePpfChange(index, "contribution", e.target.value)}
           />
           <InputWithIcon
             icon={<FaUser className="text-[#538d2dfd] mx-2" />}
@@ -125,6 +158,7 @@ const PPFManagement = () => {
           <input
             type="file"
             className="border-0 rounded-md p-3 w-full bg-transparent"
+            onChange={handleFileChange}
           />
         </div>
         <button className="text-white py-2 px-4 rounded-md shadow-md bg-[#3a5e22fd] hover:bg-[#2f4b1dfd]">
@@ -133,11 +167,14 @@ const PPFManagement = () => {
       </Section>
 
       <button
-        type="submit"
+        onClick={handleSubmit}
         className="bg-[#3a5e22fd] hover:bg-[#2f4b1dfd] text-white py-2 px-4 rounded ms-auto flex items-center mt-6"
       >
         <FaCheckCircle className="mr-2" /> Save PPF Details
       </button>
+
+      {/* Toast Container for Notifications */}
+      <ToastContainer />
     </div>
   );
 };
