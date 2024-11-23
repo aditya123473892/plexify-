@@ -226,7 +226,7 @@ const Home = () => {
                 <div className="text-2xl font-bold">
                   Current Liabilities
                   <div>
-                    <span>₹</span> 39.09 Lakhs
+                    <span>₹</span> 20.00 Lakhs
                   </div>
                 </div>
 
@@ -299,7 +299,7 @@ const Home = () => {
                 <div className="text-2xl font-bold">
                   Net Worth
                   <div>
-                    <span>₹</span> 39.09 Lakhs
+                    <span>₹</span> 19.09 Lakhs
                   </div>
                 </div>
 

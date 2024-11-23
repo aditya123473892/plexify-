@@ -69,7 +69,8 @@ const Chartsline = () => {
 
       {/* Total Revenue */}
       <div className="dashboard-card total-revenue">
-        <h3>Total Revenue</h3>
+        <h3>
+        Net Worth</h3>
         <ResponsiveContainer width="100%" height={150}>
           <PieChart>
             <Pie

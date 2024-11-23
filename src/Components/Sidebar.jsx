@@ -10,14 +10,20 @@ import {
   FaDollarSign,
   FaChartLine,
   FaHome,
+  FaHotTub,
+  FaIntercom,
+  FaSlideshare,
+  FaUserNurse,
 } from "react-icons/fa";
 import { FiUser } from "react-icons/fi";
-import { MdOutlineClose, MdDashboardCustomize } from "react-icons/md";
+import { MdOutlineClose, MdDashboardCustomize, MdOfflineShare } from "react-icons/md";
 import { Link, useNavigate } from "react-router-dom";
-import { RiMoneyRupeeCircleFill } from "react-icons/ri";
+import { RiMoneyRupeeCircleFill, RiRefund2Fill } from "react-icons/ri";
 import "../assets/css/Sidebar.css";
 import styled from "styled-components";
 import wealthlogo from "../assets/images/Picture_1.png";
+import { GiBank } from "react-icons/gi";
+import { SiCryptpad, SiFormstack, SiOpensearch } from "react-icons/si";
 
 function Sidebar() {
   const Logo = styled.div`
@@ -200,7 +206,7 @@ function Sidebar() {
                 {isOpen ? "Bonds" : ""}
               </Link>
               <Link to="/mutual-funds" className="sidebar-link">
-                <FaFileAlt className={isOpen ? "mr-3" : ""} />{" "}
+                <RiRefund2Fill className={isOpen ? "mr-3" : ""} />{" "}
                 {isOpen ? "Mutual Funds" : ""}
               </Link>
               <Link to="/precious-metals" className="sidebar-link">
@@ -208,35 +214,35 @@ function Sidebar() {
                 {isOpen ? "Precious Metals" : ""}
               </Link>
               <Link to="/cryptocurrencies" className="sidebar-link">
-                <FaFileAlt className={isOpen ? "mr-3" : ""} />{" "}
+                <SiCryptpad className={isOpen ? "mr-3" : ""} />{" "}
                 {isOpen ? "Cryptocurrencies" : ""}
               </Link>
               <Link to="/nps" className="sidebar-link">
-                <FaHandsHelping className={isOpen ? "mr-3" : ""} />{" "}
+                <SiOpensearch  className={isOpen ? "mr-3" : ""} />{" "}
                 {isOpen ? "NPS" : ""}
               </Link>
               <Link to="/ppf" className="sidebar-link">
-                <FaHandsHelping className={isOpen ? "mr-3" : ""} />{" "}
+                <MdOfflineShare className={isOpen ? "mr-3" : ""} />{" "}
                 {isOpen ? "PPF" : ""}
               </Link>
               <Link to="/eps" className="sidebar-link">
-                <FaHandsHelping className={isOpen ? "mr-3" : ""} />{" "}
+                <FaSlideshare className={isOpen ? "mr-3" : ""} />{" "}
                 {isOpen ? "EPS" : ""}
               </Link>
               <Link to="/bank-accounts" className="sidebar-link">
-                <FaHandsHelping className={isOpen ? "mr-3" : ""} />{" "}
+                <GiBank className={isOpen ? "mr-3" : ""} />{" "}
                 {isOpen ? "Bank A/C" : ""}
               </Link>
               <Link to="/retirement-accounts" className="sidebar-link">
-                <FaHandsHelping className={isOpen ? "mr-3" : ""} />{" "}
+                <FaPiggyBank  className={isOpen ? "mr-3" : ""} />{" "}
                 {isOpen ? "Retirement Accounts" : ""}
               </Link>
               <Link to="/commodities" className="sidebar-link">
-                <FaHandsHelping className={isOpen ? "mr-3" : ""} />{" "}
+                <FaIntercom  className={isOpen ? "mr-3" : ""} />{" "}
                 {isOpen ? "Commodities" : ""}
               </Link>
               <Link to="/other-investments" className="sidebar-link">
-                <FaHandsHelping className={isOpen ? "mr-3" : ""} />{" "}
+                <FaHotTub  className={isOpen ? "mr-3" : ""} />{" "}
                 {isOpen ? "Other Investments" : ""}
               </Link>
             </div>
@@ -246,7 +252,7 @@ function Sidebar() {
           <div className="sidebar-section">
             <h3 className="sidebar-section-title" onClick={toggleLiabilities}>
               {isOpen ? "Liabilities" : ""}{" "}
-              {isLiabilitiesOpen ? <FaHandsHelping /> : <FaHandsHelping />}
+              {isLiabilitiesOpen ? <FaUserNurse  /> : <FaUserNurse  />}
             </h3>
             <div
               className={`sidebar-section-content ${
@@ -257,7 +263,7 @@ function Sidebar() {
                 <FaCar className={isOpen ? "mr-3" : ""} />{" "}
                 {isOpen ? "Home Loan" : ""}
               </Link>
-              <Link to="/car-loan" className="sidebar-link">
+              {/* <Link to="/car-loan" className="sidebar-link">
                 <FaCar className={isOpen ? "mr-3" : ""} />{" "}
                 {isOpen ? "Car Loan" : ""}
               </Link>
@@ -280,7 +286,7 @@ function Sidebar() {
               <Link to="/business-loan" className="sidebar-link">
                 <FaHandsHelping className={isOpen ? "mr-3" : ""} />{" "}
                 {isOpen ? "Business Loan" : ""}
-              </Link>
+              </Link> */}
             </div>
           </div>
 
@@ -298,7 +304,7 @@ function Sidebar() {
 
           {/* Will/Vasiyat Section */}
           <Link to="/willform" className="sidebar-link mb-3">
-            <FaFileAlt className={isOpen ? "mr-3" : ""} />{" "}
+            <SiFormstack  className={isOpen ? "mr-3" : ""} />{" "}
             {isOpen ? "Will/Vasiyat" : ""}
           </Link>
 
@@ -384,7 +390,7 @@ function Sidebar() {
           <img
             src={wealthlogo}
             alt="Wealth Logo"
-            className="h-12 w-auto filter brightness-[20.5]"
+            className="h-12 w-auto f"
           />
           <p className="text-lg font-medium">Manage, Grow, Pass On</p>
         </div>

@@ -15,6 +15,16 @@ const secret = "iwfhugafwofjwhig3hwigk3wnig3uwmgkmewoipj39gw8hqoijhi3hgwgkwni";
 //   "Driver={ODBC Driver 18 for SQL Server};Server=MOHIT\\SQLEXPRESS;Database=master;Trusted_Connection=yes;TrustServerCertificate=yes;";
   const connectionString = 'Driver={ODBC Driver 17 for SQL Server};Server=DESKTOP-BBKLDAG\\SQLEXPRESS01;Database=DB;Trusted_Connection=yes;';
 
+  const queryDatabase = (query, params) => {
+    return new Promise((resolve, reject) => {
+      sql.query(connectionString, query, params, (err, result) => {
+        if (err) {
+          return reject(err);
+        }
+        resolve(result);
+      });
+    });
+  };
 
   router.post("/signup", async (req, res) => {
     try {
@@ -397,32 +407,45 @@ const secret = "iwfhugafwofjwhig3hwigk3wnig3uwmgkmewoipj39gw8hqoijhi3hgwgkwni";
 
 
   router.get("/insurance", authMiddleware, async (req, res) => {
-    const user_id = req.user_id;
+    const user_id = req.user_id; 
   
-    const getInsurancePolicyQuery = `
-      SELECT policy_name, policy_number, provider, policy_type, policy_period, 
-             premium_amount, coverage_limit, maturity_amount, nominee_name, 
-             nominee_relation, status, document 
-      FROM insurance_policy 
+    const fetchPoliciesQuery = `
+      SELECT 
+        policy_id,
+        policy_number,
+        policy_name,
+        policy_type,
+        provider,
+        policy_period,
+        premium_amount,
+        coverage_limit,
+        maturity_amount,
+        nominee_name,
+        nominee_relation,
+        status
+      FROM insurance_policy
       WHERE user_id = ?
+      ORDER BY policy_id DESC
     `;
   
     try {
-      // Using the helper function to query the database
-      const result = await queryDatabase(getInsurancePolicyQuery, [user_id]);
-  
-      if (result.length === 0) {
-        return res.status(404).json({ msg: "No insurance policies found for this user." });
+      const policies = await queryDatabase(fetchPoliciesQuery, [user_id]);
+console.log('✌️policies --->', policies);
+      
+      if (policies.length === 0) {
+        return res.status(404).json({ msg: "No insurance policies found" });
       }
   
-      // Return the result as a JSON response
-      res.status(200).json(result);
-    } catch (error) {
-      console.error("Error fetching insurance policy:", error);
+      res.status(200).json({
+        policies,
+        msg: "Insurance policies retrieved successfully",
+      });
+    } catch (err) {
+      console.error("Error fetching insurance policies:", err);
       res.status(500).json({ msg: "Server Error" });
     }
   });
-
+  
 
   const storage = multer.diskStorage({
     destination: function (req, file, cb) {
@@ -604,16 +627,6 @@ const secret = "iwfhugafwofjwhig3hwigk3wnig3uwmgkmewoipj39gw8hqoijhi3hgwgkwni";
   );
 
   // Function to query the database
-  const queryDatabase = (query, params) => {
-    return new Promise((resolve, reject) => {
-      sql.query(connectionString, query, params, (err, result) => {
-        if (err) {
-          return reject(err);
-        }
-        resolve(result);
-      });
-    });
-  };
 
   router.post("/recurring_deposits", authMiddleware, async (req, res) => {
     console.log("✌️ req.body --->", req.body);
