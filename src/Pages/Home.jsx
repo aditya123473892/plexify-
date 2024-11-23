@@ -123,7 +123,7 @@ const Home = () => {
     <>
       <VideoChat></VideoChat>
 
-      <div>
+      <div className="mt-24 md:mt-16">
         <div className="grid md:grid-cols-3 gap-7">
           <div className="col-span-1 z-20 border-l-8  rounded-3xl p-4 bg-[#538d2dfd] shadow-2xl group transition ease-in-out duration-500 relative overflow-hidden border-white">
             <div className="bground"></div>
