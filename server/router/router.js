@@ -15,6 +15,8 @@ const secret = "iwfhugafwofjwhig3hwigk3wnig3uwmgkmewoipj39gw8hqoijhi3hgwgkwni";
 //   "Driver={ODBC Driver 18 for SQL Server};Server=MOHIT\\SQLEXPRESS;Database=master;Trusted_Connection=yes;TrustServerCertificate=yes;";
   const connectionString = 'Driver={ODBC Driver 17 for SQL Server};Server=DESKTOP-BBKLDAG\\SQLEXPRESS01;Database=DB;Trusted_Connection=yes;';
 
+
+
   const queryDatabase = (query, params) => {
     return new Promise((resolve, reject) => {
       sql.query(connectionString, query, params, (err, result) => {
@@ -152,7 +154,16 @@ const secret = "iwfhugafwofjwhig3hwigk3wnig3uwmgkmewoipj39gw8hqoijhi3hgwgkwni";
       return res.status(500).json({ msg: "Server Error" });
     }
   });
-
+  router.get("/beneficiary_user", authMiddleware, async (req, res) => {
+    const user_id = req.user_id;
+    const query = `
+      SELECT * 
+      FROM [dbo].[beneficiaries]
+      WHERE user_id = ?
+    `;
+    const data = await queryDatabase(query, [user_id]);
+    res.status(200).json(data);
+  });
   router.post("/add-beneficiary", async (req, res) => {
     try {
       const {
@@ -263,16 +274,7 @@ const secret = "iwfhugafwofjwhig3hwigk3wnig3uwmgkmewoipj39gw8hqoijhi3hgwgkwni";
     }
   });
 
-  router.get("/beneficiary_user", authMiddleware, async (req, res) => {
-    const user_id = req.user_id;
-    const query = `
-      SELECT * 
-      FROM [dbo].[beneficiaries]
-      WHERE user_id = ?
-    `;
-    const data = await queryDatabase(query, [user_id]);
-    res.status(200).json(data);
-  });
+
   
 
 
@@ -475,17 +477,17 @@ console.log('✌️policies --->', policies);
         nomineeName,
         nomineeRelation,
       } = req.body;
-
+  
       const user_id = req.user_id;
-
+  
       const parsedPremiumAmount = parseFloat(premiumAmount);
       const parsedCoverageLimit = parseFloat(coverageLimit);
       const parsedMaturityAmount = parseFloat(maturityAmount);
-
+  
       const finalNomineeName = nomineeName.trim() === "" ? null : nomineeName;
       const finalNomineeRelation =
         nomineeRelation.trim() === "" ? null : nomineeRelation;
-
+  
       let documentData = null;
       if (req.file) {
         try {
@@ -495,43 +497,152 @@ console.log('✌️policies --->', policies);
           return res.status(500).json({ msg: "Error reading document file" });
         }
       }
-
-      const insertPolicyQuery = `
-      INSERT INTO insurance_policy (
-        user_id, policy_number, policy_name, policy_type, provider, 
-        policy_period, premium_amount, coverage_limit, maturity_amount, 
-        nominee_name, nominee_relation, status, document
-      )
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'Active', ?)
-    `;
-
-      sql.query(
-        connectionString,
-        insertPolicyQuery,
-        [
-          user_id,
-          policyNumber,
-          policyName,
-          policyType,
-          provider,
-          policyPeriod,
-          parsedPremiumAmount,
-          parsedCoverageLimit,
-          parsedMaturityAmount,
-          finalNomineeName,
-          finalNomineeRelation,
-          documentData, // Insert the file as binary data
-        ],
-        (err, result) => {
-          if (err) {
-            console.error("Error inserting insurance policy:", err);
-            return res.status(500).json({ msg: "Server Error" });
-          }
-          res.status(201).json({ msg: "Insurance policy added successfully" });
+  
+      // Check if a policy with the same policy number and user_id already exists
+      const checkPolicyQuery = `
+        SELECT * FROM insurance_policy WHERE policy_number = ? AND user_id = ?
+      `;
+  
+      sql.query(connectionString, checkPolicyQuery, [policyNumber, user_id], (err, result) => {
+        if (err) {
+          console.error("Error checking existing policy:", err);
+          return res.status(500).json({ msg: "Server Error" });
         }
-      );
+  
+        if (result.length > 0) {
+          // If the policy exists, update it
+          const updatePolicyQuery = `
+            UPDATE insurance_policy 
+            SET 
+              policy_name = ?, 
+              policy_type = ?, 
+              provider = ?, 
+              policy_period = ?, 
+              premium_amount = ?, 
+              coverage_limit = ?, 
+              maturity_amount = ?, 
+              nominee_name = ?, 
+              nominee_relation = ?, 
+              document = ?
+            WHERE policy_number = ? AND user_id = ?
+          `;
+  
+          sql.query(
+            connectionString,
+            updatePolicyQuery,
+            [
+              policyName,
+              policyType,
+              provider,
+              policyPeriod,
+              parsedPremiumAmount,
+              parsedCoverageLimit,
+              parsedMaturityAmount,
+              finalNomineeName,
+              finalNomineeRelation,
+              documentData || result[0].document, // Retain the previous document if no new file is uploaded
+              policyNumber,
+              user_id
+            ],
+            (err, result) => {
+              if (err) {
+                console.error("Error updating insurance policy:", err);
+                return res.status(500).json({ msg: "Server Error" });
+              }
+              res.status(200).json({ msg: "Insurance policy updated successfully" });
+            }
+          );
+        } else {
+          // If the policy does not exist, insert a new one
+          const insertPolicyQuery = `
+            INSERT INTO insurance_policy (
+              user_id, policy_number, policy_name, policy_type, provider, 
+              policy_period, premium_amount, coverage_limit, maturity_amount, 
+              nominee_name, nominee_relation, status, document
+            )
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'Active', ?)
+          `;
+  
+          sql.query(
+            connectionString,
+            insertPolicyQuery,
+            [
+              user_id,
+              policyNumber,
+              policyName,
+              policyType,
+              provider,
+              policyPeriod,
+              parsedPremiumAmount,
+              parsedCoverageLimit,
+              parsedMaturityAmount,
+              finalNomineeName,
+              finalNomineeRelation,
+              documentData, // Insert the file as binary data
+            ],
+            (err, result) => {
+              if (err) {
+                console.error("Error inserting insurance policy:", err);
+                return res.status(500).json({ msg: "Server Error" });
+              }
+              res.status(201).json({ msg: "Insurance policy added successfully" });
+            }
+          );
+        }
+      });
     }
   );
+  
+
+
+
+
+
+
+  router.get("/deposits", authMiddleware, async (req, res) => {
+    const user_id = req.user_id;  // Get the user ID from the authenticated user
+    
+    // SQL query to fetch deposit records for the user
+    const fetchDepositsQuery = `
+      SELECT 
+        deposit_id,
+        deposit_type,
+        deposit_name,
+        account_number,
+        bank_name,
+        deposit_term,
+        deposit_amount,
+        interest_rate,
+        maturity_amount,
+        status,
+        created_at,
+        updated_at
+      FROM fixed_deposit
+      WHERE user_id = ?
+      ORDER BY deposit_id DESC
+    `;
+  
+    try {
+      const deposits = await queryDatabase(fetchDepositsQuery, [user_id]);
+      
+      console.log('✌️deposits --->', deposits);  // Log for debugging
+      
+      if (deposits.length === 0) {
+        return res.status(404).json({ msg: "No deposits found" });
+      }
+  
+      // Return the deposits to the client
+      res.status(200).json({
+        deposits,
+        msg: "Deposits retrieved successfully",
+      });
+    } catch (err) {
+      console.error("Error fetching deposits:", err);
+      res.status(500).json({ msg: "Server Error" });
+    }
+  })
+
+
 
   const deposits_storage = multer.diskStorage({
     destination: function (req, file, cb) {
@@ -558,6 +669,7 @@ console.log('✌️policies --->', policies);
       console.log('✌️req.body fffff--->', req.body);
       try {
         const {
+          depositId, // Assuming you are passing depositId to check for update
           depositType,
           depositName,
           accountNumber,
@@ -567,8 +679,7 @@ console.log('✌️policies --->', policies);
           interestRate,
           maturityAmount,
         } = req.body;
-
-
+  
         let documentData = null;
         if (req.file) {
           try {
@@ -578,45 +689,99 @@ console.log('✌️policies --->', policies);
             return res.status(500).json({ msg: "Error reading document file" });
           }
         }
-
+  
+        // If no document is provided, handle it as per your requirement
         if (!documentData) {
           return res.status(400).json({ msg: "No document data to upload" });
         }
-
+  
         const user_id = req.user_id;
         const depositAmountParsed = parseFloat(depositAmount);
         const interestRateParsed = parseFloat(interestRate);
         const maturityAmountParsed = parseFloat(maturityAmount);
-
-        const insertDepositQuery = `
-        INSERT INTO fixed_deposit (
-          user_id, deposit_type, deposit_name, account_number, bank_name, deposit_term,
-          deposit_amount, interest_rate, maturity_amount, document
-        )
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-      `;
-
+  
+        // Check if the deposit already exists for this user
+        const checkDepositQuery = `
+          SELECT * FROM fixed_deposit WHERE user_id = ? AND deposit_id = ?
+        `;
+        
         sql.query(
           connectionString,
-          insertDepositQuery,
-          [
-            user_id,
-            depositType,
-            depositName,
-            accountNumber,
-            bankName,
-            depositTerm,
-            depositAmountParsed,
-            interestRateParsed,
-            maturityAmountParsed,
-            documentData,
-          ],
+          checkDepositQuery,
+          [user_id, depositId],
           (err, result) => {
             if (err) {
-              console.error("Error inserting deposit data:", err);
-              return res.status(500).json({ msg: "Server Error" });
+              console.error("Error checking deposit existence:", err);
+              return res.status(500).json({ msg: "Error checking deposit" });
             }
-            res.status(201).json({ msg: "Deposit details added successfully" });
+  
+            if (result.length > 0) {
+              // If deposit exists, update the deposit data
+              const updateDepositQuery = `
+                UPDATE fixed_deposit SET 
+                  deposit_type = ?, deposit_name = ?, account_number = ?, bank_name = ?, deposit_term = ?, 
+                  deposit_amount = ?, interest_rate = ?, maturity_amount = ?, document = ? 
+                WHERE user_id = ? AND deposit_id = ?
+              `;
+              
+              sql.query(
+                connectionString,
+                updateDepositQuery,
+                [
+                  depositType,
+                  depositName,
+                  accountNumber,
+                  bankName,
+                  depositTerm,
+                  depositAmountParsed,
+                  interestRateParsed,
+                  maturityAmountParsed,
+                  documentData,
+                  user_id,
+                  depositId, // depositId to identify which deposit to update
+                ],
+                (err, result) => {
+                  if (err) {
+                    console.error("Error updating deposit data:", err);
+                    return res.status(500).json({ msg: "Server Error" });
+                  }
+                  res.status(200).json({ msg: "Deposit details updated successfully" });
+                }
+              );
+            } else {
+              // If deposit does not exist, insert new deposit data
+              const insertDepositQuery = `
+                INSERT INTO fixed_deposit (
+                  user_id, deposit_type, deposit_name, account_number, bank_name, deposit_term,
+                  deposit_amount, interest_rate, maturity_amount, document
+                )
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+              `;
+              
+              sql.query(
+                connectionString,
+                insertDepositQuery,
+                [
+                  user_id,
+                  depositType,
+                  depositName,
+                  accountNumber,
+                  bankName,
+                  depositTerm,
+                  depositAmountParsed,
+                  interestRateParsed,
+                  maturityAmountParsed,
+                  documentData,
+                ],
+                (err, result) => {
+                  if (err) {
+                    console.error("Error inserting deposit data:", err);
+                    return res.status(500).json({ msg: "Server Error" });
+                  }
+                  res.status(201).json({ msg: "Deposit details added successfully" });
+                }
+              );
+            }
           }
         );
       } catch (error) {
@@ -625,52 +790,260 @@ console.log('✌️policies --->', policies);
       }
     }
   );
-
-  // Function to query the database
-
-  router.post("/recurring_deposits", authMiddleware, async (req, res) => {
-    console.log("✌️ req.body --->", req.body);
-    const { deposits,beneficiaries } = req.body; // Array of deposits
-    const user_id = req.user_id; // Authenticated user ID
-    const beneficiariesString = beneficiaries.join(',');
-    try {
-      for (const deposit of deposits) {
-        // Insert each deposit into the database
-        const insertDepositQuery = `
-          INSERT INTO [dbo].[recurring_deposit] (
-            user_id, 
-            beneficiarie_user, 
-            monthly_deposit_amount, 
-            interest_rate, 
-            start_date, 
-            maturity_date, 
-            maturity_amount, 
-            bank_name, 
-            status, 
-            created_at, 
-            updated_at
-          )
-          OUTPUT INSERTED.id
-          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, GETDATE(), GETDATE())
-        `;
-        const insertDepositResult = await queryDatabase(insertDepositQuery, [
-          user_id,
-          beneficiariesString || null, // Nullable field
-          deposit.depositAmount,
-          deposit.interestRate,
-          deposit.startDate,
-          deposit.maturityDate,
-          deposit.maturityAmount,
-          deposit.bankName,
-          deposit.status || "Active", // Default status if not provided
-        ]);
   
-        const rd_id = insertDepositResult[0].id;
-        console.log("Inserted Recurring Deposit ID:", rd_id);
+
+
+
+
+
+
+
+
+
+
+
+
+
+  router.get('/recurring_deposits', authMiddleware, async (req, res) => {
+    const user_id = req.user_id;  // Get the user ID from the authenticated user
+  
+    // SQL query to fetch recurring deposit records for the user
+    const fetchDepositsQuery = `
+      SELECT 
+        id,
+        user_id,
+        beneficiarie_user,
+        rd_number,
+        monthly_deposit_amount,
+        interest_rate,
+        start_date,
+        maturity_date,
+        maturity_amount,
+        bank_name,
+        status,
+        created_at,
+        updated_at
+      FROM recurring_deposit
+      WHERE user_id = ?  
+      ORDER BY id DESC;
+    `;
+  
+    try {
+      // Using the queryDatabase function to execute the query
+      const deposits = await queryDatabase(fetchDepositsQuery, [user_id]);
+  
+      if (deposits.length === 0) {
+        return res.status(404).json({ msg: "No recurring deposits found" });
       }
   
+      res.status(200).json({
+        deposits,
+        msg: "Recurring deposits retrieved successfully"
+      });
+    } catch (err) {
+      console.error("Error fetching recurring deposits:", err);
+      res.status(500).json({ msg: "Server Error" });
+    }
+  });
+  
+
+  // router.post("/recurring_deposits", authMiddleware, async (req, res) => {
+  //   console.log("✌️ req.bodyssss --->", req.body);
+  //   const { deposits, beneficiaries } = req.body; // Array of deposits
+  //   const user_id = req.user_id; // Authenticated user ID
+  //   const beneficiariesString = beneficiaries.join(',');
+  
+  //   try {
+  //     for (const deposit of deposits) {
+  //       // Check if a deposit with the given user_id exists
+  //       const checkDepositQuery = `
+  //         SELECT id 
+  //         FROM [dbo].[recurring_deposit] 
+  //         WHERE user_id = ? AND rd_number = ?
+  //       `;
+        
+  //       const existingDepositResult = await queryDatabase(checkDepositQuery, [
+  //         user_id,
+  //         deposit.rdNumber,
+  //       ]);
+  
+  //       if (existingDepositResult.length > 0) {
+  //         // If deposit exists, update the record
+  //         const updateDepositQuery = `
+  //           UPDATE [dbo].[recurring_deposit] 
+  //           SET 
+  //             beneficiarie_user = ?, 
+  //             monthly_deposit_amount = ?, 
+  //             interest_rate = ?, 
+  //             start_date = ?, 
+  //             maturity_date = ?, 
+  //             maturity_amount = ?, 
+  //             bank_name = ?, 
+  //             status = ?, 
+  //             updated_at = GETDATE()
+  //           WHERE id = ?
+  //         `;
+          
+  //         await queryDatabase(updateDepositQuery, [
+  //           beneficiariesString || null,
+  //           deposit.depositAmount,
+  //           deposit.interestRate,
+  //           deposit.startDate,
+  //           deposit.maturityDate,
+  //           deposit.maturityAmount,
+  //           deposit.bankName,
+  //           deposit.status || "Active", // Default status if not provided
+  //           existingDepositResult[0].id, // Use the existing deposit ID
+  //         ]);
+  
+  //         console.log("Updated Recurring Deposit ID:", existingDepositResult[0].id);
+  //       } else {
+  //         // If no existing deposit, insert a new one
+  //         const insertDepositQuery = `
+  //           INSERT INTO [dbo].[recurring_deposit] (
+  //             user_id, 
+  //             beneficiarie_user, 
+  //             rd_number,
+  //             monthly_deposit_amount, 
+  //             interest_rate, 
+  //             start_date, 
+  //             maturity_date, 
+  //             maturity_amount, 
+  //             bank_name, 
+  //             status, 
+  //             created_at, 
+  //             updated_at
+  //           )
+  //           OUTPUT INSERTED.id
+  //           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, GETDATE(), GETDATE())
+  //         `;
+          
+  //         const insertDepositResult = await queryDatabase(insertDepositQuery, [
+  //           user_id,
+  //           beneficiariesString || null, // Nullable field
+  //           deposit.rdNumber,
+  //           deposit.depositAmount,
+  //           deposit.interestRate,
+  //           deposit.startDate,
+  //           deposit.maturityDate,
+  //           deposit.maturityAmount,
+  //           deposit.bankName,
+  //           deposit.status || "Active", // Default status if not provided
+  //         ]);
+  
+  //         const rd_id = insertDepositResult[0].id;
+  //         console.log("Inserted Recurring Deposit ID:", rd_id);
+  //       }
+  //     }
+  
+  //     res.status(201).json({
+  //       msg: "Recurring deposits added/updated successfully!",
+  //     });
+  //   } catch (error) {
+  //     console.error("Error:", error);
+  //     res.status(500).json({ msg: "Server error." });
+  //   }
+  // });
+  
+  
+
+
+
+  router.post("/recurring_deposits", authMiddleware, async (req, res) => {
+    console.log("✌️ req.bodyssss --->", req.body);
+    const { deposits, beneficiaries } = req.body; // Array of deposits
+    const user_id = req.user_id; // Authenticated user ID
+    const beneficiariesString = beneficiaries.join(','); // New beneficiaries list
+    
+    try {
+      for (const deposit of deposits) {
+        // Check if a deposit with the given user_id exists
+        const checkDepositQuery = `
+          SELECT id, beneficiarie_user 
+          FROM [dbo].[recurring_deposit] 
+          WHERE user_id = ? AND rd_number = ?
+        `;
+        
+        const existingDepositResult = await queryDatabase(checkDepositQuery, [
+          user_id,
+          deposit.rdNumber,
+        ]);
+    
+        if (existingDepositResult.length > 0) {
+          const existingBeneficiaries = existingDepositResult[0].beneficiarie_user;
+          const updatedBeneficiaries = existingBeneficiaries
+            ? `${existingBeneficiaries},${beneficiariesString}`
+            : beneficiariesString;  
+          
+          const updateDepositQuery = `
+            UPDATE [dbo].[recurring_deposit] 
+            SET 
+              beneficiarie_user = ?, 
+              monthly_deposit_amount = ?, 
+              interest_rate = ?, 
+              start_date = ?, 
+              maturity_date = ?, 
+              maturity_amount = ?, 
+              bank_name = ?, 
+              status = ?, 
+              updated_at = GETDATE()
+            WHERE id = ?
+          `;
+          
+          await queryDatabase(updateDepositQuery, [
+            updatedBeneficiaries || null,
+            deposit.depositAmount,
+            deposit.interestRate,
+            deposit.startDate,
+            deposit.maturityDate,
+            deposit.maturityAmount,
+            deposit.bankName,
+            deposit.status || "Active", // Default status if not provided
+            existingDepositResult[0].id, // Use the existing deposit ID
+          ]);
+    
+          console.log("Updated Recurring Deposit ID:", existingDepositResult[0].id);
+        } else {
+          // If no existing deposit, insert a new one
+          const insertDepositQuery = `
+            INSERT INTO [dbo].[recurring_deposit] (
+              user_id, 
+              beneficiarie_user, 
+              rd_number,
+              monthly_deposit_amount, 
+              interest_rate, 
+              start_date, 
+              maturity_date, 
+              maturity_amount, 
+              bank_name, 
+              status, 
+              created_at, 
+              updated_at
+            )
+            OUTPUT INSERTED.id
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, GETDATE(), GETDATE())
+          `;
+          
+          const insertDepositResult = await queryDatabase(insertDepositQuery, [
+            user_id,
+            beneficiariesString || null, // Nullable field for beneficiaries
+            deposit.rdNumber,
+            deposit.depositAmount,
+            deposit.interestRate,
+            deposit.startDate,
+            deposit.maturityDate,
+            deposit.maturityAmount,
+            deposit.bankName,
+            deposit.status || "Active", // Default status if not provided
+          ]);
+    
+          const rd_id = insertDepositResult[0].id;
+          console.log("Inserted Recurring Deposit ID:", rd_id);
+        }
+      }
+    
       res.status(201).json({
-        msg: "Recurring deposits added successfully!",
+        msg: "Recurring deposits added/updated successfully!",
       });
     } catch (error) {
       console.error("Error:", error);
@@ -678,31 +1051,93 @@ console.log('✌️policies --->', policies);
     }
   });
   
+
+
+
+
+
+
+
+
+
+  router.get('/properties', authMiddleware, async (req, res) => {
+    const user_id = req.user_id;  // Get the user ID from the authenticated user
   
+    // SQL query to fetch properties for the authenticated user
+    const fetchPropertiesQuery = `
+      SELECT 
+        id,
+        property_name,
+        property_type,
+        location,
+        area_in_sqft,
+        purchase_date,
+        purchase_price,
+        current_value,
+        ownership_status,
+        rental_income,
+        tenant_name,
+        tenant_contact,
+        status,
+        beneficiarie_user,
+        created_at,
+        updated_at
+      FROM properties
+      WHERE user_id = ?
+      ORDER BY id DESC;
+    `;
+  
+    try {
+      // Using the queryDatabase function to execute the query
+      const properties = await queryDatabase(fetchPropertiesQuery, [user_id]);
+  
+      if (properties.length === 0) {
+        return res.status(404).json({ msg: "No properties found" });
+      }
+  
+      res.status(200).json({
+        properties,
+        msg: "Properties retrieved successfully"
+      });
+    } catch (err) {
+      console.error("Error fetching properties:", err);
+      res.status(500).json({ msg: "Server Error" });
+    }
+  });
+  
+
   router.post("/real_estate", authMiddleware, async (req, res) => {
     console.log("✌️ req.body --->", req.body);
-    const { properties } = req.body;
+    const { properties,beneficiaries } = req.body;
     const user_id = req.user_id;
-
+    const beneficiariesString = beneficiaries.join(',');
     try {
       for (const property of properties) {
-        const checkPropertyQuery = `
-          SELECT COUNT(*) AS count FROM [dbo].[property] WHERE property_name = ? AND user_id = ?
-        `;
 
-        const checkPropertyResult = await queryDatabase(checkPropertyQuery, [
-          property.propertyName,
-          user_id,
-        ]);
 
-        if (checkPropertyResult[0].count > 0) {
-          // If the property already exists, update it
+
+        const checkDepositQuery = `
+        SELECT id, beneficiarie_user 
+        FROM [dbo].[properties] 
+        WHERE user_id = ? 
+      `;
+      
+      const existingDepositResult = await queryDatabase(checkDepositQuery, [
+        user_id,
+       
+      ]);
+
+        if (existingDepositResult[0].count > 0) {
+          const existingBeneficiaries = existingDepositResult[0].beneficiarie_user;
+          const updatedBeneficiaries = existingBeneficiaries
+            ? `${existingBeneficiaries},${beneficiariesString}`
+            : beneficiariesString;  
           const updatePropertyQuery = `
-            UPDATE [dbo].[property]
+            UPDATE [dbo].[properties]
             SET property_type = ?, location = ?, area_in_sqft = ?, purchase_date = ?, 
                 purchase_price = ?, current_value = ?, ownership_status = ?, rental_income = ?, 
-                tenant_name = ?, tenant_contact = ?, status = ?, updated_at = GETDATE()
-            WHERE property_name = ? AND user_id = ?
+                tenant_name = ?, tenant_contact = ?, status = ?, updated_at = GETDATE() , beneficiarie_user =?
+            WHERE property_name = ? AND user_id = ? 
           `;
 
           await queryDatabase(updatePropertyQuery, [
@@ -719,20 +1154,22 @@ console.log('✌️policies --->', policies);
             property.status || "Active",
             property.propertyName,
             user_id,
+            updatedBeneficiaries
           ]);
         } else {
           // If property does not exist, insert a new one
           const insertPropertyQuery = `
-            INSERT INTO [dbo].[property] (
-              user_id, property_name, property_type, location, area_in_sqft, 
+            INSERT INTO [dbo].[properties] (
+              user_id,beneficiarie_user, property_name, property_type, location, area_in_sqft, 
               purchase_date, purchase_price, current_value, ownership_status, 
               rental_income, tenant_name, tenant_contact, status, created_at, updated_at
             )
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, GETDATE(), GETDATE())
+            VALUES (?,?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, GETDATE(), GETDATE())
           `;
 
           await queryDatabase(insertPropertyQuery, [
             user_id,
+            beneficiariesString || null, 
             property.propertyName,
             property.propertyType,
             property.location,
@@ -757,34 +1194,147 @@ console.log('✌️policies --->', policies);
   });
 
 
-    router.post("/stocks", authMiddleware, async (req, res) => {
-      const { stocks, beneficiaries } = req.body;
-      const user_id = req.user_id;
-    
-      const beneficiariesString = beneficiaries.join(',');
-      const insertStockQuery = `
-      INSERT INTO [dbo].[stocks] (
-        symbol, purchase_date, purchase_price, quantity, current_value, total_investment, user_id, beneficiarie_user
-      )
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?);
+
+  router.get('/stocks', authMiddleware, async (req, res) => {
+    const user_id = req.user_id;  // Get the user ID from the authenticated user
+  
+    // SQL query to fetch stocks for the authenticated user
+    const fetchStocksQuery = `
+      SELECT 
+        id,
+        symbol,
+        purchase_date,
+        purchase_price,
+        quantity,
+        current_value,
+        total_investment,
+        beneficiarie_user,
+        created_at,
+        updated_at
+      FROM stocks
+      WHERE user_id = ?
+      ORDER BY id DESC;
     `;
-      try {
-        for (let stock of stocks) {
-          const { symbol, purchaseDate, purchasePrice, quantity, currentValue, totalInvestment } = stock;
-    
+  
+    try {
+      const stocks = await queryDatabase(fetchStocksQuery, [user_id]);
+  
+      if (stocks.length === 0) {
+        return res.status(404).json({ msg: "No stocks found" });
+      }
+  
+      res.status(200).json({
+        stocks,
+        msg: "Stocks retrieved successfully"
+      });
+    } catch (err) {
+      console.error("Error fetching stocks:", err);
+      res.status(500).json({ msg: "Server Error" });
+    }
+  });
+  
+
+
+  router.post("/stocks", authMiddleware, async (req, res) => {
+    const { stocks, beneficiaries } = req.body;
+    const user_id = req.user_id;
+  
+    const beneficiariesString = beneficiaries.join(',');
+  
+    try {
+      const checkDepositQuery = `
+        SELECT id, beneficiarie_user 
+        FROM [dbo].[stocks] 
+        WHERE user_id = ?;
+      `;
+      const existingDepositResult = await queryDatabase(checkDepositQuery, [user_id]);
+  
+      let updatedBeneficiaries = beneficiariesString;
+      if (existingDepositResult.length > 0) {
+        const existingBeneficiaries = existingDepositResult[0].beneficiarie_user;
+        updatedBeneficiaries = existingBeneficiaries
+          ? `${existingBeneficiaries},${beneficiariesString}`
+          : beneficiariesString;
+      }
+  
+      for (let stock of stocks) {
+        const { symbol, purchaseDate, purchasePrice, quantity, currentValue, totalInvestment } = stock;
+  
+        const updateStockQuery = `
+          UPDATE [dbo].[stocks]
+          SET 
+            purchase_date = ?, 
+            purchase_price = ?, 
+            quantity = ?, 
+            current_value = ?, 
+            total_investment = ?, 
+            beneficiarie_user = ?
+          WHERE user_id = ? AND symbol = ?;
+        `;
+        const updateResult = await queryDatabase(updateStockQuery, [
+          purchaseDate, purchasePrice, quantity, currentValue, totalInvestment, updatedBeneficiaries, 
+          user_id, symbol
+        ]);
+  
+        if (updateResult.affectedRows === 0) {
+          const insertStockQuery = `
+            INSERT INTO [dbo].[stocks] (
+              symbol, purchase_date, purchase_price, quantity, current_value, total_investment, user_id, beneficiarie_user
+            )
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?);
+          `;
           await queryDatabase(insertStockQuery, [
-            symbol, purchaseDate, purchasePrice, quantity, currentValue, totalInvestment, user_id, beneficiariesString
+            symbol, purchaseDate, purchasePrice, quantity, currentValue, totalInvestment, user_id, updatedBeneficiaries
           ]);
         }
-    
-        res.status(201).json({ msg: "Stocks added successfully with beneficiaries!" });
-      } catch (error) {
-        console.error("Error:", error);
-        res.status(500).json({ msg: "Server error." });
       }
-    });
-
-
+  
+      res.status(201).json({ msg: "Stocks added or updated successfully with updated beneficiaries!" });
+    } catch (error) {
+      console.error("Error:", error);
+      res.status(500).json({ msg: "Server error." });
+    }
+  });
+  
+  router.get('/bonds', authMiddleware, async (req, res) => {
+    const user_id = req.user_id;  // Get the user ID from the authenticated user
+    const fetchBondsQuery = `
+      SELECT 
+        id,
+        user_id,
+        issuer,
+        bond_type,
+        maturity_date,
+        face_value,
+        interest_rate,
+        market_value,
+        description,
+        document,
+        created_at,
+        updated_at,
+        beneficiarie_user
+      FROM bond
+      WHERE user_id = ?
+      ORDER BY id DESC;
+    `;
+  
+    try {
+      const bonds = await queryDatabase(fetchBondsQuery, [user_id]);
+  
+      if (bonds.length === 0) {
+        return res.status(404).json({ msg: "No bonds found" });
+      }
+  
+      res.status(200).json({
+        bonds,
+        msg: "Bonds retrieved successfully"
+      });
+    } catch (err) {
+      console.error("Error fetching bonds:", err);
+      res.status(500).json({ msg: "Server Error" });
+    }
+  });
+  
 
     const bond_storage = multer.diskStorage({
       destination: function (req, file, cb) {
@@ -890,6 +1440,61 @@ console.log('✌️policies --->', policies);
       }
     );
     
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    router.get('/mutual-funds', authMiddleware, async (req, res) => {
+      const user_id = req.user_id;  // Get the user ID from the authenticated user
+      
+      const fetchMutualFundsQuery = `
+        SELECT 
+          id,
+          user_id,
+          fund_name,
+          fund_manager,
+          investment_amount,
+          current_value,
+          fund_type,
+          risk_level,
+          notify,
+          document,
+          created_at,
+          updated_at
+        FROM mutual_funds
+        WHERE user_id = ?
+        ORDER BY id DESC;
+      `;
+      
+      try {
+        // Execute the query with the user_id to get the user's mutual funds
+        const mutualFunds = await queryDatabase(fetchMutualFundsQuery, [user_id]);
+        
+        if (mutualFunds.length === 0) {
+          return res.status(404).json({ msg: "No mutual funds found" });
+        }
+        
+        // Return the mutual funds data
+        res.status(200).json({
+          mutualFunds,
+          msg: "Mutual funds retrieved successfully"
+        });
+      } catch (err) {
+        console.error("Error fetching mutual funds:", err);
+        res.status(500).json({ msg: "Server Error" });
+      }
+    });
+
 
 
   const documentStorage = multer.diskStorage({
@@ -1030,6 +1635,45 @@ console.log('✌️policies --->', policies);
       }
     }
   );
+
+
+
+
+  router.get('/cryptocurrencies', authMiddleware, async (req, res) => {
+    const user_id = req.user_id;  // Get the user ID from the authenticated user
+  
+    const fetchCryptoQuery = `
+      SELECT 
+        id, 
+        name, 
+        amount_held, 
+        current_value, 
+        acquisition_date, 
+        wallet, 
+        created_at, 
+        updated_at 
+      FROM cryptocurrencies 
+      WHERE user_id = ? 
+      ORDER BY id DESC;
+    `;
+  
+    try {
+      const cryptos = await queryDatabase(fetchCryptoQuery, [user_id]);
+  
+      if (cryptos.length === 0) {
+        return res.status(404).json({ msg: "No cryptocurrencies found" });
+      }
+  
+      res.status(200).json({
+        cryptos,
+        msg: "Cryptocurrencies retrieved successfully"
+      });
+    } catch (err) {
+      console.error("Error fetching cryptocurrencies:", err);
+      res.status(500).json({ msg: "Server Error" });
+    }
+  });
+  
 
 
   router.post('/cryptocurrencies',authMiddleware, async (req, res) => {
@@ -1412,6 +2056,47 @@ console.log('✌️policies --->', policies);
 
 
 
+  router.get('/nps', authMiddleware, async (req, res) => {
+    const user_id = req.user_id;  // Get the user ID from the authenticated user
+  
+    const fetchNpsQuery = `
+      SELECT 
+        id, 
+        name, 
+        phone, 
+        email, 
+        nps_number, 
+        contribution, 
+        nominee, 
+        document, 
+        status, 
+        created_at, 
+        updated_at 
+      FROM nps_details 
+      WHERE user_id = ? 
+      ORDER BY id DESC;
+    `;
+  
+    try {
+      const npsDetails = await queryDatabase(fetchNpsQuery, [user_id]);
+  
+      if (npsDetails.length === 0) {
+        return res.status(404).json({ msg: "No NPS details found" });
+      }
+  
+      res.status(200).json({
+        npsDetails,
+        msg: "NPS details retrieved successfully"
+      });
+    } catch (err) {
+      console.error("Error fetching NPS details:", err);
+      res.status(500).json({ msg: "Server Error" });
+    }
+  });
+
+
+
+
   router.post('/nps_data', npsUpload.single("document"), authMiddleware, async (req, res) => {
     try {
       console.log('✌️ req.body --->', req.body);
@@ -1488,7 +2173,44 @@ console.log('✌️policies --->', policies);
   });
   
 
-
+  router.get('/ppf_data', authMiddleware, async (req, res) => {
+    const user_id = req.user_id;  // Get the user ID from the authenticated user
+  
+    const fetchPpfQuery = `
+      SELECT 
+        id, 
+        name, 
+        phone, 
+        email, 
+        ppf_account_number, 
+        contribution, 
+        nominee, 
+        document, 
+        status, 
+        created_at, 
+        updated_at 
+      FROM ppf_details 
+      WHERE user_id = ? 
+      ORDER BY id DESC;
+    `;
+  
+    try {
+      const ppfDetails = await queryDatabase(fetchPpfQuery, [user_id]);
+  
+      if (ppfDetails.length === 0) {
+        return res.status(404).json({ msg: "No PPF details found" });
+      }
+  
+      res.status(200).json({
+        ppfDetails,
+        msg: "PPF details retrieved successfully"
+      });
+    } catch (err) {
+      console.error("Error fetching PPF details:", err);
+      res.status(500).json({ msg: "Server Error" });
+    }
+  });
+  
 
   const ppfstorage = multer.diskStorage({
     destination: (req, file, cb) => {
@@ -1581,6 +2303,47 @@ console.log('✌️policies --->', policies);
       res.status(500).json({ msg: 'Error saving PPF details', error: error.message || error });
     }
   });
+
+
+
+  router.get('/epf_data', authMiddleware, async (req, res) => {
+    const user_id = req.user_id; // Get the user ID from the authenticated user
+  
+    const fetchEpfQuery = `
+      SELECT 
+        id, 
+        name, 
+        phone, 
+        email, 
+        epf_account_number, 
+        contribution, 
+        nominee, 
+        document, 
+        created_at, 
+        updated_at 
+      FROM epf_details 
+      WHERE user_id = ? 
+      ORDER BY id DESC;
+    `;
+  
+    try {
+      const epfDetails = await queryDatabase(fetchEpfQuery, [user_id]);
+  
+      if (epfDetails.length === 0) {
+        return res.status(404).json({ msg: "No EPF details found" });
+      }
+  
+      res.status(200).json({
+        epfDetails,
+        msg: "EPF details retrieved successfully"
+      });
+    } catch (err) {
+      console.error("Error fetching EPF details:", err);
+      res.status(500).json({ msg: "Server Error" });
+    }
+  });
+
+
 
 
   const epfstorage = multer.diskStorage({

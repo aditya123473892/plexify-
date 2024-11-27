@@ -1,4 +1,4 @@
-import React, { useState, useContext } from "react";
+import React, { useState, useContext, useEffect } from "react";
 import {
   FaUser,
   FaDollarSign,
@@ -23,8 +23,49 @@ const NPSManagement = () => {
   const [npsDetails, setNpsDetails] = useState([
     { name: "", phone: "", email: "", npsNumber: "", contribution: "", nominee: "" },
   ]);
-
   const [uploadedFile, setUploadedFile] = useState(null);
+
+  // Fetch NPS data when the component mounts
+  useEffect(() => {
+    const fetchNpsData = async () => {
+      try {
+        const response = await axios.get(`${API}/nps`, {
+          headers: {
+            Authorization: `Bearer ${token}`, // Passing the token for authentication
+            "Content-Type": "application/json",
+          },
+        });
+
+        if (response.data.npsDetails && response.data.npsDetails.length > 0) {
+          // If NPS details are fetched, format them properly
+          const formattedNpsDetails = response.data.npsDetails.map((nps) => ({
+            name: nps.name || "",
+            phone: nps.phone || "",
+            email: nps.email || "",
+            npsNumber: nps.nps_number || "",
+            contribution: nps.contribution || "",
+            nominee: nps.nominee || "",
+          }));
+          setNpsDetails(formattedNpsDetails);
+        } else {
+          // If no NPS details are found, initialize with empty data
+          setNpsDetails([{
+            name: "",
+            phone: "",
+            email: "",
+            npsNumber: "",
+            contribution: "",
+            nominee: "",
+          }]);
+        }
+      } catch (error) {
+        console.error("Error fetching NPS data:", error);
+        toast.error("Error fetching NPS data. Please try again.");
+      }
+    };
+
+    fetchNpsData();
+  }, [API, token]); // Dependency array ensures effect runs when API or token changes
 
   const handleNpsChange = (index, field, value) => {
     const newNpsDetails = [...npsDetails];

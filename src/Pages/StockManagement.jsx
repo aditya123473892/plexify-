@@ -1,4 +1,4 @@
-import React, { useState, useContext } from "react";
+import React, { useState, useContext,useEffect } from "react";
 import axios from "axios";
 import {
   FaChartLine,
@@ -12,6 +12,7 @@ import {
   FaPlus,
   FaFileUpload,
   FaBook,
+  FaLink
 } from "react-icons/fa";
 import InputWithIcon from "../Components/InputWithIcon";
 import FieldSection from "../Components/FieldSection";
@@ -22,22 +23,65 @@ import { toast, ToastContainer } from "react-toastify";
 const StockManagement = () => {
   const [addedBeneficiaries, setAddedBeneficiaries] = useState([]);
   const { API, token,beneficiaryUser } = useContext(AuthContext);
-  const [stocks, setStocks] = useState([
-    {
-      symbol: "",
-      purchaseDate: "",
-      quantity: "",
-      purchasePrice: "",
-      currentValue: "",
-      totalInvestment: "",
-    },
-  ]);
+  const [stocks, setStocks] = useState([]);
   const [beneficiaries, setBeneficiaries] = useState([  ]);
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({
     stocks: [],
     beneficiaries: [],
   });
+
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const response = await axios.get(`${API}/stocks`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        });
+  
+        if (response.data.stocks && response.data.stocks.length > 0) {
+          const formattedStocks = response.data.stocks.map((stock) => ({
+            symbol: stock.symbol || "",
+            purchaseDate: stock.purchase_date.split("T")[0] || "",
+            quantity: stock.quantity || "",
+            purchasePrice: stock.purchase_price || "",
+            currentValue: stock.current_value || "",
+            totalInvestment: stock.total_investment || "",
+            beneficiaryUser: stock.beneficiarie_user || "",
+          }));
+          setStocks(formattedStocks);
+        } else {
+          setStocks([{
+            symbol: "",
+            purchaseDate: "",
+            quantity: "",
+            purchasePrice: "",
+            currentValue: "",
+            totalInvestment: "",
+            beneficiaryUser:"",
+          }]);
+        }
+  
+        if (response.data.beneficiaries && response.data.beneficiaries.length > 0) {
+          setBeneficiaries(response.data.beneficiaries);
+        } else {
+          setBeneficiaries([]);
+        }
+      } catch (error) {
+        console.error("Error fetching data:", error);
+        toast.error("Error fetching data. Please try again.");
+      }
+    };
+  
+    fetchData();
+  }, [API, token]);
+  
+
+
+
 
   const handleStockChange = (index, field, value) => {
     const newStocks = [...stocks];
@@ -65,19 +109,7 @@ const StockManagement = () => {
     setBeneficiaries(newBeneficiaries);
   };
 
-  const addBeneficiary = () => {
-    setBeneficiaries([
-      ...beneficiaries,
-      {
-        name: "",
-        contact: "",
-        email: "",
-        entitlement: "",
-        relationship: "",  // Add relationship field
-        notify: false,
-      },
-    ]);
-  };
+;
 
   const validateStocks = () => {
     let stockErrors = [];
@@ -145,7 +177,11 @@ const StockManagement = () => {
       toast.error("This user has already been added or no users are available.");
     }
   };
-
+  const getBeneficiaryById = (id) => {
+    return beneficiaryUser.find(
+      (user) => String(user.beneficiary_id) === String(id)
+    ) || null;
+  };
   return (
     <div className="min-h-screen shadow-2xl bg-white p-6 rounded-lg md:mt-10 mt-20">
       <header className="mb-8">
@@ -302,6 +338,82 @@ const StockManagement = () => {
           )}
         </FieldSection>
       ))}
+
+{stocks.map((stock, stocksindex) => (
+  <div key={stocksindex} className="border p-4 rounded-lg mt-4 shadow-md bg-gray-50">
+    {stock.beneficiaryUser && (
+      <div className="mt-4 p-4 rounded-lg">
+        <h4 className="font-semibold text-lg">Selected Beneficiaries:</h4>
+        
+        {/* Split beneficiaryUser string and map over the IDs */}
+        {stock.beneficiaryUser
+          .split(',') // Split the IDs into an array
+          .map((id) => {
+            // Get beneficiary by ID
+            const beneficiary = getBeneficiaryById(id);
+            
+            return beneficiary ? (
+              // If beneficiary found, render fields
+              <FieldSection key={id}>
+                <InputWithIcon
+                  icon={<FaUser />}
+                  type="text"
+                  placeholder="Beneficiary Name"
+                  value={beneficiary.name}
+                  onChange={(e) =>
+                    handleBeneficiaryChange(stocksindex, id, "name", e.target.value)
+                  }
+                />
+                <InputWithIcon
+                  icon={<FaPhone />}
+                  type="text"
+                  placeholder="Contact"
+                  value={beneficiary.contact}
+                  onChange={(e) =>
+                    handleBeneficiaryChange(stocksindex, id, "contact", e.target.value)
+                  }
+                />
+                <InputWithIcon
+                  icon={<FaEnvelope />}
+                  type="email"
+                  placeholder="Email"
+                  value={beneficiary.email}
+                  onChange={(e) =>
+                    handleBeneficiaryChange(stocksindex, id, "email", e.target.value)
+                  }
+                />
+                <InputWithIcon
+                  icon={<FaPercent />}
+                  type="number"
+                  placeholder="Entitlement %"
+                  value={beneficiary.entitlement}
+                  onChange={(e) =>
+                    handleBeneficiaryChange(stocksindex, id, "entitlement", e.target.value)
+                  }
+                />
+                <InputWithIcon
+                  icon={<FaLink />}
+                  type="text"
+                  placeholder="Relationship"
+                  value={beneficiary.relationship}
+                  onChange={(e) =>
+                    handleBeneficiaryChange(stocksindex, id, "relationship", e.target.value)
+                  }
+                />
+              </FieldSection>
+            ) : (
+              // If no beneficiary found, display an error message
+              <p key={id} className="text-red-500">
+                Beneficiary with ID {id} not found.
+              </p>
+            );
+          })}
+      </div>
+    )}
+  </div>
+))}
+
+
     </Section>
 
       {/* Submit Button */}

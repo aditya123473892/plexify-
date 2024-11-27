@@ -1,4 +1,4 @@
-import React, { useState,useContext } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import {
   FaUser,
   FaDollarSign,
@@ -15,6 +15,7 @@ import FieldSection from '../Components/FieldSection';
 import Section from '../Components/Section';
 import { AuthContext } from "../Contexts/Context";
 import { toast, ToastContainer } from "react-toastify";
+
 const EPFManagement = () => {
   const { API, token } = useContext(AuthContext);
   const [epfDetails, setEpfDetails] = useState([
@@ -23,6 +24,48 @@ const EPFManagement = () => {
   const [file, setFile] = useState(null); // To store the selected file
   const [loading, setLoading] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
+
+  // Fetch EPF data when the component mounts
+  useEffect(() => {
+    const fetchEpfData = async () => {
+      try {
+        const response = await axios.get(`${API}/epf_data`, {
+          headers: {
+            Authorization: `Bearer ${token}`, // Passing the token for authentication
+            "Content-Type": "application/json",
+          },
+        });
+
+        if (response.data.epfDetails && response.data.epfDetails.length > 0) {
+          // If EPF details are fetched, format them properly
+          const formattedEpfDetails = response.data.epfDetails.map((epf) => ({
+            name: epf.name || "",
+            phone: epf.phone || "",
+            email: epf.email || "",
+            epfAccountNumber: epf.epf_account_number || "",
+            contribution: epf.contribution || "",
+            nominee: epf.nominee || "",
+          }));
+          setEpfDetails(formattedEpfDetails);
+        } else {
+          // If no EPF details are found, initialize with empty data
+          setEpfDetails([{
+            name: "",
+            phone: "",
+            email: "",
+            epfAccountNumber: "",
+            contribution: "",
+            nominee: "",
+          }]);
+        }
+      } catch (error) {
+        console.error("Error fetching EPF data:", error);
+        toast.error("Error fetching EPF data. Please try again.");
+      }
+    };
+
+    fetchEpfData();
+  }, [API, token]); // Dependency array ensures effect runs when API or token changes
 
   // Handle changes in EPF details fields
   const handleEpfChange = (index, field, value) => {
@@ -73,7 +116,6 @@ const EPFManagement = () => {
       toast.error("Error saving EPF details!"); // Show error message
     }
   };
-  
 
   return (
     <div className="min-h-screen shadow-2xl bg-white p-6 rounded-lg md:mt-10 mt-20">

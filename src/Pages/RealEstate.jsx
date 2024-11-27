@@ -22,64 +22,63 @@ import Section from "../Components/Section";
 function RealEstateManagement() {
   const [addedBeneficiaries, setAddedBeneficiaries] = useState([]);
   const { API, token, beneficiaryUser } = useContext(AuthContext);
-  const [properties, setProperties] = useState([
-    {
-      propertyName: "",
-      propertyType: "",
-      location: "",
-      areaInSqft: "",
-      purchaseDate: "",
-      purchasePrice: "",
-      currentValue: "",
-      ownershipStatus: "",
-      rentalIncome: "",
-      tenantName: "",
-      tenantContact: "",
-      status: "",
-    },
-  ]);
+  const [properties, setProperties] = useState([ ]);
 
   const [beneficiaries, setBeneficiaries] = useState([]);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await axios.get(`${API}/real_estate`, {
+        const response = await axios.get(`${API}/properties`, {
           headers: {
             Authorization: `Bearer ${token}`,
             "Content-Type": "application/json",
           },
         });
-        setProperties(
-          response.data.properties || [
-            {
-              propertyName: "",
-              propertyType: "",
-              location: "",
-              areaInSqft: "",
-              purchaseDate: "",
-              purchasePrice: "",
-              currentValue: "",
-              ownershipStatus: "",
-              rentalIncome: "",
-              tenantName: "",
-              tenantContact: "",
-              status: "",
-            },
-          ]
-        );
-        setBeneficiaries(
-          response.data.beneficiaries || [
-            {
-              name: "",
-              contact: "",
-              email: "",
-              entitlement: "",
-              relationship: "",
-              notify: false,
-            },
-          ]
-        );
+        if (response.data.properties && response.data.properties.length > 0) {
+          // Map properties to a format compatible with the form
+          const formattedProperties = response.data.properties.map((property) => ({
+            id: property.id,
+            propertyName: property.property_name || "",
+            propertyType: property.property_type || "",
+            location: property.location || "",
+            areaInSqft: property.area_in_sqft || "",
+            purchaseDate: property.purchase_date?.split("T")[0] || "", // Format for <input type="date">
+            purchasePrice: property.purchase_price || "",
+            currentValue: property.current_value || "",
+            ownershipStatus: property.ownership_status || "",
+            rentalIncome: property.rental_income || "",
+            tenantName: property.tenant_name || "",
+            tenantContact: property.tenant_contact || "",
+            beneficiaryUser: property.beneficiarie_user || "",
+            status: property.status || "Active", // Default status
+          }));
+  
+          setProperties(formattedProperties); 
+        }else{
+setProperties([{
+  propertyName: "",
+  propertyType: "",
+  location: "",
+  areaInSqft: "",
+  purchaseDate: "",
+  purchasePrice: "",
+  currentValue: "",
+  ownershipStatus: "",
+  rentalIncome: "",
+  tenantName: "",
+  tenantContact: "",
+  beneficiaryUser: "",
+  status: "",
+}
+])
+        }
+        if (response.data.beneficiaries && response.data.beneficiaries.length > 0) {
+          setBeneficiaries(response.data.beneficiaries);
+        } else {
+          // If no beneficiaries data exists, keep an empty array
+          setBeneficiaries([]);
+        }
       } catch (error) {
         console.error("Error fetching data:", error);
         toast.error("Error fetching data. Please try again.");
@@ -109,19 +108,6 @@ function RealEstateManagement() {
     ]);
   };
 
-  const addBeneficiary = () => {
-    setBeneficiaries([
-      ...beneficiaries,
-      {
-        name: "",
-        contact: "",
-        email: "",
-        entitlement: "",
-        relationship: "",
-        notify: false,
-      },
-    ]);
-  };
 
   const handlePropertyChange = (index, field, value) => {
     const updatedProperties = [...properties];
@@ -133,7 +119,6 @@ function RealEstateManagement() {
 
   const validateForm = () => {
     for (let property of properties) {
-console.log('✌️property --->', property);
       if (
         !property.propertyName ||
         !property.propertyType ||
@@ -199,7 +184,6 @@ console.log('✌️property --->', property);
   const handleAddBeneficiary = (userIndex) => {
     if (beneficiaryUser.length > 0 && !addedBeneficiaries.includes(userIndex)) {
       const user = beneficiaryUser[userIndex];
-      console.log('✌️beneficiaryUser --->', beneficiaryUser);
       const newBeneficiary = {
         beneficiary_id: user.beneficiary_id || "",
         name: user.name || "",
@@ -216,9 +200,18 @@ console.log('✌️property --->', property);
       toast.error("This user has already been added or no users are available.");
     }
   };
+  const handleBeneficiaryChange = (index, field, value) => {
+    const updatedBeneficiaries = [...beneficiaries];
+    updatedBeneficiaries[index][field] = value;
+    setBeneficiaries(updatedBeneficiaries);
+  };
 
-
-
+  const getBeneficiaryById = (id) => {
+    return beneficiaryUser.find(
+      (user) => String(user.beneficiary_id) === String(id)
+    ) || null;
+  };
+  
 
   return (
     <div className="min-h-screen shadow-2xl bg-white p-6 rounded-lg md:mt-10 mt-20">
@@ -356,67 +349,151 @@ console.log('✌️property --->', property);
 
 
       <Section>
-        <h3 className="font-semibold text-xl">Beneficiaries</h3>
-        <div className="mb-6">
-          <select
-            onChange={(e) => handleAddBeneficiary(e.target.value)}
-            className="border-l-2 border-[#538d2dfd] shadow-lg p-2 text-white rounded-md w-full outline-0 bg-[#538d2dfd]"
-          >
-            <option value="" disabled selected>Select a beneficiary</option>
-            {beneficiaryUser &&
-              beneficiaryUser
-                .filter((user, index) => !addedBeneficiaries.includes(index))
-                .map((user, index) => (
-                  <option key={index} value={index}>
-                    {user.name}
-                  </option>
-                ))}
-          </select>
-        </div>
-        <div className="grid mb-4">
-          {beneficiaries.map((beneficiary, index) => (
-              <FieldSection title="Beneficiary Details"  key={index}>
+  <h3 className="font-semibold text-xl">Beneficiaries</h3>
+  <div className="mb-6">
+    <select
+      onChange={(e) => handleAddBeneficiary(e.target.value)}
+      className="border-l-2 border-[#538d2dfd] shadow-lg p-2 text-white rounded-md w-full outline-0 bg-[#538d2dfd]"
+    >
+      <option value="" disabled selected>Select a beneficiary</option>
+      {beneficiaryUser &&
+        beneficiaryUser
+          .filter((user, index) => !addedBeneficiaries.includes(index))
+          .map((user, index) => (
+            <option key={index} value={index}>
+              {user.name}
+            </option>
+          ))}
+    </select>
+  </div>
+  
+  <div className="grid mb-4">
+    {beneficiaries.map((beneficiary, index) => (
+      <FieldSection key={index}>
+        <InputWithIcon
+          icon={<FaUser />}
+          type="text"
+          placeholder="Beneficiary Name"
+          value={beneficiary.name}
+          onChange={(e) =>
+            handleBeneficiaryChange(index, "name", e.target.value)
+          }
+        />
+        <InputWithIcon
+          icon={<FaPhone />}
+          type="text"
+          placeholder="Contact"
+          value={beneficiary.contact}
+          onChange={(e) =>
+            handleBeneficiaryChange(index, "contact", e.target.value)
+          }
+        />
+        <InputWithIcon
+          icon={<FaEnvelope />}
+          type="email"
+          placeholder="Email"
+          value={beneficiary.email}
+          onChange={(e) =>
+            handleBeneficiaryChange(index, "email", e.target.value)
+          }
+        />
+        <InputWithIcon
+          icon={<FaPercent />}
+          type="number"
+          placeholder="Entitlement %"
+          value={beneficiary.entitlement}
+          onChange={(e) =>
+            handleBeneficiaryChange(index, "entitlement", e.target.value)
+          }
+        />
+        <InputWithIcon
+          icon={<FaLink />}
+          type="text"
+          placeholder="Relationship"
+          value={beneficiary.relationship}
+          onChange={(e) =>
+            handleBeneficiaryChange(index, "relationship", e.target.value)
+          }
+        />
+      </FieldSection>
+    ))}
+  </div>
+
+  {properties.map((propertie, propertiesindex) => (
+  <div key={propertiesindex} className="border p-4 rounded-lg mt-4 shadow-md bg-gray-50">
+    {propertie.beneficiaryUser && (
+      <div className="mt-4 p-4 rounded-lg">
+        <h4 className="font-semibold text-lg">Selected Beneficiaries:</h4>
+        
+        {/* Split beneficiaryUser string and map over the IDs */}
+        {propertie.beneficiaryUser
+          .split(',') // Split the IDs into an array
+          .map((id) => {
+            // Get beneficiary by ID
+            const beneficiary = getBeneficiaryById(id);
+            
+            return beneficiary ? (
+              // If beneficiary found, render fields
+              <FieldSection key={id}>
                 <InputWithIcon
                   icon={<FaUser />}
                   type="text"
-                  placeholder="Name"
+                  placeholder="Beneficiary Name"
                   value={beneficiary.name}
-
+                  onChange={(e) =>
+                    handleBeneficiaryChange(propertiesindex, id, "name", e.target.value)
+                  }
                 />
                 <InputWithIcon
                   icon={<FaPhone />}
                   type="text"
                   placeholder="Contact"
                   value={beneficiary.contact}
-
+                  onChange={(e) =>
+                    handleBeneficiaryChange(propertiesindex, id, "contact", e.target.value)
+                  }
                 />
                 <InputWithIcon
                   icon={<FaEnvelope />}
                   type="email"
                   placeholder="Email"
                   value={beneficiary.email}
-
+                  onChange={(e) =>
+                    handleBeneficiaryChange(propertiesindex, id, "email", e.target.value)
+                  }
                 />
                 <InputWithIcon
                   icon={<FaPercent />}
                   type="number"
                   placeholder="Entitlement %"
                   value={beneficiary.entitlement}
-
+                  onChange={(e) =>
+                    handleBeneficiaryChange(propertiesindex, id, "entitlement", e.target.value)
+                  }
                 />
                 <InputWithIcon
                   icon={<FaLink />}
                   type="text"
                   placeholder="Relationship"
                   value={beneficiary.relationship}
-
+                  onChange={(e) =>
+                    handleBeneficiaryChange(propertiesindex, id, "relationship", e.target.value)
+                  }
                 />
               </FieldSection>
-          ))}
-        </div>
+            ) : (
+              // If no beneficiary found, display an error message
+              <p key={id} className="text-red-500">
+                Beneficiary with ID {id} not found.
+              </p>
+            );
+          })}
+      </div>
+    )}
+  </div>
+))}
 
-      
-      </Section>
+</Section>
 
 
       <div className="mt-10">

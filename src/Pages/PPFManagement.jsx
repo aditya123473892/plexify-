@@ -1,4 +1,4 @@
-import React, { useState, useContext } from "react";
+import React, { useState, useContext, useEffect } from "react";
 import {
   FaUser,
   FaPhone,
@@ -30,6 +30,48 @@ const PPFManagement = () => {
   ]);
 
   const [uploadedFile, setUploadedFile] = useState(null);
+
+  // Fetch PPF details when the component mounts
+  useEffect(() => {
+    const fetchPpfData = async () => {
+      try {
+        const response = await axios.get(`${API}/ppf_data`, {
+          headers: {
+            Authorization: `Bearer ${token}`, // Passing the token for authentication
+            "Content-Type": "application/json",
+          },
+        });
+
+        if (response.data.ppfDetails && response.data.ppfDetails.length > 0) {
+          // If PPF details are fetched, format them properly
+          const formattedPpfDetails = response.data.ppfDetails.map((ppf) => ({
+            name: ppf.name || "",
+            phone: ppf.phone || "",
+            email: ppf.email || "",
+            ppfAccountNumber: ppf.ppf_account_number || "",
+            contribution: ppf.contribution || "",
+            nominee: ppf.nominee || "",
+          }));
+          setPpfDetails(formattedPpfDetails);
+        } else {
+          // If no PPF details are found, initialize with empty data
+          setPpfDetails([{
+            name: "",
+            phone: "",
+            email: "",
+            ppfAccountNumber: "",
+            contribution: "",
+            nominee: "",
+          }]);
+        }
+      } catch (error) {
+        console.error("Error fetching PPF data:", error);
+        toast.error("Error fetching PPF data. Please try again.");
+      }
+    };
+
+    fetchPpfData();
+  }, [API, token]); // Dependency array ensures effect runs when API or token changes
 
   // Handle changes in PPF details
   const handlePpfChange = (index, field, value) => {

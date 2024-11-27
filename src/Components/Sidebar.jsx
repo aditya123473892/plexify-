@@ -158,7 +158,7 @@ function Sidebar() {
             <img
               src={wealthlogo}
               alt="Wealth Logo"
-              className={`${isOpen ? "size-20" : ""} filter brightness-[20.5]`}
+              className={`${isOpen ? "size-20" : ""} `}
             />
           </div>
 
@@ -260,8 +260,8 @@ function Sidebar() {
               }`}
             >
               <Link to="/liabilites" className="sidebar-link">
-                <FaCar className={isOpen ? "mr-3" : ""} />{" "}
-                {isOpen ? "Home Loan" : ""}
+                <RiRefund2Fill className={isOpen ? "mr-3" : ""} />{" "}
+                {isOpen ? "Loan" : ""}
               </Link>
               {/* <Link to="/car-loan" className="sidebar-link">
                 <FaCar className={isOpen ? "mr-3" : ""} />{" "}
@@ -390,7 +390,7 @@ function Sidebar() {
           <img
             src={wealthlogo}
             alt="Wealth Logo"
-            className="h-12 w-auto f"
+            className=" size-10"
           />
           <p className="text-lg font-medium">Manage, Grow, Pass On</p>
         </div>

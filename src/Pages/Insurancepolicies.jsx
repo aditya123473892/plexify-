@@ -1,8 +1,7 @@
-import React, { useState, useContext } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import axios from "axios";
 import { FaClipboard, FaTag, FaDollarSign, FaCheckCircle } from "react-icons/fa";
 import InputWithIcon from "../Components/InputWithIcon";
-import FieldSection from "../Components/FieldSection";
 import Section from "../Components/Section";
 import { AuthContext } from "../Contexts/Context";
 import { toast, ToastContainer } from "react-toastify";
@@ -23,6 +22,43 @@ function InsurancePage() {
     document: null, // Add a state for the document
   });
   const [loading, setLoading] = useState(false);
+  const [isEditMode, setIsEditMode] = useState(false); // Flag for edit mode
+
+  // Fetch insurance data on component mount
+  useEffect(() => {
+    const fetchInsuranceData = async () => {
+      try {
+        const response = await axios.get(`${API}/insurance`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        if (response.data.policies.length > 0) {
+          const policy = response.data.policies[0]; // Assuming the user has only one policy for simplicity
+          setFormData({
+            policyName: policy.policy_name,
+            policyNumber: policy.policy_number,
+            provider: policy.provider,
+            policyType: policy.policy_type,
+            policyPeriod: policy.policy_period,
+            premiumAmount: policy.premium_amount,
+            coverageLimit: policy.coverage_limit,
+            maturityAmount: policy.maturity_amount,
+            nomineeName: policy.nominee_name || "",
+            nomineeRelation: policy.nominee_relation || "",
+            document: null, // Assuming document is not fetched here
+          });
+          setIsEditMode(false); // If data exists, set view mode
+        }
+      } catch (error) {
+        console.error("Error fetching insurance data:", error);
+        toast.error("Failed to fetch insurance data.");
+      }
+    };
+
+    fetchInsuranceData();
+  }, [API, token]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -57,7 +93,7 @@ function InsurancePage() {
 
     setLoading(true);
     const formDataToSend = new FormData();
- 
+
     Object.keys(formData).forEach((key) => {
       if (key !== "document") {
         formDataToSend.append(key, formData[key]);
@@ -70,12 +106,13 @@ function InsurancePage() {
       const response = await axios.post(`${API}/insurance`, formDataToSend, {
         headers: {
           Authorization: `Bearer ${token}`,
-          "Content-Type": "multipart/form-data", 
+          "Content-Type": "multipart/form-data",
         },
       });
       console.log("Response:", response.data);
       toast.success("Insurance policy saved successfully!");
       setLoading(false);
+      setIsEditMode(false); // Set to view mode after saving
     } catch (error) {
       console.error("Error saving insurance policy:", error);
       toast.error("Failed to save insurance policy.");
@@ -98,6 +135,7 @@ function InsurancePage() {
           value={formData.policyType}
           onChange={handleChange}
           className="border-l-2 border-[#538d2dfd] shadow-lg p-2 text-white rounded-md w-full outline-0 bg-[#538d2dfd]"
+          disabled={!isEditMode} // Disable in view mode
         >
           <option>Life Insurance</option>
           <option>Health Insurance</option>
@@ -118,6 +156,7 @@ function InsurancePage() {
             value={formData.policyName}
             type="text"
             onChange={handleChange}
+            readOnly={!isEditMode} // Disable input if not in edit mode
           />
           <InputWithIcon
             icon={<FaTag />}
@@ -126,6 +165,7 @@ function InsurancePage() {
             type="number"
             value={formData.policyNumber}
             onChange={handleChange}
+            readOnly={!isEditMode} // Disable input if not in edit mode
           />
           <InputWithIcon
             icon={<FaClipboard />}
@@ -134,6 +174,7 @@ function InsurancePage() {
             type="text"
             value={formData.provider}
             onChange={handleChange}
+            readOnly={!isEditMode} // Disable input if not in edit mode
           />
           <InputWithIcon
             icon={<FaClipboard />}
@@ -142,22 +183,25 @@ function InsurancePage() {
             type="text"
             value={formData.policyPeriod}
             onChange={handleChange}
+            readOnly={!isEditMode} // Disable input if not in edit mode
           />
-                <InputWithIcon
+          <InputWithIcon
             icon={<FaClipboard />}
             placeholder="Nominee Name"
             name="nomineeName"
             type="text"
             value={formData.nomineeName}
             onChange={handleChange}
+            readOnly={!isEditMode} // Disable input if not in edit mode
           />
-                <InputWithIcon
+          <InputWithIcon
             icon={<FaClipboard />}
             placeholder="Nominee Relation"
             name="nomineeRelation"
             type="text"
             value={formData.nomineeRelation}
             onChange={handleChange}
+            readOnly={!isEditMode} // Disable input if not in edit mode
           />
           <InputWithIcon
             icon={<FaDollarSign />}
@@ -166,6 +210,7 @@ function InsurancePage() {
             type="number"
             value={formData.premiumAmount}
             onChange={handleChange}
+            readOnly={!isEditMode} // Disable input if not in edit mode
           />
           <InputWithIcon
             icon={<FaDollarSign />}
@@ -174,6 +219,7 @@ function InsurancePage() {
             type="number"
             value={formData.coverageLimit}
             onChange={handleChange}
+            readOnly={!isEditMode} // Disable input if not in edit mode
           />
           <InputWithIcon
             className="col-span-2"
@@ -183,6 +229,7 @@ function InsurancePage() {
             type="number"
             value={formData.maturityAmount}
             onChange={handleChange}
+            readOnly={!isEditMode} // Disable input if not in edit mode
           />
         </div>
       </Section>
@@ -193,34 +240,17 @@ function InsurancePage() {
           name="document"
           onChange={handleFileChange}
           className="border-l-2 border-[#538d2dfd] shadow-lg p-2 text-white rounded-md w-full outline-0"
+          disabled={!isEditMode} // Disable in view mode
         />
       </Section>
 
-      <section className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
-        <div className="border-l-2 border-[#538d2dfd] p-6 rounded-lg shadow">
-          <h3 className="text-lg font-semibold">Educational Resources</h3>
-          <p className="mt-2">Learn more about insurance policies and coverage.</p>
-          <button className="bg-[#538d2dfd] text-white py-2 px-4 mt-4 rounded-md shadow-md hover:bg-[#4c7033fd]">
-            Explore Resources
-          </button>
-        </div>
-
-        <div className="border-l-2 border-[#538d2dfd] p-6 rounded-lg shadow">
-          <h3 className="text-lg font-semibold">Insurance Calculator</h3>
-          <p className="mt-2">Calculate premium, maturity, and other insurance metrics.</p>
-          <button className="bg-[#538d2dfd] text-white py-2 px-4 mt-4 rounded-md shadow-md hover:bg-[#4c7033fd]">
-            Open Calculator
-          </button>
-        </div>
-      </section>
-
       <div className="text-right">
         <button
-          onClick={handleSave}
+          onClick={isEditMode ? handleSave : () => setIsEditMode(true)} // Toggle edit mode
           className="bg-[#538d2dfd] text-white py-2 px-6 rounded-md shadow-md hover:bg-[#4c7033fd]"
           disabled={loading}
         >
-          {loading ? "Saving..." : "Save Changes"}
+          {loading ? "Saving..." : isEditMode ? "Save Changes" : "Edit Policy"}
         </button>
       </div>
       <ToastContainer />

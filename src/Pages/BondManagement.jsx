@@ -1,4 +1,4 @@
-import React, { useState, useContext } from 'react';
+import React, { useState, useContext,useEffect } from 'react';
 import {
   FaFileAlt,
   FaCalendarAlt,
@@ -10,7 +10,8 @@ import {
   FaCheckCircle,
   FaUser,
   FaEnvelope,
-  FaPhone
+  FaPhone,
+  FaLink
 } from 'react-icons/fa';
 import axios from 'axios';
 import InputWithIcon from '../Components/InputWithIcon';
@@ -24,9 +25,7 @@ const BondManagement = () => {
   const [addedBeneficiaries, setAddedBeneficiaries] = useState([]);
 
   const { API, token,beneficiaryUser } = useContext(AuthContext);
-  const [bonds, setBonds] = useState([
-    { issuer: '', type: '', maturityDate: '', faceValue: '', interestRate: '', marketValue: '' },
-  ]);
+  const [bonds, setBonds] = useState([]);
   const [beneficiaries, setBeneficiaries] = useState([
   
   ]);
@@ -34,7 +33,58 @@ const BondManagement = () => {
     stocks: [],
     beneficiaries: [],
   });
-  const [documentFile, setDocumentFile] = useState(null); // State to hold the uploaded file
+  const [documentFile, setDocumentFile] = useState(null); 
+
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const response = await axios.get(`${API}/bonds`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        });
+  
+        console.log('✌️response.data --->', response.data);
+        if (response.data.bonds && response.data.bonds.length > 0) {
+          const formattedBonds = response.data.bonds.map((bond) => ({
+            issuer: bond.issuer || "",
+            bondType: bond.bond_type || "", 
+            maturityDate: bond.maturity_date ? bond.maturity_date.split("T")[0] : "", // Format date
+            faceValue: bond.face_value || "",
+            interestRate: bond.interest_rate || "",
+            marketValue: bond.market_value || "",
+            beneficiaryUser: bond.beneficiarie_user || "",
+          }));
+          setBonds(formattedBonds);
+        } else {
+          setBonds([{
+            issuer: "",
+            bondType: "",
+            maturityDate: "",
+            faceValue: "",
+            interestRate: "",
+            marketValue: "",
+            beneficiaryUser: "",
+          }]);
+        }
+  
+        if (response.data.beneficiaries && response.data.beneficiaries.length > 0) {
+          setBeneficiaries(response.data.beneficiaries);
+        } else {
+          setBeneficiaries([]); // Empty array if no beneficiaries
+        }
+      } catch (error) {
+        console.error("Error fetching data:", error);
+        toast.error("Error fetching data. Please try again.");
+      }
+    };
+  
+    fetchData();
+  }, [API, token]);  
+  
+
 
   const handleBondChange = (index, field, value) => {
     const newBonds = [...bonds];
@@ -55,7 +105,7 @@ const BondManagement = () => {
 
 
   const handleFileChange = (event) => {
-    setDocumentFile(event.target.files[0]); // Capture the selected file
+    setDocumentFile(event.target.files[0]); 
   };
 
   const validateForm = () => {
@@ -109,6 +159,12 @@ const BondManagement = () => {
     } else {
       toast.error("This user has already been added or no users are available.");
     }
+  };
+
+  const getBeneficiaryById = (id) => {
+    return beneficiaryUser.find(
+      (user) => String(user.beneficiary_id) === String(id)
+    ) || null;
   };
   return (
     <div className="min-h-screen shadow-2xl bg-white p-6 rounded-lg md:mt-10 mt-20">
@@ -256,6 +312,80 @@ const BondManagement = () => {
           )}
         </FieldSection>
       ))}
+
+{bonds.map((bond, bondsindex) => (
+  <div key={bondsindex} className="border p-4 rounded-lg mt-4 shadow-md bg-gray-50">
+    {bond.beneficiaryUser && (
+      <div className="mt-4 p-4 rounded-lg">
+        <h4 className="font-semibold text-lg">Selected Beneficiaries:</h4>
+        
+        {bond.beneficiaryUser
+          .split(',') // Split the IDs into an array
+          .map((id) => {
+            const beneficiary = getBeneficiaryById(id);
+            
+            return beneficiary ? (
+              // If beneficiary found, render fields
+              <FieldSection key={id}>
+                <InputWithIcon
+                  icon={<FaUser />}
+                  type="text"
+                  placeholder="Beneficiary Name"
+                  value={beneficiary.name}
+                  onChange={(e) =>
+                    handleBeneficiaryChange(bondsindex, id, "name", e.target.value)
+                  }
+                />
+                <InputWithIcon
+                  icon={<FaPhone />}
+                  type="text"
+                  placeholder="Contact"
+                  value={beneficiary.contact}
+                  onChange={(e) =>
+                    handleBeneficiaryChange(bondsindex, id, "contact", e.target.value)
+                  }
+                />
+                <InputWithIcon
+                  icon={<FaEnvelope />}
+                  type="email"
+                  placeholder="Email"
+                  value={beneficiary.email}
+                  onChange={(e) =>
+                    handleBeneficiaryChange(bondsindex, id, "email", e.target.value)
+                  }
+                />
+                <InputWithIcon
+                  icon={<FaPercent />}
+                  type="number"
+                  placeholder="Entitlement %"
+                  value={beneficiary.entitlement}
+                  onChange={(e) =>
+                    handleBeneficiaryChange(bondsindex, id, "entitlement", e.target.value)
+                  }
+                />
+                <InputWithIcon
+                  icon={<FaLink />}
+                  type="text"
+                  placeholder="Relationship"
+                  value={beneficiary.relationship}
+                  onChange={(e) =>
+                    handleBeneficiaryChange(bondsindex, id, "relationship", e.target.value)
+                  }
+                />
+              </FieldSection>
+            ) : (
+              // If no beneficiary found, display an error message
+              <p key={id} className="text-red-500">
+                Beneficiary with ID {id} not found.
+              </p>
+            );
+          })}
+      </div>
+    )}
+  </div>
+))}
+
+
     </Section>
 
       <div className="mt-8">

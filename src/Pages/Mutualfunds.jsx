@@ -1,4 +1,4 @@
-import React, { useState, useContext } from "react";
+import React, { useState, useContext,useEffect } from "react";
 import axios from "axios";
 import { FaPlus, FaFileUpload, FaShieldAlt, FaDollarSign } from "react-icons/fa";
 import Section from "../Components/Section";
@@ -8,17 +8,7 @@ import { toast, ToastContainer } from "react-toastify";
 
 function MutualFundsManagement() {
   const { API, token } = useContext(AuthContext);
-  const [funds, setFunds] = useState([
-    {
-      fundName: "",
-      fundManager: "",
-      investmentAmount: "",
-      currentValue: "",
-      fundType: "",
-      riskLevel: "",
-      notify: false,
-    },
-  ]);
+  const [funds, setFunds] = useState([]);
   
   const [document, setDocument] = useState(null); // For handling file uploads
 
@@ -36,7 +26,52 @@ function MutualFundsManagement() {
       },
     ]);
   };
-
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        // Make the API request to fetch mutual fund data
+        const response = await axios.get(`${API}/mutual-funds`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        });
+  
+        // Check if there are any funds in the response data
+        if (response.data.mutualFunds && response.data.mutualFunds.length > 0) {
+          const formattedFunds = response.data.mutualFunds.map((fund) => ({
+            fundName: fund.fund_name || "",  // Using fund_name from the table
+            fundManager: fund.fund_manager || "",  // Using fund_manager from the table
+            investmentAmount: fund.investment_amount || "",  // Using investment_amount from the table
+            currentValue: fund.current_value || "",  // Using current_value from the table
+            fundType: fund.fund_type || "",  // Using fund_type from the table
+            riskLevel: fund.risk_level || "",  // Using risk_level from the table
+            notify: fund.notify || false,  // Using notify from the table (default to false)
+          }));
+  
+          // Set the formatted funds in the state
+          setFunds(formattedFunds);
+        } else {
+          // If no mutual funds are found, set an empty default value
+          setFunds([{
+            fundName: "",
+            fundManager: "",
+            investmentAmount: "",
+            currentValue: "",
+            fundType: "",
+            riskLevel: "",
+            notify: false,
+          }]);
+        }
+      } catch (error) {
+        console.error("Error fetching data:", error);
+        toast.error("Error fetching mutual fund data. Please try again.");
+      }
+    };
+  
+    fetchData();
+  }, [API, token]);  // Runs when the component mounts or when API/token changes
+  
   const handleFundChange = (index, field, value) => {
     const updatedFunds = [...funds];
     updatedFunds[index][field] = value;

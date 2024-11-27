@@ -1,4 +1,4 @@
-import React, { useState, useContext } from 'react';
+import React, { useState, useContext, useEffect } from 'react';
 import { FaBitcoin, FaCoins, FaDollarSign, FaCalendarAlt, FaWallet, FaPlus, FaCheckCircle } from 'react-icons/fa';
 import InputWithIcon from '../Components/InputWithIcon';
 import FieldSection from '../Components/FieldSection';
@@ -9,28 +9,68 @@ import { toast, ToastContainer } from "react-toastify"; // Toast notifications
 import "react-toastify/dist/ReactToastify.css";
 
 const CryptoManagement = () => {
-  const [cryptos, setCryptos] = useState([
+  const [cryptos, setCryptos] = useState([  // Initial state setup
     { name: '', amountHeld: '', currentValue: '', acquisitionDate: '', wallet: '' },
   ]);
 
   const { API, token } = useContext(AuthContext); // Getting API and token from context
 
+  // Function to handle changes in cryptocurrency fields
   const handleCryptoChange = (index, field, value) => {
     const newCryptos = [...cryptos];
     newCryptos[index][field] = value;
     setCryptos(newCryptos);
   };
 
+  // Function to add a new cryptocurrency entry
   const addCrypto = () => {
     setCryptos([...cryptos, { name: '', amountHeld: '', currentValue: '', acquisitionDate: '', wallet: '' }]);
   };
 
-  // Handle saving the cryptocurrency details
+  // Fetch cryptocurrency data from the backend
+  useEffect(() => {
+    const fetchCryptoData = async () => {
+      try {
+        const response = await axios.get(`${API}/cryptocurrencies`, {
+          headers: {
+            Authorization: `Bearer ${token}`, // Passing the token for authentication
+            'Content-Type': 'application/json',
+          },
+        });
+
+        if (response.data.cryptos && response.data.cryptos.length > 0) {
+          const formattedCryptos = response.data.cryptos.map((crypto) => ({
+            name: crypto.name || "",
+            amountHeld: crypto.amount_held || "",
+            currentValue: crypto.current_value || "",
+            acquisitionDate: crypto.acquisition_date || "",
+            wallet: crypto.wallet || "",
+          }));
+          setCryptos(formattedCryptos);
+        } else {
+          setCryptos([{
+            name: "",
+            amountHeld: "",
+            currentValue: "",
+            acquisitionDate: "",
+            wallet: "",
+          }]);
+        }
+      } catch (error) {
+        console.error("Error fetching cryptocurrency data:", error);
+        toast.error("Error fetching cryptocurrency data. Please try again.");
+      }
+    };
+
+    fetchCryptoData();
+  }, [API, token]);  // Dependency array: will run when API or token changes
+
+  // Handle saving cryptocurrency details to the backend
   const handleSave = async () => {
     try {
       const response = await axios.post(
-        `${API}/cryptocurrencies`, // Your backend endpoint
-        { cryptos }, // Data to be sent
+        `${API}/cryptocurrencies`, // Your backend endpoint for saving cryptocurrencies
+        { cryptos }, // Data to be sent to the backend
         {
           headers: {
             Authorization: `Bearer ${token}`, // Add authorization token

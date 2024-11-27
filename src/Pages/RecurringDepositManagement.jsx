@@ -2,39 +2,68 @@ import React, { useState, useEffect, useContext } from "react";
 import axios from "axios";
 import InputWithIcon from "../Components/InputWithIcon";
 import FieldSection from "../Components/FieldSection";
-import { FaMoneyBillWave, FaCalendarAlt, FaUser,FaLink, FaPhone, FaEnvelope, FaPercent, FaHashtag, FaPlus } from "react-icons/fa";
+import { FaMoneyBillWave, FaCalendarAlt, FaUser, FaLink, FaPhone, FaEnvelope, FaPercent, FaHashtag } from "react-icons/fa";
 import { AuthContext } from "../Contexts/Context";
 import { toast, ToastContainer } from "react-toastify";
-
 import Section from "../Components/Section";
 
 function RecurringDepositManagement() {
   const { API, token, beneficiaryUser } = useContext(AuthContext);
-  const [deposits, setDeposits] = useState([
-    {
-      bankName: "",
-      depositAmount: "",
-      interestRate: "",
-      startDate: "",
-      maturityDate: "",
-      maturityAmount: "",
-      rdNumber: "",
-    },
-  ]);
+  const [deposits, setDeposits] = useState([]);
   const [beneficiaries, setBeneficiaries] = useState([]);
   const [addedBeneficiaries, setAddedBeneficiaries] = useState([]);
 
   useEffect(() => {
     const fetchDeposits = async () => {
       try {
-        const response = await axios.get(`${API}/deposits`, {
+        const response = await axios.get(`${API}/recurring_deposits`, {
           headers: {
             Authorization: `Bearer ${token}`,
             "Content-Type": "application/json",
           },
         });
-        setDeposits(response.data.deposits || []);
-        setBeneficiaries(response.data.beneficiaries || []);
+
+        // Check if data exists, then set state
+   
+        if (response.data.deposits && response.data.deposits.length > 0) {
+          // Map deposits to a format compatible with the form
+          const formattedDeposits = response.data.deposits.map((deposit) => ({
+            id: deposit.id,
+            bankName: deposit.bank_name || "",
+            rdNumber: deposit.rd_number || "",
+            depositAmount: deposit.monthly_deposit_amount || "",
+            interestRate: deposit.interest_rate || "",
+            startDate: deposit.start_date?.split("T")[0] || "", // Format for <input type="date">
+            maturityDate: deposit.maturity_date?.split("T")[0] || "",
+            maturityAmount: deposit.maturity_amount || "",
+            beneficiaryUser: deposit.beneficiarie_user || "",
+            status: deposit.status || "Active",
+          }));
+          setDeposits(formattedDeposits);
+        } else {
+          setDeposits([
+            {
+              id: "",
+              rdNumber:'',
+              bankName: "",
+              depositAmount: "",
+              interestRate: "",
+              startDate: "",
+              maturityDate: "",
+              maturityAmount: "",
+              beneficiaryUser: "",
+              status: "Active",
+            },
+          ]);
+        }
+
+        if (response.data.beneficiaries && response.data.beneficiaries.length > 0) {
+          setBeneficiaries(response.data.beneficiaries);
+        } else {
+          // If no beneficiaries data exists, keep an empty array
+          setBeneficiaries([]);
+        }
+
       } catch (error) {
         console.error("Error fetching data:", error);
         toast.error("Error fetching data. Please try again.");
@@ -48,6 +77,7 @@ function RecurringDepositManagement() {
     setDeposits([
       ...deposits,
       {
+        depositId: "",
         bankName: "",
         depositAmount: "",
         interestRate: "",
@@ -62,7 +92,6 @@ function RecurringDepositManagement() {
   const handleAddBeneficiary = (userIndex) => {
     if (beneficiaryUser.length > 0 && !addedBeneficiaries.includes(userIndex)) {
       const user = beneficiaryUser[userIndex];
-console.log('✌️beneficiaryUser --->', beneficiaryUser);
       const newBeneficiary = {
         beneficiary_id: user.beneficiary_id || "",
         name: user.name || "",
@@ -74,7 +103,7 @@ console.log('✌️beneficiaryUser --->', beneficiaryUser);
       };
 
       setBeneficiaries([...beneficiaries, newBeneficiary]);
-      setAddedBeneficiaries([...addedBeneficiaries, userIndex]); 
+      setAddedBeneficiaries([...addedBeneficiaries, userIndex]);
     } else {
       toast.error("This user has already been added or no users are available.");
     }
@@ -93,7 +122,6 @@ console.log('✌️beneficiaryUser --->', beneficiaryUser);
   };
 
   const validateForm = () => {
-    
     for (let deposit of deposits) {
       if (
         !deposit.bankName ||
@@ -120,20 +148,18 @@ console.log('✌️beneficiaryUser --->', beneficiaryUser);
       }
     }
 
-
     return true;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-  
+
     if (!validateForm()) return;
-  
-    console.log('✌️beneficiaries --->', beneficiaries);
-    const beneficiaryIds = beneficiaries.map((beneficiary) => beneficiary.beneficiary_id); 
-  
+
+    const beneficiaryIds = beneficiaries.map((beneficiary) => beneficiary.beneficiary_id);
+
     const data = { deposits, beneficiaries: beneficiaryIds };
-  
+
     try {
       const response = await axios.post(`${API}/recurring_deposits`, data, {
         headers: {
@@ -141,12 +167,19 @@ console.log('✌️beneficiaryUser --->', beneficiaryUser);
           "Content-Type": "application/json",
         },
       });
-  
+
       toast.success("Data submitted successfully!");
     } catch (error) {
       console.error("Error submitting data:", error);
       toast.error("Error submitting data. Please try again.");
     }
+  };
+
+
+  const getBeneficiaryById = (id) => {
+    return beneficiaryUser.find(
+      (user) => String(user.beneficiary_id) === String(id)
+    ) || null;
   };
   
 
@@ -232,7 +265,7 @@ console.log('✌️beneficiaryUser --->', beneficiaryUser);
           </div>
         ))}
 
-        <div className="flex justify-center gap-4 mb-6">
+        <div className=" gap-4 mb-6">
           <button
             type="button"
             onClick={addDeposit}
@@ -249,62 +282,140 @@ console.log('✌️beneficiaryUser --->', beneficiaryUser);
             <label className="block font-medium">Select Beneficiaries:</label>
             <select
               onChange={(e) => handleAddBeneficiary(e.target.value)}
-              className="border-l-2 border-[#538d2dfd] shadow-lg p-2 text-white rounded-md w-full outline-0 bg-[#538d2dfd]"
+              className="border-l-2 border-[#538d2dfd] shadow-lg p-2 text-white bg-[#6e9b48] rounded-xl w-full mt-2"
             >
-              <option value="" disabled selected>Select a beneficiary</option>
-              {beneficiaryUser &&
-                beneficiaryUser
-                  .filter((user, index) => !addedBeneficiaries.includes(index))
-                  .map((user, index) => (
-                    <option key={index} value={index}>
-                      {user.name}
-                    </option>
-                  ))}
+              <option value="">Choose Beneficiary</option>
+              {beneficiaryUser?.map((user, index) => (
+                <option key={index} value={index}>
+                  {user.name}
+                </option>
+              ))}
             </select>
           </div>
 
-          <div className="grid mb-4">
           {beneficiaries.map((beneficiary, index) => (
-              <FieldSection title="Beneficiary Details"  key={index}>
+            <FieldSection key={index}>
+              <InputWithIcon
+                icon={<FaUser />}
+                type="text"
+                placeholder="Beneficiary Name"
+                value={beneficiary.name}
+                onChange={(e) =>
+                  handleBeneficiaryChange(index, "name", e.target.value)
+                }
+              />
+              <InputWithIcon
+                icon={<FaPhone />}
+                type="text"
+                placeholder="Contact"
+                value={beneficiary.contact}
+                onChange={(e) =>
+                  handleBeneficiaryChange(index, "contact", e.target.value)
+                }
+              />
+              <InputWithIcon
+                icon={<FaEnvelope />}
+                type="email"
+                placeholder="Email"
+                value={beneficiary.email}
+                onChange={(e) =>
+                  handleBeneficiaryChange(index, "email", e.target.value)
+                }
+              />
+              <InputWithIcon
+                icon={<FaPercent />}
+                type="number"
+                placeholder="Entitlement %"
+                value={beneficiary.entitlement}
+                onChange={(e) =>
+                  handleBeneficiaryChange(index, "entitlement", e.target.value)
+                }
+              />
+              <InputWithIcon
+                icon={<FaLink />}
+                type="text"
+                placeholder="Relationship"
+                value={beneficiary.relationship}
+                onChange={(e) =>
+                  handleBeneficiaryChange(index, "relationship", e.target.value)
+                }
+              />
+            </FieldSection>
+          ))}
+
+{deposits.map((deposit, depositIndex) => (
+  <div key={depositIndex} className="border p-4 rounded-lg mt-4 shadow-md bg-gray-50">
+    {deposit.beneficiaryUser && (
+      <div className="mt-4  p-4 rounded-lg">
+        <h4 className="font-semibold text-lg">Selected Beneficiaries:</h4>
+        
+        {/* Parse beneficiary IDs and display details for each */}
+        {deposit.beneficiaryUser
+          .split(',') // Split the IDs into an array
+          .map((id) => {
+            const beneficiary = getBeneficiaryById(id); // Use updated function
+            return beneficiary ? (
+              <FieldSection key={id}>
                 <InputWithIcon
                   icon={<FaUser />}
                   type="text"
-                  placeholder="Name"
+                  placeholder="Beneficiary Name"
                   value={beneficiary.name}
-
+                  onChange={(e) =>
+                    handleBeneficiaryChange(depositIndex, "name", e.target.value)
+                  }
                 />
                 <InputWithIcon
                   icon={<FaPhone />}
                   type="text"
                   placeholder="Contact"
                   value={beneficiary.contact}
-
+                  onChange={(e) =>
+                    handleBeneficiaryChange(depositIndex, "contact", e.target.value)
+                  }
                 />
                 <InputWithIcon
                   icon={<FaEnvelope />}
                   type="email"
                   placeholder="Email"
                   value={beneficiary.email}
-
+                  onChange={(e) =>
+                    handleBeneficiaryChange(depositIndex, "email", e.target.value)
+                  }
                 />
                 <InputWithIcon
                   icon={<FaPercent />}
                   type="number"
                   placeholder="Entitlement %"
                   value={beneficiary.entitlement}
-
+                  onChange={(e) =>
+                    handleBeneficiaryChange(depositIndex, "entitlement", e.target.value)
+                  }
                 />
                 <InputWithIcon
                   icon={<FaLink />}
                   type="text"
                   placeholder="Relationship"
                   value={beneficiary.relationship}
-
+                  onChange={(e) =>
+                    handleBeneficiaryChange(depositIndex, "relationship", e.target.value)
+                  }
                 />
               </FieldSection>
-          ))}
-        </div>
+            ) : (
+              <p key={id} className="text-red-500">
+                Beneficiary with ID {id} not found.
+              </p>
+            );
+          })}
+      </div>
+    )}
+  </div>
+))}
 
+
+
+          
         </Section>
 
         <div className="flex justify-center mb-6">
