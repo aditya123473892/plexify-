@@ -11,10 +11,10 @@ const fs = require("fs");
 const path = require("path");
 const authMiddleware = require("../auth/authMiddleware");
 const secret = "iwfhugafwofjwhig3hwigk3wnig3uwmgkmewoipj39gw8hqoijhi3hgwgkwni";
+// const connectionString =
+//   "Driver={ODBC Driver 18 for SQL Server};Server=MOHIT\\SQLEXPRESS;Database=master;Trusted_Connection=yes;TrustServerCertificate=yes;";
 const connectionString =
-  "Driver={ODBC Driver 18 for SQL Server};Server=MOHIT\\SQLEXPRESS;Database=master;Trusted_Connection=yes;TrustServerCertificate=yes;";
-//const connectionString =
-//"Driver={ODBC Driver 17 for SQL Server};Server=DESKTOP-BBKLDAG\\SQLEXPRESS01;Database=DB;Trusted_Connection=yes;";
+"Driver={ODBC Driver 17 for SQL Server};Server=DESKTOP-BBKLDAG\\SQLEXPRESS01;Database=DB;Trusted_Connection=yes;";
 
 const queryDatabase = (query, params) => {
   return new Promise((resolve, reject) => {
@@ -2913,5 +2913,117 @@ router.post(
     }
   }
 );
+
+
+
+
+
+
+router.get('/financial-summary', authMiddleware, async (req, res) => {
+  const user_id = req.user_id;
+
+  const fetchTotalWealthQuery = `
+    SELECT 
+      user_id,
+      SUM(current_value) AS total_wealth
+    FROM (
+      SELECT user_id, current_value FROM properties
+      UNION ALL
+      SELECT user_id, deposit_amount AS current_value FROM fixed_deposit
+      UNION ALL
+      SELECT user_id, current_value FROM mutual_funds
+      UNION ALL
+      SELECT user_id, current_value FROM stocks
+      UNION ALL
+      SELECT user_id, current_value FROM precious_metals
+    ) AS total_assets
+    WHERE user_id = ?
+    GROUP BY user_id
+  `;
+
+  const fetchCurrentLiabilitiesQuery = `
+    SELECT 
+      user_id,
+      SUM(liability_value) AS total_liabilities
+    FROM net_worth
+    WHERE liability_value > 0 AND user_id = ?
+    GROUP BY user_id
+
+    UNION ALL
+
+    SELECT 
+      user_id,
+      SUM(market_value) AS total_liabilities
+    FROM bond
+    WHERE user_id = ?
+    GROUP BY user_id
+  `;
+
+  const fetchNetWorthQuery = `
+    SELECT 
+      nw.user_id,
+      SUM(asset_value) AS Total_Assets,
+      SUM(liability_value) AS Total_Liabilities,
+      (SUM(asset_value) - SUM(liability_value)) AS Net_Worth
+    FROM net_worth nw
+    WHERE nw.user_id = ?
+    GROUP BY nw.user_id
+  `;
+
+
+  const fetchTopInvestmentsQuery = `
+  SELECT 
+    user_id, 
+    investment_name, 
+    current_value
+  FROM (
+    SELECT user_id, 'Property' AS investment_name, current_value FROM properties
+    UNION ALL
+    SELECT user_id, 'Fixed Deposit' AS investment_name, deposit_amount AS current_value FROM fixed_deposit
+    UNION ALL
+    SELECT user_id, 'Mutual Fund' AS investment_name, current_value FROM mutual_funds
+    UNION ALL
+    SELECT user_id, 'Stock' AS investment_name, current_value FROM stocks
+    UNION ALL
+    SELECT user_id, 'Precious Metal' AS investment_name, current_value FROM precious_metals
+  ) AS investments
+  WHERE user_id = ?
+  ORDER BY current_value DESC
+  OFFSET 0 ROWS FETCH NEXT 5 ROWS ONLY;
+`;
+
+
+  try {
+    const totalWealthResult = await queryDatabase(fetchTotalWealthQuery, [user_id]);
+    const totalWealth = totalWealthResult.length > 0 ? totalWealthResult[0].total_wealth : 0;
+
+    const currentLiabilitiesResult = await queryDatabase(fetchCurrentLiabilitiesQuery, [user_id, user_id]);
+    const totalLiabilities = currentLiabilitiesResult.length > 0 ? currentLiabilitiesResult[0].total_liabilities : 0;
+
+    const netWorthResult = await queryDatabase(fetchNetWorthQuery, [user_id]);
+    const netWorth = netWorthResult.length > 0 ? netWorthResult[0].Net_Worth : 0;
+
+
+    const topInvestmentsResult = await queryDatabase(fetchTopInvestmentsQuery, [user_id]);
+    const topInvestments = topInvestmentsResult.map((investment) => ({
+      name: investment.investment_name,
+      value: investment.current_value,
+    }));
+
+    console.log('✌️top_investments --->', topInvestments);
+    res.status(200).json({
+      total_wealth: totalWealth,
+      total_liabilities: totalLiabilities,
+      net_worth: netWorth,
+      top_investments: topInvestments,
+      msg: "Financial summary retrieved successfully",
+    });
+  } catch (err) {
+    console.error("Error fetching financial summary:", err);
+    res.status(500).json({ msg: "Server Error" });
+  }
+});
+
+
 
 module.exports = router;

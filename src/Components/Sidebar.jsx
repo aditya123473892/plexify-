@@ -15,7 +15,6 @@ import {
   FaSlideshare,
   FaUserNurse,
 } from "react-icons/fa";
-import { FiUser } from "react-icons/fi";
 import { MdOutlineClose, MdDashboardCustomize, MdOfflineShare } from "react-icons/md";
 import { Link, useNavigate } from "react-router-dom";
 import { RiMoneyRupeeCircleFill, RiRefund2Fill } from "react-icons/ri";

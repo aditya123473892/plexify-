@@ -12,7 +12,6 @@
     "fs": "^0.0.1-security",
     "html2canvas": "^1.4.1",
     "jspdf": "^2.5.2",
-    "multer": "^1.4.5-lts.1",
     "odbc": "^2.4.9",
     "path": "^0.12.7",
     "react": "^18.3.1",
