@@ -2971,27 +2971,54 @@ router.get('/financial-summary', authMiddleware, async (req, res) => {
   `;
 
 
-  const fetchTopInvestmentsQuery = `
-  SELECT 
-    user_id, 
-    investment_name, 
-    current_value
-  FROM (
-    SELECT user_id, 'Property' AS investment_name, current_value FROM properties
-    UNION ALL
-    SELECT user_id, 'Fixed Deposit' AS investment_name, deposit_amount AS current_value FROM fixed_deposit
-    UNION ALL
-    SELECT user_id, 'Mutual Fund' AS investment_name, current_value FROM mutual_funds
-    UNION ALL
-    SELECT user_id, 'Stock' AS investment_name, current_value FROM stocks
-    UNION ALL
-    SELECT user_id, 'Precious Metal' AS investment_name, current_value FROM precious_metals
-  ) AS investments
+const fetchTopInvestmentQuery = `
+SELECT 
+  user_id, 
+  investment_name, 
+  current_value
+FROM (
+  -- Top 1 Property investment
+  SELECT TOP 1 user_id, 'Property' AS investment_name, current_value
+  FROM properties 
   WHERE user_id = ?
   ORDER BY current_value DESC
-  OFFSET 0 ROWS FETCH NEXT 5 ROWS ONLY;
-`;
 
+  UNION ALL
+
+  -- Top 1 Fixed Deposit investment
+  SELECT TOP 1 user_id, 'Fixed Deposit' AS investment_name, deposit_amount AS current_value
+  FROM fixed_deposit
+  WHERE user_id = ?
+  ORDER BY deposit_amount DESC
+
+  UNION ALL
+
+  -- Top 1 Mutual Fund investment
+  SELECT TOP 1 user_id, 'Mutual Fund' AS investment_name, current_value
+  FROM mutual_funds
+  WHERE user_id = ?
+  ORDER BY current_value DESC
+
+  UNION ALL
+
+  -- Top 1 Stock investment
+  SELECT TOP 1 user_id, 'Stock' AS investment_name, current_value
+  FROM stocks
+  WHERE user_id = ?
+  ORDER BY current_value DESC
+
+  UNION ALL
+
+  -- Top 1 Precious Metal investment
+  SELECT TOP 1 user_id, 'Precious Metal' AS investment_name, current_value
+  FROM precious_metals
+  WHERE user_id = ?
+  ORDER BY current_value DESC
+) AS investments
+WHERE user_id = ?
+ORDER BY current_value DESC
+OFFSET 0 ROWS FETCH NEXT 5 ROWS ONLY;
+`;
 
   try {
     const totalWealthResult = await queryDatabase(fetchTotalWealthQuery, [user_id]);
@@ -3004,11 +3031,15 @@ router.get('/financial-summary', authMiddleware, async (req, res) => {
     const netWorth = netWorthResult.length > 0 ? netWorthResult[0].Net_Worth : 0;
 
 
-    const topInvestmentsResult = await queryDatabase(fetchTopInvestmentsQuery, [user_id]);
-    const topInvestments = topInvestmentsResult.map((investment) => ({
-      name: investment.investment_name,
-      value: investment.current_value,
-    }));
+const topInvestmentsResult = await queryDatabase(fetchTopInvestmentQuery, [
+  user_id, user_id, user_id, user_id, user_id, user_id 
+]);
+
+const topInvestments = topInvestmentsResult.map((investment) => ({
+  name: investment.investment_name,
+  value: investment.current_value,
+}));
+
 
     console.log('✌️top_investments --->', topInvestments);
     res.status(200).json({
@@ -3023,6 +3054,7 @@ router.get('/financial-summary', authMiddleware, async (req, res) => {
     res.status(500).json({ msg: "Server Error" });
   }
 });
+
 
 
 
