@@ -11,10 +11,8 @@ const fs = require("fs");
 const path = require("path");
 const authMiddleware = require("../auth/authMiddleware");
 const secret = "iwfhugafwofjwhig3hwigk3wnig3uwmgkmewoipj39gw8hqoijhi3hgwgkwni";
-// const connectionString =
-//   "Driver={ODBC Driver 18 for SQL Server};Server=MOHIT\\SQLEXPRESS;Database=master;Trusted_Connection=yes;TrustServerCertificate=yes;";
 const connectionString =
-"Driver={ODBC Driver 17 for SQL Server};Server=DESKTOP-BBKLDAG\\SQLEXPRESS01;Database=DB;Trusted_Connection=yes;";
+  "Driver={ODBC Driver 18 for SQL Server};Server=MOHIT\\SQLEXPRESS;Database=master;Trusted_Connection=yes;TrustServerCertificate=yes;";
 
 const queryDatabase = (query, params) => {
   return new Promise((resolve, reject) => {
@@ -2914,12 +2912,7 @@ router.post(
   }
 );
 
-
-
-
-
-
-router.get('/financial-summary', authMiddleware, async (req, res) => {
+router.get("/financial-summary", authMiddleware, async (req, res) => {
   const user_id = req.user_id;
 
   const fetchTotalWealthQuery = `
@@ -2970,8 +2963,7 @@ router.get('/financial-summary', authMiddleware, async (req, res) => {
     GROUP BY nw.user_id
   `;
 
-
-const fetchTopInvestmentQuery = `
+  const fetchTopInvestmentQuery = `
 SELECT 
   user_id, 
   investment_name, 
@@ -3021,27 +3013,40 @@ OFFSET 0 ROWS FETCH NEXT 5 ROWS ONLY;
 `;
 
   try {
-    const totalWealthResult = await queryDatabase(fetchTotalWealthQuery, [user_id]);
-    const totalWealth = totalWealthResult.length > 0 ? totalWealthResult[0].total_wealth : 0;
+    const totalWealthResult = await queryDatabase(fetchTotalWealthQuery, [
+      user_id,
+    ]);
+    const totalWealth =
+      totalWealthResult.length > 0 ? totalWealthResult[0].total_wealth : 0;
 
-    const currentLiabilitiesResult = await queryDatabase(fetchCurrentLiabilitiesQuery, [user_id, user_id]);
-    const totalLiabilities = currentLiabilitiesResult.length > 0 ? currentLiabilitiesResult[0].total_liabilities : 0;
+    const currentLiabilitiesResult = await queryDatabase(
+      fetchCurrentLiabilitiesQuery,
+      [user_id, user_id]
+    );
+    const totalLiabilities =
+      currentLiabilitiesResult.length > 0
+        ? currentLiabilitiesResult[0].total_liabilities
+        : 0;
 
     const netWorthResult = await queryDatabase(fetchNetWorthQuery, [user_id]);
-    const netWorth = netWorthResult.length > 0 ? netWorthResult[0].Net_Worth : 0;
+    const netWorth =
+      netWorthResult.length > 0 ? netWorthResult[0].Net_Worth : 0;
 
+    const topInvestmentsResult = await queryDatabase(fetchTopInvestmentQuery, [
+      user_id,
+      user_id,
+      user_id,
+      user_id,
+      user_id,
+      user_id,
+    ]);
 
-const topInvestmentsResult = await queryDatabase(fetchTopInvestmentQuery, [
-  user_id, user_id, user_id, user_id, user_id, user_id 
-]);
+    const topInvestments = topInvestmentsResult.map((investment) => ({
+      name: investment.investment_name,
+      value: investment.current_value,
+    }));
 
-const topInvestments = topInvestmentsResult.map((investment) => ({
-  name: investment.investment_name,
-  value: investment.current_value,
-}));
-
-
-    console.log('✌️top_investments --->', topInvestments);
+    console.log("✌️top_investments --->", topInvestments);
     res.status(200).json({
       total_wealth: totalWealth,
       total_liabilities: totalLiabilities,
@@ -3054,8 +3059,5 @@ const topInvestments = topInvestmentsResult.map((investment) => ({
     res.status(500).json({ msg: "Server Error" });
   }
 });
-
-
-
 
 module.exports = router;

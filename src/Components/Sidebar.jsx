@@ -15,7 +15,11 @@ import {
   FaSlideshare,
   FaUserNurse,
 } from "react-icons/fa";
-import { MdOutlineClose, MdDashboardCustomize, MdOfflineShare } from "react-icons/md";
+import {
+  MdOutlineClose,
+  MdDashboardCustomize,
+  MdOfflineShare,
+} from "react-icons/md";
 import { Link, useNavigate } from "react-router-dom";
 import { RiMoneyRupeeCircleFill, RiRefund2Fill } from "react-icons/ri";
 import "../assets/css/Sidebar.css";
@@ -217,7 +221,7 @@ function Sidebar() {
                 {isOpen ? "Cryptocurrencies" : ""}
               </Link>
               <Link to="/nps" className="sidebar-link">
-                <SiOpensearch  className={isOpen ? "mr-3" : ""} />{" "}
+                <SiOpensearch className={isOpen ? "mr-3" : ""} />{" "}
                 {isOpen ? "NPS" : ""}
               </Link>
               <Link to="/ppf" className="sidebar-link">
@@ -233,15 +237,15 @@ function Sidebar() {
                 {isOpen ? "Bank A/C" : ""}
               </Link>
               <Link to="/retirement-accounts" className="sidebar-link">
-                <FaPiggyBank  className={isOpen ? "mr-3" : ""} />{" "}
+                <FaPiggyBank className={isOpen ? "mr-3" : ""} />{" "}
                 {isOpen ? "Retirement Accounts" : ""}
               </Link>
               <Link to="/commodities" className="sidebar-link">
-                <FaIntercom  className={isOpen ? "mr-3" : ""} />{" "}
+                <FaIntercom className={isOpen ? "mr-3" : ""} />{" "}
                 {isOpen ? "Commodities" : ""}
               </Link>
               <Link to="/other-investments" className="sidebar-link">
-                <FaHotTub  className={isOpen ? "mr-3" : ""} />{" "}
+                <FaHotTub className={isOpen ? "mr-3" : ""} />{" "}
                 {isOpen ? "Other Investments" : ""}
               </Link>
             </div>
@@ -251,7 +255,7 @@ function Sidebar() {
           <div className="sidebar-section">
             <h3 className="sidebar-section-title" onClick={toggleLiabilities}>
               {isOpen ? "Liabilities" : ""}{" "}
-              {isLiabilitiesOpen ? <FaUserNurse  /> : <FaUserNurse  />}
+              {isLiabilitiesOpen ? <FaUserNurse /> : <FaUserNurse />}
             </h3>
             <div
               className={`sidebar-section-content ${
@@ -303,7 +307,7 @@ function Sidebar() {
 
           {/* Will/Vasiyat Section */}
           <Link to="/willform" className="sidebar-link mb-3">
-            <SiFormstack  className={isOpen ? "mr-3" : ""} />{" "}
+            <SiFormstack className={isOpen ? "mr-3" : ""} />{" "}
             {isOpen ? "Will/Vasiyat" : ""}
           </Link>
 
@@ -354,6 +358,7 @@ function Sidebar() {
           </div>
 
           {/* Suggestions Section */}
+          {/* Suggestions Section */}
           <div className="sidebar-section">
             <h3 className="sidebar-section-title" onClick={toggleSuggestions}>
               {isOpen ? "Suggestions" : ""}{" "}
@@ -375,6 +380,10 @@ function Sidebar() {
                 <FaFileAlt className={isOpen ? "mr-3" : ""} />{" "}
                 {isOpen ? "FD/RD Renewal Suggestions" : ""}
               </Link>
+              <Link to="/user" className="sidebar-link">
+                <FaUsers className={isOpen ? "mr-3" : ""} />{" "}
+                {isOpen ? "User Profile" : ""}
+              </Link>
             </div>
           </div>
         </nav>
@@ -386,11 +395,7 @@ function Sidebar() {
       >
         {/* Logo Section */}
         <div className="flex items-center space-x-3">
-          <img
-            src={wealthlogo}
-            alt="Wealth Logo"
-            className=" size-10"
-          />
+          <img src={wealthlogo} alt="Wealth Logo" className=" size-10" />
           <p className="text-lg font-medium">Manage, Grow, Pass On</p>
         </div>
 
