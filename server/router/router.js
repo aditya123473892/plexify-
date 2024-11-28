@@ -1702,6 +1702,125 @@ router.post("/bank-accounts", authMiddleware, async (req, res) => {
     res.status(500).json({ msg: "Error saving bank account details", error });
   }
 });
+router.get("/bank-accounts", authMiddleware, async (req, res) => {
+  try {
+    const userId = req.user_id;
+
+    const fetchAccountsQuery = `
+      SELECT * 
+      FROM bank_accounts
+      WHERE user_id = ?
+      ORDER BY account_holder ASC;
+    `;
+
+    const accounts = await queryDatabase(fetchAccountsQuery, [userId]);
+
+    res.status(200).json({ accounts });
+  } catch (error) {
+    console.error("Error fetching bank accounts:", error);
+    res.status(500).json({ msg: "Error fetching bank accounts", error });
+  }
+});
+
+// GET Route: Fetch a single bank account by ID
+router.get("/bank-accounts/:id", authMiddleware, async (req, res) => {
+  try {
+    const accountId = req.params.id;
+    const userId = req.user_id;
+
+    const fetchAccountQuery = `
+      SELECT * 
+      FROM bank_accounts 
+      WHERE id = ? AND user_id = ?;
+    `;
+
+    const [account] = await queryDatabase(fetchAccountQuery, [
+      accountId,
+      userId,
+    ]);
+
+    if (account) {
+      res.status(200).json({ account });
+    } else {
+      res.status(404).json({ msg: "Bank account not found or unauthorized" });
+    }
+  } catch (error) {
+    console.error("Error fetching bank account:", error);
+    res.status(500).json({ msg: "Error fetching bank account", error });
+  }
+});
+
+// PUT Route: Update a bank account by ID
+router.put("/bank-accounts/:id", authMiddleware, async (req, res) => {
+  try {
+    const accountId = req.params.id;
+    const userId = req.user_id;
+    const {
+      accountHolder,
+      accountNumber,
+      bankName,
+      accountType,
+      balance,
+      notes,
+    } = req.body;
+
+    const updateAccountQuery = `
+      UPDATE bank_accounts
+      SET 
+        account_holder = ?, 
+        account_number = ?, 
+        bank_name = ?, 
+        account_type = ?, 
+        balance = ?, 
+        notes = ?
+      WHERE id = ? AND user_id = ?;
+    `;
+
+    const result = await queryDatabase(updateAccountQuery, [
+      accountHolder,
+      accountNumber,
+      bankName,
+      accountType,
+      parseFloat(balance),
+      notes,
+      accountId,
+      userId,
+    ]);
+
+    if (result.affectedRows > 0) {
+      res.status(200).json({ msg: "Bank account updated successfully!" });
+    } else {
+      res.status(404).json({ msg: "Bank account not found or unauthorized" });
+    }
+  } catch (error) {
+    console.error("Error updating bank account:", error);
+    res.status(500).json({ msg: "Error updating bank account", error });
+  }
+});
+
+// DELETE Route: Delete a bank account by ID
+router.delete("/bank-accounts/:id", authMiddleware, async (req, res) => {
+  try {
+    const accountId = req.params.id;
+    const userId = req.user_id;
+
+    const deleteAccountQuery = `
+      DELETE FROM bank_accounts 
+      WHERE id = ? AND user_id = ?;
+    `;
+
+    const result = await queryDatabase(deleteAccountQuery, [accountId, userId]);
+
+    if (result.affectedRows > 0) {
+      res.status(200).json({ msg: "Bank account deleted successfully!" });
+    } else {
+      res.status(404).json({ msg: "Bank account not found or unauthorized" });
+    }
+  } catch (error) {
+    console.error("Error deleting bank account:", error);
+    res.status(500).json({ msg: "Error deleting bank account", error });
+  }
+});
 
 router.post("/retirement-accounts", authMiddleware, async (req, res) => {
   try {
@@ -1752,6 +1871,131 @@ router.post("/retirement-accounts", authMiddleware, async (req, res) => {
     res
       .status(500)
       .json({ msg: "Error saving retirement account details", error });
+  }
+});
+router.get("/retirement-accounts", authMiddleware, async (req, res) => {
+  try {
+    const userId = req.user_id;
+
+    const fetchAccountsQuery = `
+      SELECT * 
+      FROM retirement_accounts
+      WHERE user_id = ?
+      ORDER BY account_holder ASC;
+    `;
+
+    const accounts = await queryDatabase(fetchAccountsQuery, [userId]);
+
+    res.status(200).json({ accounts });
+  } catch (error) {
+    console.error("Error fetching retirement accounts:", error);
+    res.status(500).json({ msg: "Error fetching retirement accounts", error });
+  }
+});
+
+// GET Route: Fetch a single retirement account by ID
+router.get("/retirement-accounts/:id", authMiddleware, async (req, res) => {
+  try {
+    const accountId = req.params.id;
+    const userId = req.user_id;
+
+    const fetchAccountQuery = `
+      SELECT * 
+      FROM retirement_accounts 
+      WHERE id = ? AND user_id = ?;
+    `;
+
+    const [account] = await queryDatabase(fetchAccountQuery, [
+      accountId,
+      userId,
+    ]);
+
+    if (account) {
+      res.status(200).json({ account });
+    } else {
+      res
+        .status(404)
+        .json({ msg: "Retirement account not found or unauthorized" });
+    }
+  } catch (error) {
+    console.error("Error fetching retirement account:", error);
+    res.status(500).json({ msg: "Error fetching retirement account", error });
+  }
+});
+
+// PUT Route: Update a retirement account by ID
+router.put("/retirement-accounts/:id", authMiddleware, async (req, res) => {
+  try {
+    const accountId = req.params.id;
+    const userId = req.user_id;
+    const {
+      accountHolder,
+      accountType,
+      institutionName,
+      currentBalance,
+      contributions,
+      notes,
+    } = req.body;
+
+    const updateAccountQuery = `
+      UPDATE retirement_accounts
+      SET 
+        account_holder = ?, 
+        account_type = ?, 
+        institution_name = ?, 
+        current_balance = ?, 
+        total_contributions = ?, 
+        notes = ?
+      WHERE id = ? AND user_id = ?;
+    `;
+
+    const result = await queryDatabase(updateAccountQuery, [
+      accountHolder,
+      accountType,
+      institutionName,
+      parseFloat(currentBalance),
+      parseFloat(contributions),
+      notes,
+      accountId,
+      userId,
+    ]);
+
+    if (result.affectedRows > 0) {
+      res.status(200).json({ msg: "Retirement account updated successfully!" });
+    } else {
+      res
+        .status(404)
+        .json({ msg: "Retirement account not found or unauthorized" });
+    }
+  } catch (error) {
+    console.error("Error updating retirement account:", error);
+    res.status(500).json({ msg: "Error updating retirement account", error });
+  }
+});
+
+// DELETE Route: Delete a retirement account by ID
+router.delete("/retirement-accounts/:id", authMiddleware, async (req, res) => {
+  try {
+    const accountId = req.params.id;
+    const userId = req.user_id;
+
+    const deleteAccountQuery = `
+      DELETE FROM retirement_accounts 
+      WHERE id = ? AND user_id = ?;
+    `;
+
+    const result = await queryDatabase(deleteAccountQuery, [accountId, userId]);
+
+    if (result.affectedRows > 0) {
+      res.status(200).json({ msg: "Retirement account deleted successfully!" });
+    } else {
+      res
+        .status(404)
+        .json({ msg: "Retirement account not found or unauthorized" });
+    }
+  } catch (error) {
+    console.error("Error deleting retirement account:", error);
+    res.status(500).json({ msg: "Error deleting retirement account", error });
   }
 });
 
@@ -1814,6 +2058,129 @@ router.post("/commodities", authMiddleware, async (req, res) => {
   } catch (error) {
     console.error("Error saving commodity details:", error);
     res.status(500).json({ msg: "Error saving commodity details", error });
+  }
+});
+
+router.delete("/commodities/:id", authMiddleware, async (req, res) => {
+  try {
+    const commodityId = req.params.id;
+    const userId = req.user_id; // User ID from auth middleware
+
+    const deleteQuery = `DELETE FROM commodities WHERE id = ? AND user_id = ?`;
+    const result = await queryDatabase(deleteQuery, [commodityId, userId]);
+
+    if (result.affectedRows > 0) {
+      res.status(200).json({ msg: "Commodity deleted successfully!" });
+    } else {
+      res.status(404).json({ msg: "Commodity not found or unauthorized" });
+    }
+  } catch (error) {
+    console.error("Error deleting commodity:", error);
+    res.status(500).json({ msg: "Error deleting commodity", error });
+  }
+});
+
+// PUT route: Edit commodity details
+router.put("/commodities/:id", authMiddleware, async (req, res) => {
+  try {
+    const commodityId = req.params.id;
+    const userId = req.user_id; // User ID from auth middleware
+    const {
+      commodityName,
+      commodityType,
+      unitOfMeasure,
+      marketPrice,
+      stockQuantity,
+      provider,
+      acquisitionDate,
+      expiryDate,
+      description,
+      status,
+    } = req.body;
+
+    const updateQuery = `
+      UPDATE commodities
+      SET 
+        commodity_name = ?, 
+        commodity_type = ?, 
+        unit_of_measure = ?, 
+        market_price = ?, 
+        stock_quantity = ?, 
+        provider = ?, 
+        acquisition_date = ?, 
+        expiry_date = ?, 
+        description = ?, 
+        status = ?
+      WHERE id = ? AND user_id = ?;
+    `;
+
+    const result = await queryDatabase(updateQuery, [
+      commodityName,
+      commodityType,
+      unitOfMeasure,
+      marketPrice,
+      stockQuantity,
+      provider,
+      acquisitionDate,
+      expiryDate,
+      description,
+      status,
+      commodityId,
+      userId,
+    ]);
+
+    if (result.affectedRows > 0) {
+      res.status(200).json({ msg: "Commodity updated successfully!" });
+    } else {
+      res.status(404).json({ msg: "Commodity not found or unauthorized" });
+    }
+  } catch (error) {
+    console.error("Error updating commodity:", error);
+    res.status(500).json({ msg: "Error updating commodity", error });
+  }
+});
+
+// GET route: Fetch all commodities for a user
+router.get("/commodities", authMiddleware, async (req, res) => {
+  try {
+    const userId = req.user_id; // User ID from auth middleware
+
+    const fetchQuery = `
+      SELECT * 
+      FROM commodities 
+      WHERE user_id = ? 
+      ORDER BY acquisition_date DESC;
+    `;
+    const commodities = await queryDatabase(fetchQuery, [userId]);
+
+    res.status(200).json({ commodities });
+  } catch (error) {
+    console.error("Error fetching commodities:", error);
+    res.status(500).json({ msg: "Error fetching commodities", error });
+  }
+});
+
+// GET route: Fetch a single commodity by ID
+router.get("/commodities/:id", authMiddleware, async (req, res) => {
+  try {
+    const commodityId = req.params.id;
+    const userId = req.user_id; // User ID from auth middleware
+
+    const fetchQuery = `
+      SELECT * 
+      FROM commodities 
+      WHERE id = ? AND user_id = ?;
+    `;
+    const [commodity] = await queryDatabase(fetchQuery, [commodityId, userId]);
+
+    if (commodity) {
+      res.status(200).json({ commodity });
+    } else {
+      res.status(404).json({ msg: "Commodity not found or unauthorized" });
+    }
+  } catch (error) {
+    console.error("Error fetching commodity:", error);
+    res.status(500).json({ msg: "Error fetching commodity", error });
   }
 });
 

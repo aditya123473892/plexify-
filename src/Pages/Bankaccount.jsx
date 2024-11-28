@@ -1,301 +1,240 @@
-import React, { useState } from "react";
-import { FaPlus, FaFileUpload, FaCalculator } from "react-icons/fa";
+import React, { useState, useContext } from "react";
+import {
+  FaUser,
+  FaMoneyBillWave,
+  FaBuilding,
+  FaInfoCircle,
+  FaPlus,
+  FaCheckCircle,
+  FaEdit,
+  FaTrash,
+} from "react-icons/fa";
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import axios from "axios";
+import InputWithIcon from "../Components/InputWithIcon";
+import FieldSection from "../Components/FieldSection";
+import { AuthContext } from "../Contexts/Context";
 
-function BankAccounts() {
-  const [accountTypes, setAccountTypes] = useState([
-    {
-      type: "",
-      accountNo: "",
-      branch: "",
-      ifsc: "",
-      swift: "",
-      accountMode: "Single",
-    },
-  ]);
-  const [nominees, setNominees] = useState([
-    {
-      name: "",
-      contact: "",
-      email: "",
-      entitlement: "",
-      relationship: "",
-      notify: false,
-    },
-  ]);
+const BankAccountManagement = () => {
+  const { API, token } = useContext(AuthContext);
+  const [accounts, setAccounts] = useState([]);
+  const [editIndex, setEditIndex] = useState(null);
+  const [accountForm, setAccountForm] = useState({
+    accountHolder: "",
+    accountNumber: "",
+    bankName: "",
+    accountType: "",
+    balance: "",
+    notes: "",
+  });
 
-  const addAccountType = () => {
-    setAccountTypes([
-      ...accountTypes,
-      {
-        type: "",
-        accountNo: "",
-        branch: "",
-        ifsc: "",
-        swift: "",
-        accountMode: "Single",
-      },
-    ]);
+  const fetchAccounts = async () => {
+    try {
+      const response = await axios.get(`${API}/bank-accounts`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setAccounts(response.data.accounts);
+    } catch (error) {
+      console.error("Error fetching accounts:", error);
+      toast.error("Error fetching bank accounts data.");
+    }
   };
 
-  const addNominee = () => {
-    setNominees([
-      ...nominees,
-      {
-        name: "",
-        contact: "",
-        email: "",
-        entitlement: "",
-        relationship: "",
-        notify: false,
-      },
-    ]);
+  const handleAccountChange = (field, value) => {
+    setAccountForm({ ...accountForm, [field]: value });
   };
 
-  const handleAccountTypeChange = (index, field, value) => {
-    const updatedAccounts = [...accountTypes];
-    updatedAccounts[index][field] = value;
-    setAccountTypes(updatedAccounts);
+  const saveAccount = async () => {
+    try {
+      if (editIndex !== null) {
+        // Update existing account
+        const id = accounts[editIndex].id;
+        await axios.put(`${API}/bank-accounts/${id}`, accountForm, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        toast.success("Bank account updated successfully!");
+      } else {
+        // Add new account
+        await axios.post(`${API}/bank-accounts`, accountForm, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        toast.success("Bank account added successfully!");
+      }
+      setAccountForm({
+        accountHolder: "",
+        accountNumber: "",
+        bankName: "",
+        accountType: "",
+        balance: "",
+        notes: "",
+      });
+      setEditIndex(null);
+      fetchAccounts();
+    } catch (error) {
+      console.error("Error saving account:", error);
+      toast.error("An error occurred while saving the bank account.");
+    }
   };
 
-  const handleNomineeChange = (index, field, value) => {
-    const updatedNominees = [...nominees];
-    updatedNominees[index][field] = value;
-    setNominees(updatedNominees);
+  const handleEdit = (index) => {
+    setEditIndex(index);
+    setAccountForm(accounts[index]);
+  };
+
+  const handleDelete = async (id) => {
+    try {
+      await axios.delete(`${API}/bank-accounts/${id}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      toast.success("Bank account deleted successfully!");
+      fetchAccounts();
+    } catch (error) {
+      console.error("Error deleting account:", error);
+      toast.error("An error occurred while deleting the bank account.");
+    }
+  };
+
+  const resetForm = () => {
+    setAccountForm({
+      accountHolder: "",
+      accountNumber: "",
+      bankName: "",
+      accountType: "",
+      balance: "",
+      notes: "",
+    });
+    setEditIndex(null);
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 p-10">
-      <header className="mb-8 text-center">
+    <div className="min-h-screen shadow-2xl bg-white p-6 rounded-lg md:mt-10 mt-20">
+      <header className="mb-8">
         <h1 className="text-3xl font-bold text-gray-800 mb-2">
           Manage Your Bank Accounts
         </h1>
-        <p className="text-gray-600 max-w-md mx-auto">
-          Effortlessly manage your bank accounts with a user-friendly interface.
+        <p className="text-gray-600">
+          Keep track of your bank accounts and monitor your balances.
         </p>
       </header>
 
-      <div className="max-w-5xl mx-auto space-y-10">
-        {/* Account Types */}
-        <section className="bg-white p-6 rounded-lg shadow-md">
-          <h2 className="text-2xl font-semibold text-gray-800 mb-4">
-            Account Types
-          </h2>
-          {accountTypes.map((account, index) => (
-            <div key={index} className="mb-4 border-b pb-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                <select
-                  className="border border-gray-300 p-3 rounded-md w-full"
-                  value={account.type}
-                  onChange={(e) =>
-                    handleAccountTypeChange(index, "type", e.target.value)
-                  }
-                >
-                  <option value="">Select Account Type</option>
-                  <option value="Saving">Saving</option>
-                  <option value="Current">Current</option>
-                  <option value="FD">Fixed Deposit</option>
-                  <option value="Recurring">Recurring Deposit</option>
-                </select>
-                <select
-                  className="border border-gray-300 p-3 rounded-md w-full"
-                  value={account.bank}
-                  onChange={(e) =>
-                    handleAccountTypeChange(index, "bank", e.target.value)
-                  }
-                >
-                  <option value="">Select Bank</option>
-                  <option value="SBI">SBI</option>
-                  <option value="HDFC">HDFC</option>
-                  <option value="ICICI">ICICI</option>
-                  <option value="Axis">Axis</option>
-                </select>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <input
-                  type="text"
-                  placeholder="Account Number"
-                  className="border border-gray-300 p-3 rounded-md w-full"
-                  value={account.accountNo}
-                  onChange={(e) =>
-                    handleAccountTypeChange(index, "accountNo", e.target.value)
-                  }
-                />
-                <input
-                  type="text"
-                  placeholder="Branch Name & Address"
-                  className="border border-gray-300 p-3 rounded-md w-full"
-                  value={account.branch}
-                  onChange={(e) =>
-                    handleAccountTypeChange(index, "branch", e.target.value)
-                  }
-                />
-                <input
-                  type="text"
-                  placeholder="IFSC Code"
-                  className="border border-gray-300 p-3 rounded-md w-full"
-                  value={account.ifsc}
-                  onChange={(e) =>
-                    handleAccountTypeChange(index, "ifsc", e.target.value)
-                  }
-                />
-                <input
-                  type="text"
-                  placeholder="SWIFT Code"
-                  className="border border-gray-300 p-3 rounded-md w-full"
-                  value={account.swift}
-                  onChange={(e) =>
-                    handleAccountTypeChange(index, "swift", e.target.value)
-                  }
-                />
-              </div>
-              <div className="mt-4">
-                <label className="font-semibold">Account Type:</label>
-                <select
-                  className="border border-gray-300 p-3 rounded-md w-full"
-                  value={account.accountMode}
-                  onChange={(e) =>
-                    handleAccountTypeChange(
-                      index,
-                      "accountMode",
-                      e.target.value
-                    )
-                  }
-                >
-                  <option value="Single">Single</option>
-                  <option value="Joint">Joint</option>
-                </select>
-              </div>
-            </div>
-          ))}
+      {/* Form Section */}
+      <FieldSection
+        title={editIndex !== null ? "Edit Bank Account" : "New Bank Account"}
+      >
+        <InputWithIcon
+          icon={<FaUser className="text-[#538d2dfd] mx-2" />}
+          type="text"
+          placeholder="Account Holder Name"
+          value={accountForm.accountHolder}
+          onChange={(e) => handleAccountChange("accountHolder", e.target.value)}
+        />
+        <InputWithIcon
+          icon={<FaMoneyBillWave className="text-[#538d2dfd] mx-2" />}
+          type="text"
+          placeholder="Account Number"
+          value={accountForm.accountNumber}
+          onChange={(e) => handleAccountChange("accountNumber", e.target.value)}
+        />
+        <InputWithIcon
+          icon={<FaBuilding className="text-[#538d2dfd] mx-2" />}
+          type="text"
+          placeholder="Bank Name"
+          value={accountForm.bankName}
+          onChange={(e) => handleAccountChange("bankName", e.target.value)}
+        />
+        <InputWithIcon
+          icon={<FaInfoCircle className="text-[#538d2dfd] mx-2" />}
+          type="text"
+          placeholder="Account Type (e.g., Savings, Checking)"
+          value={accountForm.accountType}
+          onChange={(e) => handleAccountChange("accountType", e.target.value)}
+        />
+        <InputWithIcon
+          icon={<FaMoneyBillWave className="text-[#538d2dfd] mx-2" />}
+          type="number"
+          placeholder="Balance"
+          value={accountForm.balance}
+          onChange={(e) => handleAccountChange("balance", e.target.value)}
+        />
+        <InputWithIcon
+          icon={<FaInfoCircle className="text-[#538d2dfd] mx-2" />}
+          type="text"
+          placeholder="Additional Notes"
+          value={accountForm.notes}
+          onChange={(e) => handleAccountChange("notes", e.target.value)}
+        />
+        <button
+          onClick={saveAccount}
+          className="bg-green-500 text-white py-2 px-4 rounded-md shadow-md hover:bg-green-600 mt-4"
+        >
+          <FaCheckCircle className="inline mr-2" />
+          {editIndex !== null ? "Update Account" : "Add Account"}
+        </button>
+        {editIndex !== null && (
           <button
-            onClick={addAccountType}
-            className="bg-green-500 text-white py-2 px-4 rounded-md shadow-md hover:bg-green-600 mt-4"
+            onClick={resetForm}
+            className="ml-4 bg-gray-500 text-white py-2 px-4 rounded-md shadow-md hover:bg-gray-600 mt-4"
           >
-            <FaPlus className="inline mr-2" /> Add Account Type
+            Cancel Edit
           </button>
-        </section>
+        )}
+      </FieldSection>
 
-        {/* Nominee Information */}
-        <section className="bg-white p-6 rounded-lg shadow-md">
-          <h2 className="text-2xl font-semibold text-gray-800 mb-4">
-            Nominee Information
-          </h2>
-          {nominees.map((nominee, index) => (
-            <div key={index} className="mb-4 border-b pb-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <input
-                  type="text"
-                  placeholder="Nominee Name"
-                  className="border border-gray-300 p-3 rounded-md w-full"
-                  value={nominee.name}
-                  onChange={(e) =>
-                    handleNomineeChange(index, "name", e.target.value)
-                  }
-                />
-                <input
-                  type="text"
-                  placeholder="Contact Number"
-                  className="border border-gray-300 p-3 rounded-md w-full"
-                  value={nominee.contact}
-                  onChange={(e) =>
-                    handleNomineeChange(index, "contact", e.target.value)
-                  }
-                />
-                <input
-                  type="email"
-                  placeholder="Email Address"
-                  className="border border-gray-300 p-3 rounded-md w-full"
-                  value={nominee.email}
-                  onChange={(e) =>
-                    handleNomineeChange(index, "email", e.target.value)
-                  }
-                />
-                <input
-                  type="text"
-                  placeholder="Percentage of Entitlement"
-                  className="border border-gray-300 p-3 rounded-md w-full"
-                  value={nominee.entitlement}
-                  onChange={(e) =>
-                    handleNomineeChange(index, "entitlement", e.target.value)
-                  }
-                />
-                <input
-                  type="text"
-                  placeholder="Relationship"
-                  className="border border-gray-300 p-3 rounded-md w-full"
-                  value={nominee.relationship}
-                  onChange={(e) =>
-                    handleNomineeChange(index, "relationship", e.target.value)
-                  }
-                />
-                <label className="inline-flex items-center mt-2">
-                  <input
-                    type="checkbox"
-                    className="mr-2"
-                    checked={nominee.notify}
-                    onChange={(e) =>
-                      handleNomineeChange(index, "notify", e.target.checked)
-                    }
-                  />
-                  Notify by Email
-                </label>
-              </div>
-            </div>
-          ))}
-          <button
-            onClick={addNominee}
-            className="bg-blue-500 text-white py-2 px-4 rounded-md shadow-md hover:bg-blue-600 mt-4"
-          >
-            <FaPlus className="inline mr-2" /> Add Nominee
-          </button>
-        </section>
-
-        {/* Document Upload */}
-        <section className="bg-white p-6 rounded-lg shadow-md">
-          <h2 className="text-2xl font-semibold text-gray-800 mb-4">
-            Document Upload
-          </h2>
-          <button className="bg-blue-500 text-white py-2 px-6 rounded-md shadow-md hover:bg-blue-600">
-            <FaFileUpload className="inline mr-2" /> Upload Documents
-          </button>
-        </section>
-
-        {/* Educational Resources & Calculator */}
-        <section className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          <div className="bg-white p-6 rounded-lg shadow-md flex flex-col items-center">
-            <h3 className="text-xl font-semibold text-gray-800 mb-2">
-              Educational Resources
-            </h3>
-            <p className="text-gray-600 text-center mb-4">
-              Explore to stay informed about FD/RD.
-            </p>
-            <button className="bg-green-500 text-white py-2 px-4 rounded-md shadow-md hover:bg-green-600">
-              Explore Resources
-            </button>
-          </div>
-
-          <div className="bg-white p-6 rounded-lg shadow-md flex flex-col items-center">
-            <h3 className="text-xl font-semibold text-gray-800 mb-2">
-              Calculator
-            </h3>
-            <p className="text-gray-600 text-center mb-4">
-              Estimate FD/RD maturity amounts.
-            </p>
-            <button className="bg-green-500 text-white py-2 px-4 rounded-md shadow-md hover:bg-green-600">
-              <FaCalculator className="inline mr-2" /> Open Calculator
-            </button>
-          </div>
-        </section>
-
-        {/* Save Button */}
-        <div className="flex justify-end">
-          <button className="bg-green-600 text-white py-3 px-8 rounded-md shadow-md hover:bg-green-700 transition-all">
-            Save Changes
-          </button>
+      {/* Accounts Table */}
+      <section className="mt-8">
+        <h2 className="text-2xl font-bold text-gray-800 mb-4">Bank Accounts</h2>
+        <div className="overflow-x-auto">
+          <table className="table-auto border-collapse border border-gray-300 w-full text-left">
+            <thead>
+              <tr className="bg-gray-200">
+                <th className="border border-gray-300 px-4 py-2">Holder</th>
+                <th className="border border-gray-300 px-4 py-2">Number</th>
+                <th className="border border-gray-300 px-4 py-2">Bank</th>
+                <th className="border border-gray-300 px-4 py-2">Balance</th>
+                <th className="border border-gray-300 px-4 py-2">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {accounts.map((account, index) => (
+                <tr key={account.id || index} className="hover:bg-gray-100">
+                  <td className="border border-gray-300 px-4 py-2">
+                    {account.accountHolder}
+                  </td>
+                  <td className="border border-gray-300 px-4 py-2">
+                    {account.accountNumber}
+                  </td>
+                  <td className="border border-gray-300 px-4 py-2">
+                    {account.bankName}
+                  </td>
+                  <td className="border border-gray-300 px-4 py-2">
+                    {account.balance}
+                  </td>
+                  <td className="border border-gray-300 px-4 py-2">
+                    <button
+                      onClick={() => handleEdit(index)}
+                      className="text-blue-500 hover:underline mr-2"
+                    >
+                      <FaEdit />
+                    </button>
+                    <button
+                      onClick={() => handleDelete(account.id)}
+                      className="text-red-500 hover:underline"
+                    >
+                      <FaTrash />
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
-      </div>
+      </section>
+
+      {/* Toast Notifications */}
+      <ToastContainer />
     </div>
   );
-}
+};
 
-export default BankAccounts;
+export default BankAccountManagement;

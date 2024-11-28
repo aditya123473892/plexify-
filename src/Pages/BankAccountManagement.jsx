@@ -1,136 +1,237 @@
-import React, { useState } from 'react';
-import { FaUser, FaMoneyBillWave, FaBuilding, FaInfoCircle, FaPlus, FaCheckCircle } from 'react-icons/fa';
-import InputWithIcon from '../Components/InputWithIcon';
-import FieldSection from '../Components/FieldSection';
-import Section from '../Components/Section';
-import { toast, ToastContainer } from "react-toastify"; // Importing toast components
-import "react-toastify/dist/ReactToastify.css"; // Importing toast styles
-import axios from 'axios'; // Import Axios for API requests
-import { useContext } from "react";
-import { AuthContext } from "../Contexts/Context"; // Your context for global state like API and token
+import React, { useState, useContext } from "react";
+import {
+  FaUser,
+  FaMoneyBillWave,
+  FaBuilding,
+  FaInfoCircle,
+  FaPlus,
+  FaCheckCircle,
+  FaEdit,
+  FaTrash,
+} from "react-icons/fa";
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import axios from "axios";
+import InputWithIcon from "../Components/InputWithIcon";
+import FieldSection from "../Components/FieldSection";
+import { AuthContext } from "../Contexts/Context";
 
 const BankAccountManagement = () => {
-  const [accounts, setAccounts] = useState([
-    { accountHolder: '', accountNumber: '', bankName: '', accountType: '', balance: '', notes: '' },
-  ]);
-  
-  // Extract API and token from context
   const { API, token } = useContext(AuthContext);
+  const [accounts, setAccounts] = useState([]);
+  const [editIndex, setEditIndex] = useState(null);
+  const [accountForm, setAccountForm] = useState({
+    accountHolder: "",
+    accountNumber: "",
+    bankName: "",
+    accountType: "",
+    balance: "",
+    notes: "",
+  });
 
-  const handleAccountChange = (index, field, value) => {
-    const newAccounts = [...accounts];
-    newAccounts[index][field] = value;
-    setAccounts(newAccounts);
-  };
-
-  const addAccount = () => {
-    setAccounts([...accounts, { accountHolder: '', accountNumber: '', bankName: '', accountType: '', balance: '', notes: '' }]);
-  };
-
-  const handleSave = async () => {
+  const fetchAccounts = async () => {
     try {
-      const response = await axios.post(
-        `${API}/bank-accounts`, // API endpoint
-        { accounts }, // Data you are sending in the request
-        {
-          headers: {
-            Authorization: `Bearer ${token}`, // Authorization token from context
-            'Content-Type': 'application/json', // Content-Type header
-          }
-        }
-      );
-
-      if (response.status === 200) {
-        toast.success("Bank account details saved successfully!");
-      }
+      const response = await axios.get(`${API}/bank-accounts`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setAccounts(response.data.accounts);
     } catch (error) {
-      console.error("Error saving data", error);
-      toast.error("There was an error saving your bank account details. Please try again.");
+      console.error("Error fetching accounts:", error);
+      toast.error("Error fetching bank accounts data.");
     }
+  };
+
+  const handleAccountChange = (field, value) => {
+    setAccountForm({ ...accountForm, [field]: value });
+  };
+
+  const saveAccount = async () => {
+    try {
+      if (editIndex !== null) {
+        // Update existing account
+        const id = accounts[editIndex].id;
+        await axios.put(`${API}/bank-accounts/${id}`, accountForm, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        toast.success("Bank account updated successfully!");
+      } else {
+        // Add new account
+        await axios.post(`${API}/bank-accounts`, accountForm, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        toast.success("Bank account added successfully!");
+      }
+      setAccountForm({
+        accountHolder: "",
+        accountNumber: "",
+        bankName: "",
+        accountType: "",
+        balance: "",
+        notes: "",
+      });
+      setEditIndex(null);
+      fetchAccounts();
+    } catch (error) {
+      console.error("Error saving account:", error);
+      toast.error("An error occurred while saving the bank account.");
+    }
+  };
+
+  const handleEdit = (index) => {
+    setEditIndex(index);
+    setAccountForm(accounts[index]);
+  };
+
+  const handleDelete = async (id) => {
+    try {
+      await axios.delete(`${API}/bank-accounts/${id}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      toast.success("Bank account deleted successfully!");
+      fetchAccounts();
+    } catch (error) {
+      console.error("Error deleting account:", error);
+      toast.error("An error occurred while deleting the bank account.");
+    }
+  };
+
+  const resetForm = () => {
+    setAccountForm({
+      accountHolder: "",
+      accountNumber: "",
+      bankName: "",
+      accountType: "",
+      balance: "",
+      notes: "",
+    });
+    setEditIndex(null);
   };
 
   return (
     <div className="min-h-screen shadow-2xl bg-white p-6 rounded-lg md:mt-10 mt-20">
       <header className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-800 mb-2">Manage Your Bank Accounts</h1>
+        <h1 className="text-3xl font-bold text-gray-800 mb-2">
+          Manage Your Bank Accounts
+        </h1>
         <p className="text-gray-600">
           Keep track of your bank accounts and monitor your balances.
         </p>
       </header>
 
-      {/* Bank Account Section */}
-      {accounts.map((account, index) => (
-        <FieldSection title={`Bank Account ${index + 1}`} key={index}>
-          <InputWithIcon
-            icon={<FaUser className="text-[#538d2dfd] mx-2" />}
-            type="text"
-            placeholder="Account Holder Name"
-            value={account.accountHolder}
-            onChange={(e) => handleAccountChange(index, 'accountHolder', e.target.value)}
-          />
-          <InputWithIcon
-            icon={<FaMoneyBillWave className="text-[#538d2dfd] mx-2" />}
-            type="text"
-            placeholder="Account Number"
-            value={account.accountNumber}
-            onChange={(e) => handleAccountChange(index, 'accountNumber', e.target.value)}
-          />
-          <InputWithIcon
-            icon={<FaBuilding className="text-[#538d2dfd] mx-2" />}
-            type="text"
-            placeholder="Bank Name"
-            value={account.bankName}
-            onChange={(e) => handleAccountChange(index, 'bankName', e.target.value)}
-          />
-          <InputWithIcon
-            icon={<FaInfoCircle className="text-[#538d2dfd] mx-2" />}
-            type="text"
-            placeholder="Account Type (e.g., Savings, Checking)"
-            value={account.accountType}
-            onChange={(e) => handleAccountChange(index, 'accountType', e.target.value)}
-          />
-          <InputWithIcon
-            icon={<FaMoneyBillWave className="text-[#538d2dfd] mx-2" />}
-            type="number"
-            placeholder="Balance"
-            value={account.balance}
-            onChange={(e) => handleAccountChange(index, 'balance', e.target.value)}
-          />
-          <InputWithIcon
-            icon={<FaInfoCircle className="text-[#538d2dfd] mx-2" />}
-            type="text"
-            placeholder="Additional Notes"
-            value={account.notes}
-            onChange={(e) => handleAccountChange(index, 'notes', e.target.value)}
-          />
-        </FieldSection>
-      ))}
-
-      <button
-        onClick={addAccount}
-        className="text-white py-2 px-4 rounded-md shadow-md bg-[#3a5e22fd] hover:bg-[#2f4b1dfd] mt-4"
+      {/* Form Section */}
+      <FieldSection
+        title={editIndex !== null ? "Edit Bank Account" : "New Bank Account"}
       >
-        <FaPlus className="inline mr-2" /> Add Bank Account
-      </button>
-
-      {/* Educational Resources */}
-      <Section title="Educational Resources">
-        <p className="text-gray-600 mb-4">Explore our educational resources on bank account management.</p>
-        <button className="text-white py-2 px-4 rounded-md shadow-md bg-[#3a5e22fd] hover:bg-[#2f4b1dfd]">
-          <FaMoneyBillWave className="inline mr-2" /> Learn More
+        <InputWithIcon
+          icon={<FaUser className="text-[#538d2dfd] mx-2" />}
+          type="text"
+          placeholder="Account Holder Name"
+          value={accountForm.accountHolder}
+          onChange={(e) => handleAccountChange("accountHolder", e.target.value)}
+        />
+        <InputWithIcon
+          icon={<FaMoneyBillWave className="text-[#538d2dfd] mx-2" />}
+          type="text"
+          placeholder="Account Number"
+          value={accountForm.accountNumber}
+          onChange={(e) => handleAccountChange("accountNumber", e.target.value)}
+        />
+        <InputWithIcon
+          icon={<FaBuilding className="text-[#538d2dfd] mx-2" />}
+          type="text"
+          placeholder="Bank Name"
+          value={accountForm.bankName}
+          onChange={(e) => handleAccountChange("bankName", e.target.value)}
+        />
+        <InputWithIcon
+          icon={<FaInfoCircle className="text-[#538d2dfd] mx-2" />}
+          type="text"
+          placeholder="Account Type (e.g., Savings, Checking)"
+          value={accountForm.accountType}
+          onChange={(e) => handleAccountChange("accountType", e.target.value)}
+        />
+        <InputWithIcon
+          icon={<FaMoneyBillWave className="text-[#538d2dfd] mx-2" />}
+          type="number"
+          placeholder="Balance"
+          value={accountForm.balance}
+          onChange={(e) => handleAccountChange("balance", e.target.value)}
+        />
+        <InputWithIcon
+          icon={<FaInfoCircle className="text-[#538d2dfd] mx-2" />}
+          type="text"
+          placeholder="Additional Notes"
+          value={accountForm.notes}
+          onChange={(e) => handleAccountChange("notes", e.target.value)}
+        />
+        <button
+          onClick={saveAccount}
+          className="bg-green-500 text-white py-2 px-4 rounded-md shadow-md hover:bg-green-600 mt-4"
+        >
+          <FaCheckCircle className="inline mr-2" />
+          {editIndex !== null ? "Update Account" : "Add Account"}
         </button>
-      </Section>
+        {editIndex !== null && (
+          <button
+            onClick={resetForm}
+            className="ml-4 bg-gray-500 text-white py-2 px-4 rounded-md shadow-md hover:bg-gray-600 mt-4"
+          >
+            Cancel Edit
+          </button>
+        )}
+      </FieldSection>
 
-      {/* Save Button */}
-      <button
-        type="button"
-        onClick={handleSave}
-        className="bg-[#3a5e22fd] hover:bg-[#2f4b1dfd] text-white py-2 px-4 rounded ms-auto flex items-center mt-6"
-      >
-        <FaCheckCircle className="mr-2" /> Save Bank Account Details
-      </button>
+      {/* Accounts Table */}
+      <section className="mt-8">
+        <h2 className="text-2xl font-bold text-gray-800 mb-4">Bank Accounts</h2>
+        <div className="overflow-x-auto">
+          <table className="table-auto border-collapse border border-gray-300 w-full text-left">
+            <thead>
+              <tr className="bg-gray-200">
+                <th className="border border-gray-300 px-4 py-2">Holder</th>
+                <th className="border border-gray-300 px-4 py-2">Number</th>
+                <th className="border border-gray-300 px-4 py-2">Bank</th>
+                <th className="border border-gray-300 px-4 py-2">Balance</th>
+                <th className="border border-gray-300 px-4 py-2">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {accounts.map((account, index) => (
+                <tr key={account.id || index} className="hover:bg-gray-100">
+                  <td className="border border-gray-300 px-4 py-2">
+                    {account.accountHolder}
+                  </td>
+                  <td className="border border-gray-300 px-4 py-2">
+                    {account.accountNumber}
+                  </td>
+                  <td className="border border-gray-300 px-4 py-2">
+                    {account.bankName}
+                  </td>
+                  <td className="border border-gray-300 px-4 py-2">
+                    {account.balance}
+                  </td>
+                  <td className="border border-gray-300 px-4 py-2">
+                    <button
+                      onClick={() => handleEdit(index)}
+                      className="text-blue-500 hover:underline mr-2"
+                    >
+                      <FaEdit />
+                    </button>
+                    <button
+                      onClick={() => handleDelete(account.id)}
+                      className="text-red-500 hover:underline"
+                    >
+                      <FaTrash />
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </section>
 
-      {/* ToastContainer - required to render toasts */}
+      {/* Toast Notifications */}
       <ToastContainer />
     </div>
   );
