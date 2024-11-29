@@ -1,9 +1,11 @@
 import React, { useState, useEffect, useContext } from "react";
 import axios from "axios";
-import { FaPlus, FaTrash, FaCheckCircle, FaSyncAlt } from "react-icons/fa";
+import { FaPlus, FaTrash, FaCheckCircle, FaSyncAlt, FaUser } from "react-icons/fa";
 import { toast, ToastContainer } from "react-toastify";
 import { AuthContext } from "../Contexts/Context";
 import "react-toastify/dist/ReactToastify.css";
+import Section from "../Components/Section";
+import InputWithIcon from "../Components/InputWithIcon";
 
 const WillForm = () => {
   const { API, token } = useContext(AuthContext);
@@ -18,6 +20,7 @@ const WillForm = () => {
   const [witnesses, setWitnesses] = useState([{ name: "", address: "" }]);
   const [wealthDetails, setWealthDetails] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [signature, setSignature] = useState(null);
 
   // Fetch wealth data from all endpoints
   const fetchWealthDetails = async () => {
@@ -170,8 +173,18 @@ const WillForm = () => {
     toast.success("Will form submitted successfully!");
   };
 
+
+  const handleSignatureUpload = (e) => {
+    const file = e.target.files[0];  // Get the first selected file
+    if (file) {
+      setSignature(file);  // Set the uploaded file to the signature state
+    }
+  };
+
+
+  
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
+    <div className="min-h-screen shadow-2xl bg-white p-6 rounded-lg md:mt-10 mt-20">
       <header className="mb-8">
         <h1 className="text-3xl font-bold text-gray-800 mb-2">
           Create Your Will
@@ -181,41 +194,39 @@ const WillForm = () => {
         </p>
       </header>
 
-      <div className="max-w-5xl mx-auto space-y-10">
-        {/* Personal Information Section */}
-        <section className="bg-white p-6 rounded-lg shadow-md">
-          <h2 className="text-2xl font-semibold text-gray-800 mb-4">
-            Personal Information
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {[
-              "fullName",
-              "fatherName",
-              "motherName",
-              "spouseName",
-              "address",
-            ].map((field, idx) => (
-              <input
-                key={idx}
-                type={field === "address" ? "textarea" : "text"}
-                placeholder={field.replace(/([A-Z])/g, " $1")}
-                className="border border-gray-300 p-3 rounded-md w-full"
-                value={personalInfo[field]}
-                onChange={(e) =>
-                  handlePersonalInfoChange(field, e.target.value)
-                }
-              />
-            ))}
-          </div>
-        </section>
+      <div className="">
+        <Section className="bg-white p-6 rounded-lg shadow-md">
+  <h2 className="text-2xl font-semibold text-gray-800 mb-4">
+    Personal Information
+  </h2>
+  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+    {[
+      "fullName",
+      "fatherName",
+      "motherName",
+      "spouseName",
+      "address",
+    ].map((field, idx) => (
+      <InputWithIcon
+        key={idx}
+        icon={<FaUser className="text-[#538d2dfd] mx-2" />}
+        type={field === "address" ? "textarea" : "text"}
+        placeholder={field.replace(/([A-Z])/g, " $1")}
+        value={personalInfo[field]}
+        onChange={(e) => handlePersonalInfoChange(field, e.target.value)}
+      />
+    ))}
+  </div>
+</Section>
+
 
         {/* Wealth Details Section */}
-        <section className="bg-white p-6 rounded-lg shadow-md">
+        <Section className="bg-white p-6 rounded-lg shadow-md">
           <h2 className="text-2xl font-semibold text-gray-800 mb-4 flex items-center">
             Wealth Details
             <button
               onClick={fetchWealthDetails}
-              className="ml-4 text-blue-600 hover:underline flex items-center"
+              className="ml-4 text-[#538d2dfd] hover:underline flex items-center"
             >
               <FaSyncAlt className="mr-2" /> Refresh
             </button>
@@ -252,7 +263,7 @@ const WillForm = () => {
                       <td className="border border-gray-300 px-4 py-2">
                         <button
                           onClick={() => handleDeleteWealth(item.id)}
-                          className="text-red-500 hover:underline"
+                          className="text-[#538d2dfd] hover:underline"
                         >
                           <FaTrash />
                         </button>
@@ -265,10 +276,10 @@ const WillForm = () => {
           ) : (
             <p className="text-gray-600">No wealth details available.</p>
           )}
-        </section>
+        </Section>
 
         {/* Witness Information Section */}
-        <section className="bg-white p-6 rounded-lg shadow-md">
+        <Section className="bg-white p-6 rounded-lg shadow-md">
           <h2 className="text-2xl font-semibold text-gray-800 mb-4">
             Witnesses
           </h2>
@@ -297,7 +308,7 @@ const WillForm = () => {
               />
               <button
                 onClick={() => removeWitness(index)}
-                className="text-red-500 hover:underline"
+                className="text-[#538d2dfd] hover:underline inline-block"
               >
                 <FaTrash />
               </button>
@@ -309,13 +320,34 @@ const WillForm = () => {
           >
             <FaPlus className="inline mr-2" /> Add Witness
           </button>
-        </section>
+        </Section>
+        <Section className="bg-white p-6 rounded-lg shadow-md">
+  <h2 className="text-2xl font-semibold text-gray-800 mb-4">Digital Signature</h2>
+  
+  <div className="mb-4">
+    <input
+      type="file"
+      accept="image/*" 
+      onChange={(e) => handleSignatureUpload(e)}
+      className="border border-gray-300 p-3 rounded-md w-full"
+    />
+  </div>
 
-        {/* Submit Button */}
-        <div className="flex justify-end">
+  {signature && (
+    <div className="mt-2">
+      <p className="text-gray-800">Uploaded Signature:</p>
+      <img
+        src={URL.createObjectURL(signature)}
+        alt="Signature Preview"
+        className="w-32 h-32 object-contain mt-2"
+      />
+    </div>
+  )}
+</Section>
+        <div className="">
           <button
             onClick={handleSubmit}
-            className="text-white py-3 px-6 rounded-md shadow-md bg-blue-600 hover:bg-blue-700 transition-all"
+            className="text-white py-3 px-6 rounded-md shadow-md bg-[#3a5e22fd] hover:bg-[#2f4b1dfd] transition-all"
           >
             <FaCheckCircle className="inline mr-2" /> Submit Will
           </button>
@@ -323,6 +355,8 @@ const WillForm = () => {
       </div>
 
       <ToastContainer />
+
+
     </div>
   );
 };

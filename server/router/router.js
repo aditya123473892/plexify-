@@ -1,6 +1,5 @@
 const express = require("express");
 const router = express.Router();
-const User = require("../model/Signup");
 const jweb = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
 const crypto = require("crypto");
@@ -12,7 +11,8 @@ const path = require("path");
 const authMiddleware = require("../auth/authMiddleware");
 const secret = "iwfhugafwofjwhig3hwigk3wnig3uwmgkmewoipj39gw8hqoijhi3hgwgkwni";
 const connectionString =
-  "Driver={ODBC Driver 18 for SQL Server};Server=MOHIT\\SQLEXPRESS;Database=master;Trusted_Connection=yes;TrustServerCertificate=yes;";
+  // "Driver={ODBC Driver 18 for SQL Server};Server=MOHIT\\SQLEXPRESS;Database=master;Trusted_Connection=yes;TrustServerCertificate=yes;";
+'Driver={ODBC Driver 17 for SQL Server};Server=DESKTOP-BBKLDAG\\SQLEXPRESS01;Database=DB;Trusted_Connection=yes;';
 
 const queryDatabase = (query, params) => {
   return new Promise((resolve, reject) => {
