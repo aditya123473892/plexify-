@@ -182,7 +182,9 @@ function RecurringDepositManagement() {
     ) || null;
   };
   
-
+  const uniqueBeneficiaryIds = Array.from(
+    new Set(deposits.flatMap((deposit) => deposit.beneficiaryUser.split(",")))
+  );
   return (
     <div className="min-h-screen shadow-2xl bg-white p-6 rounded-lg md:mt-10 mt-20">
       <header className="mb-8">
@@ -343,13 +345,13 @@ function RecurringDepositManagement() {
             </FieldSection>
           ))}
 
-{deposits.map((deposit, depositIndex) => (
+{/* {deposits.map((deposit, depositIndex) => (
   <div key={depositIndex} className="border p-4 rounded-lg mt-4 shadow-md bg-gray-50">
     {deposit.beneficiaryUser && (
       <div className="mt-4  p-4 rounded-lg">
         <h4 className="font-semibold text-lg">Selected Beneficiaries:</h4>
         
-        {/* Parse beneficiary IDs and display details for each */}
+       
         {deposit.beneficiaryUser
           .split(',') // Split the IDs into an array
           .map((id) => {
@@ -411,8 +413,73 @@ function RecurringDepositManagement() {
       </div>
     )}
   </div>
-))}
+))} */}
 
+<div className="border p-4 rounded-lg mt-4 shadow-md bg-gray-50">
+  <h4 className="font-semibold text-lg mb-4">Selected Beneficiaries:</h4>
+  
+  <div className="flex flex-col space-y-4">
+    {uniqueBeneficiaryIds.map((id) => {
+      const beneficiary = getBeneficiaryById(id); // Use updated function
+      return beneficiary ? (
+        <FieldSection
+          key={id}
+          className="flex flex-col md:flex-row md:space-x-4"
+        >
+          <InputWithIcon
+            icon={<FaUser />}
+            type="text"
+            placeholder="Beneficiary Name"
+            value={beneficiary.name}
+            onChange={(e) =>
+              handleBeneficiaryChange("name", id, e.target.value)
+            }
+          />
+          <InputWithIcon
+            icon={<FaPhone />}
+            type="text"
+            placeholder="Contact"
+            value={beneficiary.contact}
+            onChange={(e) =>
+              handleBeneficiaryChange("contact", id, e.target.value)
+            }
+          />
+          <InputWithIcon
+            icon={<FaEnvelope />}
+            type="email"
+            placeholder="Email"
+            value={beneficiary.email}
+            onChange={(e) =>
+              handleBeneficiaryChange("email", id, e.target.value)
+            }
+          />
+          <InputWithIcon
+            icon={<FaPercent />}
+            type="number"
+            placeholder="Entitlement %"
+            value={beneficiary.entitlement}
+            onChange={(e) =>
+              handleBeneficiaryChange("entitlement", id, e.target.value)
+            }
+          />
+          <InputWithIcon
+            icon={<FaLink />}
+            type="text"
+            placeholder="Relationship"
+            value={beneficiary.relationship}
+            onChange={(e) =>
+              handleBeneficiaryChange("relationship", id, e.target.value)
+            }
+          />
+        </FieldSection>
+      ) : (
+        <p key={id} className="text-red-500">
+          Beneficiary with ID {id} not found.
+        </p>
+      );
+    })}
+  </div>
+</div>
 
 
           
