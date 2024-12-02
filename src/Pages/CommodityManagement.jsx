@@ -1,38 +1,44 @@
-import React, { useState, useContext } from "react";
+import React, { useState, useEffect, useContext } from "react";
+import axios from "axios";
 import {
   FaSeedling,
+  FaWeightHanging,
   FaMoneyBillWave,
-  FaInfoCircle,
-  FaPlus,
-  FaCheckCircle,
   FaCalendarAlt,
   FaBuilding,
-  FaWeightHanging,
+  FaInfoCircle,
+  FaCheckCircle,
   FaEdit,
   FaTrash,
 } from "react-icons/fa";
-import axios from "axios";
-import { AuthContext } from "../Contexts/Context";
 import InputWithIcon from "../Components/InputWithIcon";
-import FieldSection from "../Components/FieldSection";
+import Section from "../Components/Section";
+import { AuthContext } from "../Contexts/Context";
 import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 const CommodityManagement = () => {
   const { API, token } = useContext(AuthContext);
   const [commodities, setCommodities] = useState([]);
-  const [editIndex, setEditIndex] = useState(null);
-  const [commodityForm, setCommodityForm] = useState({
-    commodityName: "",
-    commodityType: "",
-    unitOfMeasure: "",
-    marketPrice: "",
-    stockQuantity: "",
+  const [formData, setFormData] = useState({
+    commodity_name: "",
+    commodity_type: "",
+    unit_of_measure: "",
+    market_price: "",
+    stock_quantity: "",
     provider: "",
-    acquisitionDate: "",
-    expiryDate: "",
+    acquisition_date: "",
+    expiry_date: "",
     description: "",
     status: "Available",
   });
+  const [editIndex, setEditIndex] = useState(null);
+  const [loading, setLoading] = useState(false);
+
+  // Fetch commodities on component mount
+  useEffect(() => {
+    fetchCommodities();
+  }, []);
 
   const fetchCommodities = async () => {
     try {
@@ -42,39 +48,61 @@ const CommodityManagement = () => {
       setCommodities(response.data.commodities);
     } catch (error) {
       console.error("Error fetching commodities:", error);
-      toast.error("Error fetching commodity data.");
+      toast.error("Failed to fetch commodities.");
     }
   };
 
-  const handleCommodityChange = (field, value) => {
-    setCommodityForm({ ...commodityForm, [field]: value });
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prevData) => ({
+      ...prevData,
+      [name]: value,
+    }));
   };
 
   const addOrUpdateCommodity = async () => {
+    // Validate required fields
+    if (
+      !formData.commodity_name ||
+      !formData.commodity_type ||
+      !formData.unit_of_measure ||
+      !formData.market_price ||
+      !formData.stock_quantity ||
+      !formData.provider ||
+      !formData.acquisition_date
+    ) {
+      toast.error("Please fill in all required fields.");
+      return;
+    }
+
+    setLoading(true);
+
     try {
       if (editIndex !== null) {
-        // Update commodity
+        // Update existing commodity
         const id = commodities[editIndex].id;
-        await axios.put(`${API}/commodities/${id}`, commodityForm, {
+        await axios.put(`${API}/commodities/${id}`, formData, {
           headers: { Authorization: `Bearer ${token}` },
         });
         toast.success("Commodity updated successfully!");
       } else {
         // Add new commodity
-        await axios.post(`${API}/commodities`, commodityForm, {
+        await axios.post(`${API}/commodities`, formData, {
           headers: { Authorization: `Bearer ${token}` },
         });
         toast.success("Commodity added successfully!");
       }
-      setCommodityForm({
-        commodityName: "",
-        commodityType: "",
-        unitOfMeasure: "",
-        marketPrice: "",
-        stockQuantity: "",
+
+      // Reset form and refresh commodities
+      setFormData({
+        commodity_name: "",
+        commodity_type: "",
+        unit_of_measure: "",
+        market_price: "",
+        stock_quantity: "",
         provider: "",
-        acquisitionDate: "",
-        expiryDate: "",
+        acquisition_date: "",
+        expiry_date: "",
         description: "",
         status: "Available",
       });
@@ -83,12 +111,14 @@ const CommodityManagement = () => {
     } catch (error) {
       console.error("Error saving commodity:", error);
       toast.error("An error occurred while saving the commodity.");
+    } finally {
+      setLoading(false);
     }
   };
 
   const handleEdit = (index) => {
     setEditIndex(index);
-    setCommodityForm(commodities[index]);
+    setFormData(commodities[index]);
   };
 
   const handleDelete = async (id) => {
@@ -100,161 +130,143 @@ const CommodityManagement = () => {
       fetchCommodities();
     } catch (error) {
       console.error("Error deleting commodity:", error);
-      toast.error("An error occurred while deleting the commodity.");
+      toast.error("Failed to delete commodity.");
     }
   };
 
   return (
     <div className="min-h-screen shadow-2xl bg-white p-6 rounded-lg md:mt-10 mt-20">
+      <ToastContainer />
       <header className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-800 mb-2">
-          Manage Your Commodities
-        </h1>
+        <h1 className="text-3xl font-bold">Manage Commodities</h1>
+        <p className="mt-2">Add, view, and manage your commodities.</p>
       </header>
 
-      <FieldSection
-        title={editIndex !== null ? "Edit Commodity" : "New Commodity"}
-      >
-        <InputWithIcon
-          icon={<FaSeedling className="text-[#538d2dfd] mx-2" />}
-          type="text"
-          placeholder="Commodity Name"
-          value={commodityForm.commodityName}
-          onChange={(e) =>
-            handleCommodityChange("commodityName", e.target.value)
-          }
-        />
-        <InputWithIcon
-          icon={<FaSeedling className="text-[#538d2dfd] mx-2" />}
-          type="text"
-          placeholder="Commodity Type"
-          value={commodityForm.commodityType}
-          onChange={(e) =>
-            handleCommodityChange("commodityType", e.target.value)
-          }
-        />
-        <InputWithIcon
-          icon={<FaWeightHanging className="text-[#538d2dfd] mx-2" />}
-          type="text"
-          placeholder="Unit of Measure (e.g., kg, barrel)"
-          value={commodityForm.unitOfMeasure}
-          onChange={(e) =>
-            handleCommodityChange("unitOfMeasure", e.target.value)
-          }
-        />
-        <InputWithIcon
-          icon={<FaMoneyBillWave className="text-[#538d2dfd] mx-2" />}
-          type="number"
-          placeholder="Market Price"
-          value={commodityForm.marketPrice}
-          onChange={(e) => handleCommodityChange("marketPrice", e.target.value)}
-        />
-        <InputWithIcon
-          icon={<FaMoneyBillWave className="text-[#538d2dfd] mx-2" />}
-          type="number"
-          placeholder="Stock Quantity"
-          value={commodityForm.stockQuantity}
-          onChange={(e) =>
-            handleCommodityChange("stockQuantity", e.target.value)
-          }
-        />
-        <InputWithIcon
-          icon={<FaBuilding className="text-[#538d2dfd] mx-2" />}
-          type="text"
-          placeholder="Provider"
-          value={commodityForm.provider}
-          onChange={(e) => handleCommodityChange("provider", e.target.value)}
-        />
-        <InputWithIcon
-          icon={<FaCalendarAlt className="text-[#538d2dfd] mx-2" />}
-          type="date"
-          placeholder="Acquisition Date"
-          value={commodityForm.acquisitionDate}
-          onChange={(e) =>
-            handleCommodityChange("acquisitionDate", e.target.value)
-          }
-        />
-        <InputWithIcon
-          icon={<FaCalendarAlt className="text-[#538d2dfd] mx-2" />}
-          type="date"
-          placeholder="Expiry Date"
-          value={commodityForm.expiryDate}
-          onChange={(e) => handleCommodityChange("expiryDate", e.target.value)}
-        />
-        <InputWithIcon
-          icon={<FaInfoCircle className="text-[#538d2dfd] mx-2" />}
-          type="text"
-          placeholder="Description"
-          value={commodityForm.description}
-          onChange={(e) => handleCommodityChange("description", e.target.value)}
-        />
-        <InputWithIcon
-          icon={<FaCheckCircle className="text-[#538d2dfd] mx-2" />}
-          type="text"
-          placeholder="Status (e.g., Available, Out of Stock)"
-          value={commodityForm.status}
-          onChange={(e) => handleCommodityChange("status", e.target.value)}
-        />
+      {/* Commodity Form */}
+      <Section title={editIndex !== null ? "Edit Commodity" : "New Commodity"}>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* All Input fields */}
+          {[
+            {
+              icon: <FaSeedling />,
+              name: "commodity_name",
+              placeholder: "Commodity Name",
+            },
+            {
+              icon: <FaSeedling />,
+              name: "commodity_type",
+              placeholder: "Commodity Type",
+            },
+            {
+              icon: <FaWeightHanging />,
+              name: "unit_of_measure",
+              placeholder: "Unit of Measure",
+            },
+            {
+              icon: <FaMoneyBillWave />,
+              name: "market_price",
+              placeholder: "Market Price",
+              type: "number",
+            },
+            {
+              icon: <FaMoneyBillWave />,
+              name: "stock_quantity",
+              placeholder: "Stock Quantity",
+              type: "number",
+            },
+            { icon: <FaBuilding />, name: "provider", placeholder: "Provider" },
+            {
+              icon: <FaCalendarAlt />,
+              name: "acquisition_date",
+              placeholder: "Acquisition Date",
+              type: "date",
+            },
+            {
+              icon: <FaCalendarAlt />,
+              name: "expiry_date",
+              placeholder: "Expiry Date (optional)",
+              type: "date",
+            },
+            {
+              icon: <FaInfoCircle />,
+              name: "description",
+              placeholder: "Description (optional)",
+            },
+            { icon: <FaCheckCircle />, name: "status", placeholder: "Status" },
+          ].map(({ icon, ...rest }) => (
+            <InputWithIcon
+              key={rest.name}
+              icon={icon}
+              value={formData[rest.name]}
+              onChange={handleChange}
+              {...rest}
+            />
+          ))}
+        </div>
+
         <button
           onClick={addOrUpdateCommodity}
-          className="text-white py-2 px-4 rounded-md shadow-md bg-[#3a5e22fd] hover:bg-[#2f4b1dfd] mt-4"
+          className="mt-4 bg-green-600 text-white py-2 px-6 rounded-md shadow hover:bg-green-700"
+          disabled={loading}
         >
-          <FaCheckCircle className="inline mr-2" />
-          {editIndex !== null ? "Update Commodity" : "Add Commodity"}
+          {loading ? "Saving..." : editIndex !== null ? "Update" : "Add"}
         </button>
-      </FieldSection>
+      </Section>
 
       {/* Commodities Table */}
-      <section className="mt-8">
-        <h2 className="text-2xl font-bold text-gray-800 mb-4">Commodities</h2>
-        <div className="overflow-x-auto">
-          <table className="table-auto border-collapse border border-gray-300 w-full text-left">
-            <thead>
-              <tr className="bg-gray-200">
-                <th className="border border-gray-300 px-4 py-2">Name</th>
-                <th className="border border-gray-300 px-4 py-2">Type</th>
-                <th className="border border-gray-300 px-4 py-2">Price</th>
-                <th className="border border-gray-300 px-4 py-2">Quantity</th>
-                <th className="border border-gray-300 px-4 py-2">Actions</th>
+      <Section title="Commodities List">
+        <table className="table-auto w-full border-collapse border border-gray-300">
+          <thead>
+            <tr className="bg-gray-100">
+              <th className="border border-gray-300 px-4 py-2">Name</th>
+              <th className="border border-gray-300 px-4 py-2">Type</th>
+              <th className="border border-gray-300 px-4 py-2">Unit</th>
+              <th className="border border-gray-300 px-4 py-2">Price</th>
+              <th className="border border-gray-300 px-4 py-2">Stock</th>
+              <th className="border border-gray-300 px-4 py-2">Provider</th>
+              <th className="border border-gray-300 px-4 py-2">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {commodities.map((commodity, index) => (
+              <tr key={commodity.id} className="hover:bg-gray-100">
+                <td className="border border-gray-300 px-4 py-2">
+                  {commodity.commodity_name}
+                </td>
+                <td className="border border-gray-300 px-4 py-2">
+                  {commodity.commodity_type}
+                </td>
+                <td className="border border-gray-300 px-4 py-2">
+                  {commodity.unit_of_measure}
+                </td>
+                <td className="border border-gray-300 px-4 py-2">
+                  {commodity.market_price}
+                </td>
+                <td className="border border-gray-300 px-4 py-2">
+                  {commodity.stock_quantity}
+                </td>
+                <td className="border border-gray-300 px-4 py-2">
+                  {commodity.provider}
+                </td>
+                <td className="border border-gray-300 px-4 py-2">
+                  <button
+                    onClick={() => handleEdit(index)}
+                    className="text-blue-500 hover:underline mr-2"
+                  >
+                    <FaEdit />
+                  </button>
+                  <button
+                    onClick={() => handleDelete(commodity.id)}
+                    className="text-red-500 hover:underline"
+                  >
+                    <FaTrash />
+                  </button>
+                </td>
               </tr>
-            </thead>
-            <tbody>
-              {commodities.map((commodity, idx) => (
-                <tr key={commodity.id} className="hover:bg-gray-100">
-                  <td className="border border-gray-300 px-4 py-2">
-                    {commodity.commodityName}
-                  </td>
-                  <td className="border border-gray-300 px-4 py-2">
-                    {commodity.commodityType}
-                  </td>
-                  <td className="border border-gray-300 px-4 py-2">
-                    {commodity.marketPrice}
-                  </td>
-                  <td className="border border-gray-300 px-4 py-2">
-                    {commodity.stockQuantity}
-                  </td>
-                  <td className="border border-gray-300 px-4 py-2">
-                    <button
-                      onClick={() => handleEdit(idx)}
-                      className="text-blue-500 hover:underline mr-2"
-                    >
-                      <FaEdit />
-                    </button>
-                    <button
-                      onClick={() => handleDelete(commodity.id)}
-                      className="text-red-500 hover:underline"
-                    >
-                      <FaTrash />
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </section>
-
-      <ToastContainer />
+            ))}
+          </tbody>
+        </table>
+      </Section>
     </div>
   );
 };

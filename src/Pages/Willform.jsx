@@ -1,11 +1,9 @@
 import React, { useState, useEffect, useContext } from "react";
 import axios from "axios";
-import { FaPlus, FaTrash, FaCheckCircle, FaSyncAlt, FaUser } from "react-icons/fa";
+import { FaPlus, FaTrash, FaCheckCircle, FaSyncAlt } from "react-icons/fa";
 import { toast, ToastContainer } from "react-toastify";
 import { AuthContext } from "../Contexts/Context";
 import "react-toastify/dist/ReactToastify.css";
-import Section from "../Components/Section";
-import InputWithIcon from "../Components/InputWithIcon";
 
 const WillForm = () => {
   const { API, token } = useContext(AuthContext);
@@ -20,7 +18,6 @@ const WillForm = () => {
   const [witnesses, setWitnesses] = useState([{ name: "", address: "" }]);
   const [wealthDetails, setWealthDetails] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [signature, setSignature] = useState(null);
 
   // Fetch wealth data from all endpoints
   const fetchWealthDetails = async () => {
@@ -36,7 +33,7 @@ const WillForm = () => {
         stocksResponse,
         mutualFundsResponse,
         bondsResponse,
-      ] = await Promise.all([
+      ] = await Promise.allSettled([
         axios.get(`${API}/insurance`, {
           headers: { Authorization: `Bearer ${token}` },
         }),
@@ -63,63 +60,86 @@ const WillForm = () => {
         }),
       ]);
 
-      const insurance = insuranceResponse.data.policies.map((policy) => ({
-        id: `policy-${policy.policy_id}`,
-        type: "Insurance Policy",
-        details: `${policy.policy_name} (${policy.policy_type}), Provider: ${policy.provider}`,
-        value: `Coverage: $${policy.coverage_limit}, Premium: $${policy.premium_amount}`,
-      }));
+      // Parse responses
+      const insurance =
+        insuranceResponse.status === "fulfilled"
+          ? insuranceResponse.value.data.policies.map((policy) => ({
+              id: `policy-${policy.policy_id}`,
+              type: "Insurance Policy",
+              details: `${policy.policy_name} (${policy.policy_type}), Provider: ${policy.provider}`,
+              value: `Coverage: $${policy.coverage_limit}, Premium: $${policy.premium_amount}`,
+            }))
+          : [];
 
-      const deposits = depositsResponse.data.deposits.map((deposit) => ({
-        id: `deposit-${deposit.deposit_id}`,
-        type: "Fixed Deposit",
-        details: `${deposit.deposit_name}, Bank: ${deposit.bank_name}`,
-        value: `Amount: $${deposit.deposit_amount}, Term: ${deposit.deposit_term}`,
-      }));
+      const deposits =
+        depositsResponse.status === "fulfilled"
+          ? depositsResponse.value.data.deposits.map((deposit) => ({
+              id: `deposit-${deposit.deposit_id}`,
+              type: "Fixed Deposit",
+              details: `${deposit.deposit_name}, Bank: ${deposit.bank_name}`,
+              value: `Amount: $${deposit.deposit_amount}, Term: ${deposit.deposit_term}`,
+            }))
+          : [];
 
-      const cryptos = cryptoResponse.data.cryptos.map((crypto) => ({
-        id: `crypto-${crypto.id}`,
-        type: "Cryptocurrency",
-        details: `${crypto.name}, Wallet: ${crypto.wallet}`,
-        value: `Amount: ${crypto.amount_held}, Current Value: $${crypto.current_value}`,
-      }));
+      const cryptos =
+        cryptoResponse.status === "fulfilled"
+          ? cryptoResponse.value.data.cryptos.map((crypto) => ({
+              id: `crypto-${crypto.id}`,
+              type: "Cryptocurrency",
+              details: `${crypto.name}, Wallet: ${crypto.wallet}`,
+              value: `Amount: ${crypto.amount_held}, Current Value: $${crypto.current_value}`,
+            }))
+          : [];
 
-      const recurringDeposits = recurringDepositsResponse.data.deposits.map(
-        (deposit) => ({
-          id: `rd-${deposit.id}`,
-          type: "Recurring Deposit",
-          details: `${deposit.bank_name}, RD Number: ${deposit.rd_number}`,
-          value: `Monthly Deposit: $${deposit.monthly_deposit_amount}, Maturity: $${deposit.maturity_amount}`,
-        })
-      );
+      const recurringDeposits =
+        recurringDepositsResponse.status === "fulfilled"
+          ? recurringDepositsResponse.value.data.deposits.map((deposit) => ({
+              id: `rd-${deposit.id}`,
+              type: "Recurring Deposit",
+              details: `${deposit.bank_name}, RD Number: ${deposit.rd_number}`,
+              value: `Monthly Deposit: $${deposit.monthly_deposit_amount}, Maturity: $${deposit.maturity_amount}`,
+            }))
+          : [];
 
-      const properties = propertiesResponse.data.properties.map((property) => ({
-        id: `property-${property.id}`,
-        type: "Property",
-        details: `${property.property_name}, Location: ${property.location}, Type: ${property.property_type}`,
-        value: `Area: ${property.area_in_sqft} sqft, Current Value: $${property.current_value}`,
-      }));
+      const properties =
+        propertiesResponse.status === "fulfilled"
+          ? propertiesResponse.value.data.properties.map((property) => ({
+              id: `property-${property.id}`,
+              type: "Property",
+              details: `${property.property_name}, Location: ${property.location}, Type: ${property.property_type}`,
+              value: `Area: ${property.area_in_sqft} sqft, Current Value: $${property.current_value}`,
+            }))
+          : [];
 
-      const stocks = stocksResponse.data.stocks.map((stock) => ({
-        id: `stock-${stock.id}`,
-        type: "Stock",
-        details: `Symbol: ${stock.symbol}, Quantity: ${stock.quantity}`,
-        value: `Purchase Price: $${stock.purchase_price}, Current Value: $${stock.current_value}`,
-      }));
+      const stocks =
+        stocksResponse.status === "fulfilled"
+          ? stocksResponse.value.data.stocks.map((stock) => ({
+              id: `stock-${stock.id}`,
+              type: "Stock",
+              details: `Symbol: ${stock.symbol}, Quantity: ${stock.quantity}`,
+              value: `Purchase Price: $${stock.purchase_price}, Current Value: $${stock.current_value}`,
+            }))
+          : [];
 
-      const mutualFunds = mutualFundsResponse.data.mutualFunds.map((fund) => ({
-        id: `mutual-fund-${fund.id}`,
-        type: "Mutual Fund",
-        details: `${fund.fund_name}, Managed by: ${fund.fund_manager}, Type: ${fund.fund_type}`,
-        value: `Investment: $${fund.investment_amount}, Current Value: $${fund.current_value}, Risk: ${fund.risk_level}`,
-      }));
+      const mutualFunds =
+        mutualFundsResponse.status === "fulfilled"
+          ? mutualFundsResponse.value.data.mutualFunds.map((fund) => ({
+              id: `mutual-fund-${fund.id}`,
+              type: "Mutual Fund",
+              details: `${fund.fund_name}, Managed by: ${fund.fund_manager}, Type: ${fund.fund_type}`,
+              value: `Investment: $${fund.investment_amount}, Current Value: $${fund.current_value}, Risk: ${fund.risk_level}`,
+            }))
+          : [];
 
-      const bonds = bondsResponse.data.bonds.map((bond) => ({
-        id: `bond-${bond.id}`,
-        type: "Bond",
-        details: `${bond.issuer}, Type: ${bond.bond_type}, Description: ${bond.description}`,
-        value: `Face Value: $${bond.face_value}, Market Value: $${bond.market_value}, Interest: ${bond.interest_rate}%`,
-      }));
+      const bonds =
+        bondsResponse.status === "fulfilled"
+          ? bondsResponse.value.data.bonds.map((bond) => ({
+              id: `bond-${bond.id}`,
+              type: "Bond",
+              details: `${bond.issuer}, Type: ${bond.bond_type}, Description: ${bond.description}`,
+              value: `Face Value: $${bond.face_value}, Market Value: $${bond.market_value}, Interest: ${bond.interest_rate}%`,
+            }))
+          : [];
 
       setWealthDetails([
         ...insurance,
@@ -131,6 +151,7 @@ const WillForm = () => {
         ...mutualFunds,
         ...bonds,
       ]);
+
       toast.success("Wealth details loaded successfully.");
     } catch (error) {
       console.error("Error fetching wealth details:", error);
@@ -173,18 +194,8 @@ const WillForm = () => {
     toast.success("Will form submitted successfully!");
   };
 
-
-  const handleSignatureUpload = (e) => {
-    const file = e.target.files[0];  // Get the first selected file
-    if (file) {
-      setSignature(file);  // Set the uploaded file to the signature state
-    }
-  };
-
-
-  
   return (
-    <div className="min-h-screen shadow-2xl bg-white p-6 rounded-lg md:mt-10 mt-20">
+    <div className="min-h-screen bg-gray-50 p-6">
       <header className="mb-8">
         <h1 className="text-3xl font-bold text-gray-800 mb-2">
           Create Your Will
@@ -194,39 +205,41 @@ const WillForm = () => {
         </p>
       </header>
 
-      <div className="">
-        <Section className="bg-white p-6 rounded-lg shadow-md">
-  <h2 className="text-2xl font-semibold text-gray-800 mb-4">
-    Personal Information
-  </h2>
-  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-    {[
-      "fullName",
-      "fatherName",
-      "motherName",
-      "spouseName",
-      "address",
-    ].map((field, idx) => (
-      <InputWithIcon
-        key={idx}
-        icon={<FaUser className="text-[#538d2dfd] mx-2" />}
-        type={field === "address" ? "textarea" : "text"}
-        placeholder={field.replace(/([A-Z])/g, " $1")}
-        value={personalInfo[field]}
-        onChange={(e) => handlePersonalInfoChange(field, e.target.value)}
-      />
-    ))}
-  </div>
-</Section>
-
+      <div className="max-w-5xl mx-auto space-y-10">
+        {/* Personal Information Section */}
+        <section className="bg-white p-6 rounded-lg shadow-md">
+          <h2 className="text-2xl font-semibold text-gray-800 mb-4">
+            Personal Information
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {[
+              "fullName",
+              "fatherName",
+              "motherName",
+              "spouseName",
+              "address",
+            ].map((field, idx) => (
+              <input
+                key={idx}
+                type="text"
+                placeholder={field.replace(/([A-Z])/g, " $1")}
+                className="border border-gray-300 p-3 rounded-md w-full"
+                value={personalInfo[field]}
+                onChange={(e) =>
+                  handlePersonalInfoChange(field, e.target.value)
+                }
+              />
+            ))}
+          </div>
+        </section>
 
         {/* Wealth Details Section */}
-        <Section className="bg-white p-6 rounded-lg shadow-md">
+        <section className="bg-white p-6 rounded-lg shadow-md">
           <h2 className="text-2xl font-semibold text-gray-800 mb-4 flex items-center">
             Wealth Details
             <button
               onClick={fetchWealthDetails}
-              className="ml-4 text-[#538d2dfd] hover:underline flex items-center"
+              className="ml-4 text-blue-600 hover:underline flex items-center"
             >
               <FaSyncAlt className="mr-2" /> Refresh
             </button>
@@ -263,7 +276,7 @@ const WillForm = () => {
                       <td className="border border-gray-300 px-4 py-2">
                         <button
                           onClick={() => handleDeleteWealth(item.id)}
-                          className="text-[#538d2dfd] hover:underline"
+                          className="text-red-500 hover:underline"
                         >
                           <FaTrash />
                         </button>
@@ -276,10 +289,10 @@ const WillForm = () => {
           ) : (
             <p className="text-gray-600">No wealth details available.</p>
           )}
-        </Section>
+        </section>
 
         {/* Witness Information Section */}
-        <Section className="bg-white p-6 rounded-lg shadow-md">
+        <section className="bg-white p-6 rounded-lg shadow-md">
           <h2 className="text-2xl font-semibold text-gray-800 mb-4">
             Witnesses
           </h2>
@@ -308,7 +321,7 @@ const WillForm = () => {
               />
               <button
                 onClick={() => removeWitness(index)}
-                className="text-[#538d2dfd] hover:underline inline-block"
+                className="text-red-500 hover:underline"
               >
                 <FaTrash />
               </button>
@@ -320,34 +333,13 @@ const WillForm = () => {
           >
             <FaPlus className="inline mr-2" /> Add Witness
           </button>
-        </Section>
-        <Section className="bg-white p-6 rounded-lg shadow-md">
-  <h2 className="text-2xl font-semibold text-gray-800 mb-4">Digital Signature</h2>
-  
-  <div className="mb-4">
-    <input
-      type="file"
-      accept="image/*" 
-      onChange={(e) => handleSignatureUpload(e)}
-      className="border border-gray-300 p-3 rounded-md w-full"
-    />
-  </div>
+        </section>
 
-  {signature && (
-    <div className="mt-2">
-      <p className="text-gray-800">Uploaded Signature:</p>
-      <img
-        src={URL.createObjectURL(signature)}
-        alt="Signature Preview"
-        className="w-32 h-32 object-contain mt-2"
-      />
-    </div>
-  )}
-</Section>
-        <div className="">
+        {/* Submit Button */}
+        <div className="flex justify-end">
           <button
             onClick={handleSubmit}
-            className="text-white py-3 px-6 rounded-md shadow-md bg-[#3a5e22fd] hover:bg-[#2f4b1dfd] transition-all"
+            className="text-white py-3 px-6 rounded-md shadow-md bg-blue-600 hover:bg-blue-700 transition-all"
           >
             <FaCheckCircle className="inline mr-2" /> Submit Will
           </button>
@@ -355,8 +347,6 @@ const WillForm = () => {
       </div>
 
       <ToastContainer />
-
-
     </div>
   );
 };

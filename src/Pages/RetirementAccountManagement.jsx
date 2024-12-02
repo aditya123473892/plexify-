@@ -1,275 +1,211 @@
-import React, { useState, useContext } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import axios from "axios";
 import {
-  FaUser,
-  FaMoneyBillWave,
+  FaClipboard,
+  FaDollarSign,
+  FaCheckCircle,
   FaBuilding,
   FaInfoCircle,
-  FaPlus,
-  FaCheckCircle,
-  FaEdit,
-  FaTrash,
 } from "react-icons/fa";
 import InputWithIcon from "../Components/InputWithIcon";
-import FieldSection from "../Components/FieldSection";
 import Section from "../Components/Section";
-import { toast, ToastContainer } from "react-toastify";
 import { AuthContext } from "../Contexts/Context";
+import { toast, ToastContainer } from "react-toastify";
 
 const RetirementAccountManagement = () => {
   const { API, token } = useContext(AuthContext);
-  const [accounts, setAccounts] = useState([]);
-  const [editIndex, setEditIndex] = useState(null);
-  const [accountForm, setAccountForm] = useState({
+  const [formData, setFormData] = useState({
     accountHolder: "",
     accountType: "",
     institutionName: "",
     currentBalance: "",
     contributions: "",
     notes: "",
+    document: null, // Support for document upload
   });
   const [loading, setLoading] = useState(false);
+  const [isEditMode, setIsEditMode] = useState(false); // Flag for edit mode
 
-  // Fetch accounts on component mount
-  const fetchAccounts = async () => {
-    try {
-      const response = await axios.get(`${API}/retirement-accounts`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      setAccounts(response.data.accounts);
-    } catch (error) {
-      console.error("Error fetching accounts:", error);
-      toast.error("Error fetching retirement account data.");
+  // Fetch retirement accounts on component mount
+  useEffect(() => {
+    const fetchAccounts = async () => {
+      try {
+        const response = await axios.get(`${API}/retirement-accounts`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        if (response.data.accounts.length > 0) {
+          const account = response.data.accounts[0]; // Assume single account for simplicity
+          setFormData({
+            accountHolder: account.accountHolder,
+            accountType: account.accountType,
+            institutionName: account.institutionName,
+            currentBalance: account.currentBalance,
+            contributions: account.contributions,
+            notes: account.notes || "",
+            document: null, // Assume document is not fetched
+          });
+          setIsEditMode(false); // Set to view mode if data exists
+        }
+      } catch (error) {
+        console.error("Error fetching retirement accounts:", error);
+        toast.error("Failed to fetch retirement accounts.");
+      }
+    };
+
+    fetchAccounts();
+  }, [API, token]);
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prevData) => ({
+      ...prevData,
+      [name]: value,
+    }));
+  };
+
+  const handleFileChange = (e) => {
+    const { files } = e.target;
+    if (files && files[0]) {
+      setFormData((prevData) => ({
+        ...prevData,
+        document: files[0], // Store the file in state
+      }));
     }
   };
 
-  // Update or add a new account
-  const addOrUpdateAccount = async () => {
-    if (!validateAccounts()) return;
+  const handleSave = async () => {
+    if (
+      !formData.accountHolder ||
+      !formData.accountType ||
+      !formData.currentBalance
+    ) {
+      toast.error("Please fill in all required fields.");
+      return;
+    }
+
+    if (!formData.document) {
+      toast.error("Please upload a document.");
+      return;
+    }
 
     setLoading(true);
-    try {
-      if (editIndex !== null) {
-        // Update existing account
-        const id = accounts[editIndex].id;
-        await axios.put(`${API}/retirement-accounts/${id}`, accountForm, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        toast.success("Retirement account updated successfully!");
-      } else {
-        // Add a new account
-        await axios.post(`${API}/retirement-accounts`, accountForm, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        toast.success("Retirement account added successfully!");
-      }
+    const formDataToSend = new FormData();
 
-      setAccountForm({
-        accountHolder: "",
-        accountType: "",
-        institutionName: "",
-        currentBalance: "",
-        contributions: "",
-        notes: "",
+    Object.keys(formData).forEach((key) => {
+      if (key !== "document") {
+        formDataToSend.append(key, formData[key]);
+      }
+    });
+
+    formDataToSend.append("document", formData.document);
+
+    try {
+      await axios.post(`${API}/retirement-accounts`, formDataToSend, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "multipart/form-data",
+        },
       });
-      setEditIndex(null);
-      fetchAccounts();
+      toast.success("Retirement account saved successfully!");
+      setIsEditMode(false); // Set to view mode after saving
     } catch (error) {
       console.error("Error saving retirement account:", error);
-      toast.error("An error occurred while saving the account.");
+      toast.error("Failed to save retirement account.");
     } finally {
       setLoading(false);
-    }
-  };
-
-  const validateAccounts = () => {
-    const {
-      accountHolder,
-      accountType,
-      institutionName,
-      currentBalance,
-      contributions,
-    } = accountForm;
-    if (
-      !accountHolder ||
-      !accountType ||
-      !institutionName ||
-      !currentBalance ||
-      !contributions
-    ) {
-      toast.error("All fields except 'Notes' are required.");
-      return false;
-    }
-    if (isNaN(currentBalance) || currentBalance <= 0) {
-      toast.error("Current Balance must be a positive number.");
-      return false;
-    }
-    if (isNaN(contributions) || contributions < 0) {
-      toast.error("Contributions must be a non-negative number.");
-      return false;
-    }
-    return true;
-  };
-
-  const handleAccountChange = (field, value) => {
-    setAccountForm({ ...accountForm, [field]: value });
-  };
-
-  const handleEdit = (index) => {
-    setEditIndex(index);
-    setAccountForm(accounts[index]);
-  };
-
-  const handleDelete = async (id) => {
-    try {
-      await axios.delete(`${API}/retirement-accounts/${id}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      toast.success("Retirement account deleted successfully!");
-      fetchAccounts();
-    } catch (error) {
-      console.error("Error deleting account:", error);
-      toast.error("An error occurred while deleting the account.");
     }
   };
 
   return (
     <div className="min-h-screen shadow-2xl bg-white p-6 rounded-lg md:mt-10 mt-20">
       <header className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-800 mb-2">
-          Manage Your Retirement Accounts
-        </h1>
-        <p className="text-gray-600">
-          Keep track of your retirement accounts and monitor your savings for
-          the future.
+        <h1 className="text-3xl font-bold">Manage Your Retirement Accounts</h1>
+        <p className="mt-2">
+          Add, view, and manage your retirement accounts effortlessly.
         </p>
       </header>
 
-      {/* Account Form Section */}
-      <FieldSection
-        title={
-          editIndex !== null
-            ? "Edit Retirement Account"
-            : "New Retirement Account"
-        }
-      >
-        <InputWithIcon
-          icon={<FaUser className="text-[#538d2dfd] mx-2" />}
-          type="text"
-          placeholder="Account Holder Name"
-          value={accountForm.accountHolder}
-          onChange={(e) => handleAccountChange("accountHolder", e.target.value)}
-        />
-        <InputWithIcon
-          icon={<FaInfoCircle className="text-[#538d2dfd] mx-2" />}
-          type="text"
-          placeholder="Account Type (e.g., 401k, IRA)"
-          value={accountForm.accountType}
-          onChange={(e) => handleAccountChange("accountType", e.target.value)}
-        />
-        <InputWithIcon
-          icon={<FaBuilding className="text-[#538d2dfd] mx-2" />}
-          type="text"
-          placeholder="Institution Name"
-          value={accountForm.institutionName}
-          onChange={(e) =>
-            handleAccountChange("institutionName", e.target.value)
-          }
-        />
-        <InputWithIcon
-          icon={<FaMoneyBillWave className="text-[#538d2dfd] mx-2" />}
-          type="number"
-          placeholder="Current Balance"
-          value={accountForm.currentBalance}
-          onChange={(e) =>
-            handleAccountChange("currentBalance", e.target.value)
-          }
-        />
-        <InputWithIcon
-          icon={<FaMoneyBillWave className="text-[#538d2dfd] mx-2" />}
-          type="number"
-          placeholder="Total Contributions"
-          value={accountForm.contributions}
-          onChange={(e) => handleAccountChange("contributions", e.target.value)}
-        />
-        <InputWithIcon
-          icon={<FaInfoCircle className="text-[#538d2dfd] mx-2" />}
-          type="text"
-          placeholder="Additional Notes"
-          value={accountForm.notes}
-          onChange={(e) => handleAccountChange("notes", e.target.value)}
-        />
-        <button
-          onClick={addOrUpdateAccount}
-          className="text-white py-2 px-4 rounded-md shadow-md bg-[#3a5e22fd] hover:bg-[#2f4b1dfd] mt-4"
-        >
-          <FaCheckCircle className="inline mr-2" />
-          {editIndex !== null ? "Update Account" : "Add Account"}
-        </button>
-      </FieldSection>
-
-      {/* Accounts Table Section */}
-      <section className="mt-8">
-        <h2 className="text-2xl font-bold text-gray-800 mb-4">
-          Retirement Accounts
-        </h2>
-        <div className="overflow-x-auto">
-          <table className="table-auto border-collapse border border-gray-300 w-full text-left">
-            <thead>
-              <tr className="bg-gray-200">
-                <th className="border border-gray-300 px-4 py-2">
-                  Account Holder
-                </th>
-                <th className="border border-gray-300 px-4 py-2">Type</th>
-                <th className="border border-gray-300 px-4 py-2">
-                  Institution
-                </th>
-                <th className="border border-gray-300 px-4 py-2">Balance</th>
-                <th className="border border-gray-300 px-4 py-2">
-                  Contributions
-                </th>
-                <th className="border border-gray-300 px-4 py-2">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {accounts.map((account, idx) => (
-                <tr key={account.id} className="hover:bg-gray-100">
-                  <td className="border border-gray-300 px-4 py-2">
-                    {account.accountHolder}
-                  </td>
-                  <td className="border border-gray-300 px-4 py-2">
-                    {account.accountType}
-                  </td>
-                  <td className="border border-gray-300 px-4 py-2">
-                    {account.institutionName}
-                  </td>
-                  <td className="border border-gray-300 px-4 py-2">
-                    {account.currentBalance}
-                  </td>
-                  <td className="border border-gray-300 px-4 py-2">
-                    {account.contributions}
-                  </td>
-                  <td className="border border-gray-300 px-4 py-2">
-                    <button
-                      onClick={() => handleEdit(idx)}
-                      className="text-blue-500 hover:underline mr-2"
-                    >
-                      <FaEdit />
-                    </button>
-                    <button
-                      onClick={() => handleDelete(account.id)}
-                      className="text-red-500 hover:underline"
-                    >
-                      <FaTrash />
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+      <Section title="Account Details" className="mb-10">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <InputWithIcon
+            icon={<FaClipboard />}
+            placeholder="Account Holder"
+            name="accountHolder"
+            value={formData.accountHolder}
+            type="text"
+            onChange={handleChange}
+            readOnly={!isEditMode}
+          />
+          <InputWithIcon
+            icon={<FaInfoCircle />}
+            placeholder="Account Type"
+            name="accountType"
+            value={formData.accountType}
+            type="text"
+            onChange={handleChange}
+            readOnly={!isEditMode}
+          />
+          <InputWithIcon
+            icon={<FaBuilding />}
+            placeholder="Institution Name"
+            name="institutionName"
+            value={formData.institutionName}
+            type="text"
+            onChange={handleChange}
+            readOnly={!isEditMode}
+          />
+          <InputWithIcon
+            icon={<FaDollarSign />}
+            placeholder="Current Balance"
+            name="currentBalance"
+            value={formData.currentBalance}
+            type="number"
+            onChange={handleChange}
+            readOnly={!isEditMode}
+          />
+          <InputWithIcon
+            icon={<FaDollarSign />}
+            placeholder="Total Contributions"
+            name="contributions"
+            value={formData.contributions}
+            type="number"
+            onChange={handleChange}
+            readOnly={!isEditMode}
+          />
+          <InputWithIcon
+            icon={<FaClipboard />}
+            placeholder="Additional Notes"
+            name="notes"
+            value={formData.notes}
+            type="text"
+            onChange={handleChange}
+            readOnly={!isEditMode}
+          />
         </div>
-      </section>
+      </Section>
 
+      <Section title="Upload Document" className="mb-10">
+        <input
+          type="file"
+          name="document"
+          onChange={handleFileChange}
+          className="border-l-2 border-[#538d2dfd] shadow-lg p-2 rounded-md w-full outline-0"
+          disabled={!isEditMode}
+        />
+      </Section>
+
+      <div className="text-right">
+        <button
+          onClick={isEditMode ? handleSave : () => setIsEditMode(true)}
+          className="bg-[#538d2dfd] text-white py-2 px-6 rounded-md shadow-md hover:bg-[#4c7033fd]"
+          disabled={loading}
+        >
+          {loading ? "Saving..." : isEditMode ? "Save Changes" : "Edit Account"}
+        </button>
+      </div>
       <ToastContainer />
     </div>
   );
