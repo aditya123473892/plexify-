@@ -10,13 +10,12 @@ const fs = require("fs");
 const path = require("path");
 const authMiddleware = require("../auth/authMiddleware");
 const secret = "iwfhugafwofjwhig3hwigk3wnig3uwmgkmewoipj39gw8hqoijhi3hgwgkwni";
-const connectionString ='Driver={ODBC Driver 17 for SQL Server};Server=PLEXIFY;Database=PLEXIFY;Trusted_Connection=yes;';
+const connectionString =
+  //'Driver={ODBC Driver 17 for SQL Server};Server=PLEXIFY;Database=PLEXIFY;Trusted_Connection=yes;';
 
- // "Driver={ODBC Driver 17 for SQL Server};Server=DESKTOP-BBKLDAG\\SQLEXPRESS01;Database=DB;Trusted_Connection=yes;";
+  // "Driver={ODBC Driver 17 for SQL Server};Server=DESKTOP-BBKLDAG\\SQLEXPRESS01;Database=DB;Trusted_Connection=yes;";
 
-//  "Driver={ODBC Driver 18 for SQL Server};Server=MOHIT\\SQLEXPRESS;Database=master;Trusted_Connection=yes;TrustServerCertificate=yes;";
-
-
+  "Driver={ODBC Driver 18 for SQL Server};Server=MOHIT\\SQLEXPRESS;Database=master;Trusted_Connection=yes;TrustServerCertificate=yes;";
 
 const queryDatabase = (query, params) => {
   return new Promise((resolve, reject) => {
@@ -100,8 +99,6 @@ router.post("/signup", async (req, res) => {
   }
 });
 
-
-
 router.post("/signin", async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -133,7 +130,6 @@ router.post("/signin", async (req, res) => {
   }
 });
 
-
 router.get("/beneficiary_user", authMiddleware, async (req, res) => {
   const user_id = req.user_id;
   const query = `
@@ -144,7 +140,7 @@ router.get("/beneficiary_user", authMiddleware, async (req, res) => {
   const data = await queryDatabase(query, [user_id]);
   res.status(200).json(data);
 });
-router.post("/add-beneficiary",authMiddleware, async (req, res) => {
+router.post("/add-beneficiary", authMiddleware, async (req, res) => {
   try {
     const userId = req.user_id;
     const { name, contact, email, entitlement, notify, relationship } =
@@ -188,7 +184,6 @@ router.post("/add-beneficiary",authMiddleware, async (req, res) => {
   }
 });
 
-
 router.get("/beneficiaries", async (req, res) => {
   try {
     const { userId, beneficiaryId } = req.query;
@@ -222,7 +217,6 @@ router.get("/beneficiaries", async (req, res) => {
     res.status(500).json({ msg: "Server error." });
   }
 });
-
 
 router.post("/forgot-password", async (req, res) => {
   try {
@@ -269,7 +263,6 @@ router.post("/forgot-password", async (req, res) => {
   }
 });
 
-
 router.post("/reset-password", async (req, res) => {
   try {
     const { token, newPassword } = req.body;
@@ -314,7 +307,6 @@ router.post("/reset-password", async (req, res) => {
   }
 });
 
-
 // insurance
 
 router.get("/insurance", authMiddleware, async (req, res) => {
@@ -342,7 +334,6 @@ router.get("/insurance", authMiddleware, async (req, res) => {
     const policies = await queryDatabase(fetchPoliciesQuery, [user_id]);
     console.log("✌️policies --->", policies);
 
-
     res.status(200).json({
       policies,
       msg: "Insurance policies retrieved successfully",
@@ -352,7 +343,6 @@ router.get("/insurance", authMiddleware, async (req, res) => {
     res.status(500).json({ msg: "Server Error" });
   }
 });
-
 
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
@@ -512,8 +502,6 @@ router.get("/deposits", authMiddleware, async (req, res) => {
   try {
     const deposits = await queryDatabase(fetchDepositsQuery, [user_id]);
 
- 
-
     // Return the deposits to the client
     res.status(200).json({
       deposits,
@@ -548,8 +536,15 @@ router.post(
   async (req, res) => {
     try {
       const {
-        depositId, depositType, depositName, accountNumber, bankName,
-        depositTerm, depositAmount, interestRate, maturityAmount,
+        depositId,
+        depositType,
+        depositName,
+        accountNumber,
+        bankName,
+        depositTerm,
+        depositAmount,
+        interestRate,
+        maturityAmount,
       } = req.body;
 
       let documentData = null;
@@ -574,7 +569,10 @@ router.post(
       const checkDepositQuery = `
         SELECT * FROM fixed_deposit WHERE user_id = ? AND deposit_id = ?
       `;
-      const depositExists = await queryDatabase(checkDepositQuery, [user_id, depositId]);
+      const depositExists = await queryDatabase(checkDepositQuery, [
+        user_id,
+        depositId,
+      ]);
 
       if (depositExists.length > 0) {
         const updateDepositQuery = `
@@ -584,10 +582,21 @@ router.post(
           WHERE user_id = ? AND deposit_id = ?
         `;
         await queryDatabase(updateDepositQuery, [
-          depositType, depositName, accountNumber, bankName, depositTerm, depositAmountParsed, 
-          interestRateParsed, maturityAmountParsed, documentData, user_id, depositId
+          depositType,
+          depositName,
+          accountNumber,
+          bankName,
+          depositTerm,
+          depositAmountParsed,
+          interestRateParsed,
+          maturityAmountParsed,
+          documentData,
+          user_id,
+          depositId,
         ]);
-        return res.status(200).json({ msg: "Deposit details updated successfully" });
+        return res
+          .status(200)
+          .json({ msg: "Deposit details updated successfully" });
       } else {
         const insertDepositQuery = `
           INSERT INTO fixed_deposit (
@@ -597,10 +606,20 @@ router.post(
           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         `;
         await queryDatabase(insertDepositQuery, [
-          user_id, depositType, depositName, accountNumber, bankName, depositTerm,
-          depositAmountParsed, interestRateParsed, maturityAmountParsed, documentData
+          user_id,
+          depositType,
+          depositName,
+          accountNumber,
+          bankName,
+          depositTerm,
+          depositAmountParsed,
+          interestRateParsed,
+          maturityAmountParsed,
+          documentData,
         ]);
-        return res.status(201).json({ msg: "Deposit details added successfully" });
+        return res
+          .status(201)
+          .json({ msg: "Deposit details added successfully" });
       }
     } catch (error) {
       console.error("Error processing deposit details:", error);
@@ -608,7 +627,6 @@ router.post(
     }
   }
 );
-
 
 router.get("/recurring_deposits", authMiddleware, async (req, res) => {
   const user_id = req.user_id; // Get the user ID from the authenticated user
@@ -638,8 +656,6 @@ router.get("/recurring_deposits", authMiddleware, async (req, res) => {
     // Using the queryDatabase function to execute the query
     const deposits = await queryDatabase(fetchDepositsQuery, [user_id]);
 
- 
-
     res.status(200).json({
       deposits,
       msg: "Recurring deposits retrieved successfully",
@@ -649,7 +665,6 @@ router.get("/recurring_deposits", authMiddleware, async (req, res) => {
     res.status(500).json({ msg: "Server Error" });
   }
 });
-
 
 router.post("/recurring_deposits", authMiddleware, async (req, res) => {
   console.log("✌️ req.bodyssss --->", req.body);
@@ -788,7 +803,6 @@ router.get("/properties", authMiddleware, async (req, res) => {
     // Using the queryDatabase function to execute the query
     const properties = await queryDatabase(fetchPropertiesQuery, [user_id]);
 
-  
     res.status(200).json({
       properties,
       msg: "Properties retrieved successfully",
