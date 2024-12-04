@@ -183,8 +183,13 @@ function RecurringDepositManagement() {
   };
   
   const uniqueBeneficiaryIds = Array.from(
-    new Set(deposits.flatMap((deposit) => deposit.beneficiaryUser.split(",")))
+    new Set(
+      deposits.flatMap((deposit) => 
+        deposit.beneficiaryUser ? deposit.beneficiaryUser.split(",") : []
+      )
+    )
   );
+  
   return (
     <div className="min-h-screen shadow-2xl bg-white p-6 rounded-lg md:mt-10 mt-20">
       <header className="mb-8">
