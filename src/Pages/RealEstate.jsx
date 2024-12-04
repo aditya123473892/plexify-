@@ -213,8 +213,9 @@ setProperties([{
   };
     // Flatten and deduplicate the beneficiary IDs across all deposits
 const uniqueBeneficiaryIds = Array.from(
-  new Set(properties.flatMap((deposit) => deposit.beneficiaryUser.split(",")))
+  new Set(properties.flatMap((deposit) =>deposit.beneficiaryUser ? deposit.beneficiaryUser.split(",") : []))
 );
+
 
 
   return (
