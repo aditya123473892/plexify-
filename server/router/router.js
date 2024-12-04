@@ -804,31 +804,38 @@ router.post("/real_estate", authMiddleware, async (req, res) => {
   const { properties, beneficiaries } = req.body;
   const user_id = req.user_id;
   const beneficiariesString = beneficiaries.join(",");
+
   try {
     for (const property of properties) {
+      // Check if the specific property exists for the user
       const checkDepositQuery = `
         SELECT id, beneficiarie_user 
         FROM [dbo].[properties] 
-        WHERE user_id = ? 
+        WHERE user_id = ? AND property_name = ? 
       `;
 
       const existingDepositResult = await queryDatabase(checkDepositQuery, [
         user_id,
+        property.propertyName, // Add property_name to the query
       ]);
 
-      if (existingDepositResult[0].count > 0) {
+      console.log(existingDepositResult, "existingDepositResult");
+
+      if (existingDepositResult && existingDepositResult.length > 0) {
+        // If the property exists, update it
         const existingBeneficiaries =
           existingDepositResult[0].beneficiarie_user;
         const updatedBeneficiaries = existingBeneficiaries
           ? `${existingBeneficiaries},${beneficiariesString}`
           : beneficiariesString;
+
         const updatePropertyQuery = `
-            UPDATE [dbo].[properties]
-            SET property_type = ?, location = ?, area_in_sqft = ?, purchase_date = ?, 
-                purchase_price = ?, current_value = ?, ownership_status = ?, rental_income = ?, 
-                tenant_name = ?, tenant_contact = ?, status = ?, updated_at = GETDATE() , beneficiarie_user =?
-            WHERE property_name = ? AND user_id = ? 
-          `;
+          UPDATE [dbo].[properties]
+          SET property_type = ?, location = ?, area_in_sqft = ?, purchase_date = ?, 
+              purchase_price = ?, current_value = ?, ownership_status = ?, rental_income = ?, 
+              tenant_name = ?, tenant_contact = ?, status = ?, updated_at = GETDATE(), beneficiarie_user = ?
+          WHERE property_name = ? AND user_id = ?
+        `;
 
         await queryDatabase(updatePropertyQuery, [
           property.propertyType,
@@ -842,20 +849,20 @@ router.post("/real_estate", authMiddleware, async (req, res) => {
           property.tenantName,
           property.tenantContact,
           property.status || "Active",
-          property.propertyName,
-          user_id,
           updatedBeneficiaries,
+          property.propertyName, // Ensure property_name is included in the WHERE clause
+          user_id,
         ]);
       } else {
-        // If property does not exist, insert a new one
+        // If the property doesn't exist, insert it
         const insertPropertyQuery = `
-            INSERT INTO [dbo].[properties] (
-              user_id,beneficiarie_user, property_name, property_type, location, area_in_sqft, 
-              purchase_date, purchase_price, current_value, ownership_status, 
-              rental_income, tenant_name, tenant_contact, status, created_at, updated_at
-            )
-            VALUES (?,?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, GETDATE(), GETDATE())
-          `;
+          INSERT INTO [dbo].[properties] (
+            user_id, beneficiarie_user, property_name, property_type, location, area_in_sqft, 
+            purchase_date, purchase_price, current_value, ownership_status, 
+            rental_income, tenant_name, tenant_contact, status, created_at, updated_at
+          )
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, GETDATE(), GETDATE())
+        `;
 
         await queryDatabase(insertPropertyQuery, [
           user_id,
