@@ -929,29 +929,13 @@ router.get("/stocks", authMiddleware, async (req, res) => {
 });
 
 router.post("/stocks", authMiddleware, async (req, res) => {
+  console.log(req.body);
   const { stocks, beneficiaries } = req.body;
   const user_id = req.user_id;
 
   const beneficiariesString = beneficiaries.join(",");
 
   try {
-    const checkDepositQuery = `
-        SELECT id, beneficiarie_user 
-        FROM [dbo].[stocks] 
-        WHERE user_id = ?;
-      `;
-    const existingDepositResult = await queryDatabase(checkDepositQuery, [
-      user_id,
-    ]);
-
-    let updatedBeneficiaries = beneficiariesString;
-    if (existingDepositResult.length > 0) {
-      const existingBeneficiaries = existingDepositResult[0].beneficiarie_user;
-      updatedBeneficiaries = existingBeneficiaries
-        ? `${existingBeneficiaries},${beneficiariesString}`
-        : beneficiariesString;
-    }
-
     for (let stock of stocks) {
       const {
         symbol,
@@ -962,29 +946,50 @@ router.post("/stocks", authMiddleware, async (req, res) => {
         totalInvestment,
       } = stock;
 
-      const updateStockQuery = `
-          UPDATE [dbo].[stocks]
-          SET 
-            purchase_date = ?, 
-            purchase_price = ?, 
-            quantity = ?, 
-            current_value = ?, 
-            total_investment = ?, 
-            beneficiarie_user = ?
+      // Check if stock already exists
+      const checkStockQuery = `
+          SELECT id, beneficiarie_user 
+          FROM [dbo].[stocks] 
           WHERE user_id = ? AND symbol = ?;
         `;
-      const updateResult = await queryDatabase(updateStockQuery, [
-        purchaseDate,
-        purchasePrice,
-        quantity,
-        currentValue,
-        totalInvestment,
-        updatedBeneficiaries,
+      const existingStockResult = await queryDatabase(checkStockQuery, [
         user_id,
         symbol,
       ]);
 
-      if (updateResult.affectedRows === 0) {
+      if (existingStockResult.length > 0) {
+        // Update existing stock
+        console.log(`Updating stock for symbol: ${symbol}`);
+        const existingBeneficiaries = existingStockResult[0].beneficiarie_user;
+        const updatedBeneficiaries = existingBeneficiaries
+          ? `${existingBeneficiaries},${beneficiariesString}`
+          : beneficiariesString;
+
+        const updateStockQuery = `
+            UPDATE [dbo].[stocks]
+            SET 
+              purchase_date = ?, 
+              purchase_price = ?, 
+              quantity = ?, 
+              current_value = ?, 
+              total_investment = ?, 
+              beneficiarie_user = ?
+            WHERE user_id = ? AND symbol = ?;
+          `;
+        await queryDatabase(updateStockQuery, [
+          purchaseDate,
+          purchasePrice,
+          quantity,
+          currentValue,
+          totalInvestment,
+          updatedBeneficiaries,
+          user_id,
+          symbol,
+        ]);
+        console.log(`Stock updated for symbol: ${symbol}`);
+      } else {
+        // Insert new stock
+        console.log(`Inserting new stock for symbol: ${symbol}`);
         const insertStockQuery = `
             INSERT INTO [dbo].[stocks] (
               symbol, purchase_date, purchase_price, quantity, current_value, total_investment, user_id, beneficiarie_user
@@ -999,13 +1004,14 @@ router.post("/stocks", authMiddleware, async (req, res) => {
           currentValue,
           totalInvestment,
           user_id,
-          updatedBeneficiaries,
+          beneficiariesString,
         ]);
+        console.log(`New stock inserted for symbol: ${symbol}`);
       }
     }
 
     res.status(201).json({
-      msg: "Stocks added or updated successfully with updated beneficiaries!",
+      msg: "Stocks added or updated successfully!",
     });
   } catch (error) {
     console.error("Error:", error);
