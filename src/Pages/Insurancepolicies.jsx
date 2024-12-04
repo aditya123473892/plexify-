@@ -1,6 +1,11 @@
 import React, { useState, useEffect, useContext } from "react";
 import axios from "axios";
-import { FaClipboard, FaTag, FaDollarSign, FaCheckCircle } from "react-icons/fa";
+import {
+  FaClipboard,
+  FaTag,
+  FaDollarSign,
+  FaCheckCircle,
+} from "react-icons/fa";
 import InputWithIcon from "../Components/InputWithIcon";
 import Section from "../Components/Section";
 import { AuthContext } from "../Contexts/Context";
@@ -81,7 +86,11 @@ function InsurancePage() {
   const handleSave = async () => {
     console.log("Form data before saving:", formData);
 
-    if (!formData.policyName || !formData.policyNumber || !formData.premiumAmount) {
+    if (
+      !formData.policyName ||
+      !formData.policyNumber ||
+      !formData.premiumAmount
+    ) {
       toast.error("Please fill in all required fields.");
       return;
     }
@@ -125,7 +134,8 @@ function InsurancePage() {
       <header className="mb-8">
         <h1 className="text-3xl font-bold">Manage Your Insurance Policies</h1>
         <p className="mt-2">
-          Easily add, view, and manage your insurance policies with helpful features.
+          Easily add, view, and manage your insurance policies with helpful
+          features.
         </p>
       </header>
 

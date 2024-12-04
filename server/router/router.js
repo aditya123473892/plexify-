@@ -2014,10 +2014,9 @@ router.get("/commodities", authMiddleware, async (req, res) => {
       FROM commodities
       ORDER BY id DESC;
     `;
-
     const commodities = await queryDatabase(fetchCommoditiesQuery);
 
-    if (commodities.length === 0) {
+    if (!commodities || commodities.length === 0) {
       return res.status(404).json({ msg: "No commodities found" });
     }
 
@@ -2027,7 +2026,7 @@ router.get("/commodities", authMiddleware, async (req, res) => {
     });
   } catch (err) {
     console.error("Error fetching commodities:", err);
-    res.status(500).json({ msg: "Server Error" });
+    res.status(500).json({ msg: "Server error while fetching commodities" });
   }
 });
 
@@ -2050,15 +2049,30 @@ router.post(
       status,
     } = req.body;
 
+    // Input validation
+    if (
+      !commodity_name ||
+      !commodity_type ||
+      !unit_of_measure ||
+      !market_price ||
+      !stock_quantity ||
+      !provider ||
+      !acquisition_date ||
+      !expiry_date ||
+      !status
+    ) {
+      return res.status(400).json({ msg: "All fields are required" });
+    }
+
     try {
       const insertCommodityQuery = `
-      INSERT INTO commodities (
-        commodity_name, commodity_type, unit_of_measure, market_price, stock_quantity, 
-        provider, acquisition_date, expiry_date, description, status
-      ) 
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
-    `;
-
+        INSERT INTO commodities (
+          commodity_name, commodity_type, unit_of_measure, market_price, 
+          stock_quantity, provider, acquisition_date, expiry_date, 
+          description, status
+        ) 
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+      `;
       await queryDatabase(insertCommodityQuery, [
         commodity_name,
         commodity_type,
@@ -2068,14 +2082,14 @@ router.post(
         provider,
         acquisition_date,
         expiry_date,
-        description,
+        description || null, // Allow null for description
         status,
       ]);
 
       res.status(201).json({ msg: "Commodity added successfully" });
     } catch (err) {
       console.error("Error adding commodity:", err);
-      res.status(500).json({ msg: "Server Error" });
+      res.status(500).json({ msg: "Server error while adding commodity" });
     }
   }
 );
@@ -2095,6 +2109,20 @@ router.put("/commodities/:id", authMiddleware, async (req, res) => {
     description,
     status,
   } = req.body;
+
+  if (
+    !commodity_name ||
+    !commodity_type ||
+    !unit_of_measure ||
+    !market_price ||
+    !stock_quantity ||
+    !provider ||
+    !acquisition_date ||
+    !expiry_date ||
+    !status
+  ) {
+    return res.status(400).json({ msg: "All fields are required" });
+  }
 
   try {
     const updateCommodityQuery = `
@@ -2122,7 +2150,7 @@ router.put("/commodities/:id", authMiddleware, async (req, res) => {
       provider,
       acquisition_date,
       expiry_date,
-      description,
+      description || null,
       status,
       id,
     ]);
@@ -2134,7 +2162,7 @@ router.put("/commodities/:id", authMiddleware, async (req, res) => {
     res.status(200).json({ msg: "Commodity updated successfully" });
   } catch (err) {
     console.error("Error updating commodity:", err);
-    res.status(500).json({ msg: "Server Error" });
+    res.status(500).json({ msg: "Server error while updating commodity" });
   }
 });
 
@@ -2144,7 +2172,6 @@ router.delete("/commodities/:id", authMiddleware, async (req, res) => {
 
   try {
     const deleteCommodityQuery = `DELETE FROM commodities WHERE id = ?;`;
-
     const result = await queryDatabase(deleteCommodityQuery, [id]);
 
     if (result.affectedRows === 0) {
@@ -2154,10 +2181,9 @@ router.delete("/commodities/:id", authMiddleware, async (req, res) => {
     res.status(200).json({ msg: "Commodity deleted successfully" });
   } catch (err) {
     console.error("Error deleting commodity:", err);
-    res.status(500).json({ msg: "Server Error" });
+    res.status(500).json({ msg: "Server error while deleting commodity" });
   }
 });
-
 // GET: Fetch a Single Investment by ID
 router.get("/other-investments", authMiddleware, async (req, res) => {
   const user_id = req.user_id;

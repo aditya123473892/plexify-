@@ -395,14 +395,13 @@ function Sidebar() {
         sidebarWidth={sidebarWidth}
         className="flex items-center justify-between bg-[#548831] text-white px-6 py-4 shadow-md"
       >
-        <div className="flex justify-center">
+        <div className="flex justify-center mt-5">
+          {" "}
+          {/* Tailwind class for margin */}
           <img
             src={logo}
             alt="Main Logo"
-            style={{
-              width: "170px",
-              height: "90px",
-            }}
+            className="w-[250px] h-[150px] -ml-5"
           />
         </div>
 
