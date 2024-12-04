@@ -10,9 +10,13 @@ const fs = require("fs");
 const path = require("path");
 const authMiddleware = require("../auth/authMiddleware");
 const secret = "iwfhugafwofjwhig3hwigk3wnig3uwmgkmewoipj39gw8hqoijhi3hgwgkwni";
-const connectionString =
-  "Driver={ODBC Driver 18 for SQL Server};Server=MOHIT\\SQLEXPRESS;Database=master;Trusted_Connection=yes;TrustServerCertificate=yes;";
-// "Driver={ODBC Driver 17 for SQL Server};Server=DESKTOP-BBKLDAG\\SQLEXPRESS01;Database=DB;Trusted_Connection=yes;";
+const connectionString ='Driver={ODBC Driver 17 for SQL Server};Server=PLEXIFY;Database=PLEXIFY;Trusted_Connection=yes;';
+
+ // "Driver={ODBC Driver 17 for SQL Server};Server=DESKTOP-BBKLDAG\\SQLEXPRESS01;Database=DB;Trusted_Connection=yes;";
+
+//  "Driver={ODBC Driver 18 for SQL Server};Server=MOHIT\\SQLEXPRESS;Database=master;Trusted_Connection=yes;TrustServerCertificate=yes;";
+
+
 
 const queryDatabase = (query, params) => {
   return new Promise((resolve, reject) => {
@@ -27,7 +31,7 @@ const queryDatabase = (query, params) => {
 
 router.post("/signup", async (req, res) => {
   try {
-    console.log("✌️const --->", req.body);
+    console.log("✌️ Request body --->", req.body);
     const {
       firstName,
       lastName,
@@ -39,6 +43,7 @@ router.post("/signup", async (req, res) => {
       beneficiary,
     } = req.body;
 
+    // Validate input fields
     if (
       !firstName ||
       !lastName ||
@@ -52,99 +57,83 @@ router.post("/signup", async (req, res) => {
       return res.status(400).json({ msg: "Fill All Fields" });
     }
 
+    // Check if email already exists
     const checkEmailQuery = `SELECT * FROM [registration] WHERE email = ?`;
-    sql.query(
-      connectionString,
-      checkEmailQuery,
-      [email],
-      async (err, existingUser) => {
-        if (err) {
-          console.error("Error executing query:", err);
-          return res.status(500).json({ msg: "Server Error" });
-        }
+    const existingUser = await queryDatabase(checkEmailQuery, [email]);
 
-        if (existingUser.length > 0) {
-          return res.status(400).json({ msg: "Email already registered" });
-        }
+    if (existingUser.length > 0) {
+      return res.status(400).json({ msg: "Email already registered" });
+    }
 
-        const hashedPassword = await bcrypt.hash(password, 12);
+    // Hash the password
+    const hashedPassword = await bcrypt.hash(password, 12);
 
-        // Generate a 10-digit random user_id
-        const generateUserId = () =>
-          Math.floor(1000000000 + Math.random() * 9000000000);
-        const user_id = generateUserId();
+    // Generate a 10-digit random user_id
+    const generateUserId = () =>
+      Math.floor(1000000000 + Math.random() * 9000000000);
+    const user_id = generateUserId();
 
-        const insertUserQuery = `
-          INSERT INTO [registration] (user_id, firstName, lastName, email, password_hash, aadharNumber, phoneNumber, gender, beneficiary) 
-          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-        `;
-        sql.query(
-          connectionString,
-          insertUserQuery,
-          [
-            user_id,
-            firstName,
-            lastName,
-            email,
-            hashedPassword,
-            aadharNumber,
-            phoneNumber,
-            gender,
-            beneficiary,
-          ],
-          (err, result) => {
-            if (err) {
-              console.error("Error inserting user:", err);
-              return res.status(500).json({ msg: "Server Error" });
-            }
+    // Insert the new user into the database
+    const insertUserQuery = `
+      INSERT INTO [registration] (user_id, firstName, lastName, email, password_hash, aadharNumber, phoneNumber, gender, beneficiary) 
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `;
+    await queryDatabase(insertUserQuery, [
+      user_id,
+      firstName,
+      lastName,
+      email,
+      hashedPassword,
+      aadharNumber,
+      phoneNumber,
+      gender,
+      beneficiary,
+    ]);
 
-            const token = jweb.sign({ email }, secret, { expiresIn: "3d" });
-            res
-              .status(201)
-              .json({ token, msg: "Account Created Successfully" });
-          }
-        );
-      }
-    );
+    // Generate a JWT token
+    const token = jweb.sign({ email }, secret, { expiresIn: "3d" });
+
+    res.status(201).json({ token, msg: "Account Created Successfully" });
   } catch (error) {
-    console.log(error);
+    console.error("Error during signup:", error);
     res.status(500).json({ msg: "Server Error" });
   }
 });
+
+
 
 router.post("/signin", async (req, res) => {
   try {
     const { email, password } = req.body;
 
+    if (!email || !password) {
+      return res.status(400).json({ msg: "Please provide email and password" });
+    }
+
     const checkUserQuery = `SELECT * FROM [registration] WHERE email = ?`;
+    const user = await queryDatabase(checkUserQuery, [email]);
 
-    sql.query(connectionString, checkUserQuery, [email], async (err, user) => {
-      if (err) {
-        console.error("Database query error:", err);
-        return res.status(500).json({ msg: "Server Error" });
-      }
+    if (!user || user.length === 0) {
+      return res.status(404).json({ msg: "User not found" });
+    }
 
-      if (!user || user.length === 0) {
-        return res.status(404).json({ msg: "User not found" });
-      }
-
-      const isMatch = await bcrypt.compare(password, user[0].password_hash);
-      if (isMatch) {
-        console.log("✌️user[0].user_id --->", user[0].user_id);
-        const token = jweb.sign(
-          { email: email, user_id: user[0].user_id },
-          secret
-        );
-        return res.status(200).json({ token });
-      } else {
-        return res.status(401).json({ msg: "Invalid credentials" });
-      }
-    });
+    const isMatch = await bcrypt.compare(password, user[0].password_hash);
+    if (isMatch) {
+      const token = jweb.sign(
+        { email: email, user_id: user[0].user_id },
+        secret
+      );
+      return res.status(200).json({ token });
+    } else {
+      return res.status(401).json({ msg: "Invalid credentials" });
+    }
   } catch (error) {
     console.error("Server error:", error);
     return res.status(500).json({ msg: "Server Error" });
   }
 });
+
+
 router.get("/beneficiary_user", authMiddleware, async (req, res) => {
   const user_id = req.user_id;
   const query = `
@@ -155,74 +144,58 @@ router.get("/beneficiary_user", authMiddleware, async (req, res) => {
   const data = await queryDatabase(query, [user_id]);
   res.status(200).json(data);
 });
-router.post("/add-beneficiary", async (req, res) => {
+router.post("/add-beneficiary",authMiddleware, async (req, res) => {
   try {
-    const { userId, name, contact, email, entitlement, notify, relationship } =
+    const userId = req.user_id;
+    const { name, contact, email, entitlement, notify, relationship } =
       req.body;
 
-    // Validate input
     if (!userId || !name || !entitlement || !relationship) {
       return res.status(400).json({ msg: "Please fill all required fields." });
     }
 
-    // Check if user_id exists
     const checkUserQuery = `SELECT user_id FROM dbo.registration WHERE user_id = ?`;
-    sql.query(connectionString, checkUserQuery, [userId], (err, result) => {
-      if (err) {
-        console.error("Error checking user_id:", err);
-        return res.status(500).json({ msg: "Server error." });
-      }
-      if (result.length === 0) {
-        return res
-          .status(400)
-          .json({ msg: "Invalid user_id. Please register the user first." });
-      }
+    const userExists = await queryDatabase(checkUserQuery, [userId]);
 
-      // Insert the beneficiary
-      const insertBeneficiaryQuery = `
-          INSERT INTO dbo.beneficiaries 
-          (user_id, name, contact, email, entitlement, relationship, notify) 
-          VALUES (?, ?, ?, ?, ?, ?, ?)
-        `;
-      sql.query(
-        connectionString,
-        insertBeneficiaryQuery,
-        [
-          userId,
-          name,
-          contact || null,
-          email || null,
-          entitlement,
-          relationship,
-          notify || 0,
-        ],
-        (err, result) => {
-          if (err) {
-            console.error("Error inserting beneficiary:", err);
-            return res.status(500).json({ msg: "Server error." });
-          }
+    if (userExists.length === 0) {
+      return res
+        .status(400)
+        .json({ msg: "Invalid user_id. Please register the user first." });
+    }
 
-          res.status(201).json({
-            msg: "Beneficiary added successfully",
-            beneficiaryId: result.insertId,
-          });
-        }
-      );
+    const insertBeneficiaryQuery = `
+      INSERT INTO dbo.beneficiaries 
+      (user_id, name, contact, email, entitlement, relationship, notify) 
+      VALUES (?, ?, ?, ?, ?, ?, ?)
+    `;
+    const result = await queryDatabase(insertBeneficiaryQuery, [
+      userId,
+      name,
+      contact || null,
+      email || null,
+      entitlement,
+      relationship,
+      notify || 0,
+    ]);
+
+    res.status(201).json({
+      msg: "Beneficiary added successfully",
+      beneficiaryId: result.insertId,
     });
   } catch (error) {
     console.error("Error adding beneficiary:", error);
     res.status(500).json({ msg: "Server error." });
   }
 });
+
+
 router.get("/beneficiaries", async (req, res) => {
   try {
-    const { userId, beneficiaryId } = req.query; // Accept query parameters for filtering
+    const { userId, beneficiaryId } = req.query;
 
-    // Base query
     let fetchQuery = `SELECT * FROM dbo.beneficiaries`;
     const queryParams = [];
 
-    // Add conditions dynamically
     if (userId) {
       fetchQuery += ` WHERE user_id = ?`;
       queryParams.push(userId);
@@ -234,21 +207,15 @@ router.get("/beneficiaries", async (req, res) => {
       queryParams.push(beneficiaryId);
     }
 
-    // Execute the query
-    sql.query(connectionString, fetchQuery, queryParams, (err, results) => {
-      if (err) {
-        console.error("Error fetching beneficiaries:", err);
-        return res.status(500).json({ msg: "Server error." });
-      }
+    const results = await queryDatabase(fetchQuery, queryParams);
 
-      if (results.length === 0) {
-        return res.status(404).json({ msg: "No beneficiaries found." });
-      }
+    if (results.length === 0) {
+      return res.status(404).json({ msg: "No beneficiaries found." });
+    }
 
-      res.status(200).json({
-        msg: "Beneficiaries retrieved successfully",
-        beneficiaries: results,
-      });
+    res.status(200).json({
+      msg: "Beneficiaries retrieved successfully",
+      beneficiaries: results,
     });
   } catch (error) {
     console.error("Error fetching beneficiaries:", error);
@@ -256,127 +223,97 @@ router.get("/beneficiaries", async (req, res) => {
   }
 });
 
+
 router.post("/forgot-password", async (req, res) => {
   try {
     const { email } = req.body;
 
     const checkUserQuery = `SELECT * FROM [registration] WHERE LOWER(email) = LOWER(?)`;
+    const user = await queryDatabase(checkUserQuery, [email]);
 
-    sql.query(connectionString, checkUserQuery, [email], async (err, user) => {
-      if (err) {
-        console.error("Error executing query:", err);
-        return res.status(500).json({ msg: "Server Error" });
-      }
+    if (!user || user.length === 0) {
+      return res.status(404).json({ msg: "User not found" });
+    }
 
-      if (!user || user.length === 0) {
-        return res.status(404).json({ msg: "User not found" });
-      }
+    const resetToken = crypto.randomBytes(32).toString("hex");
+    const hashedToken = await bcrypt.hash(resetToken, 10);
+    const tokenExpiry = new Date(Date.now() + 3600000);
 
-      const resetToken = crypto.randomBytes(32).toString("hex");
-      const hashedToken = await bcrypt.hash(resetToken, 10);
-      const tokenExpiry = new Date(Date.now() + 3600000); // 1 hour from now
+    const updateUserQuery = `
+      UPDATE [registration] SET reset_token = ?, reset_token_expiry = ?
+      WHERE LOWER(email) = LOWER(?)
+    `;
+    await queryDatabase(updateUserQuery, [hashedToken, tokenExpiry, email]);
 
-      const updateUserQuery = `
-          UPDATE [registration] SET reset_token = ?, reset_token_expiry = ?
-          WHERE LOWER(email) = LOWER(?)
-        `;
-
-      sql.query(
-        connectionString,
-        updateUserQuery,
-        [hashedToken, tokenExpiry, email],
-        async (err, result) => {
-          if (err) {
-            console.error("Error updating user with reset token:", err);
-            return res.status(500).json({ msg: "Server Error" });
-          }
-
-          const transporter = nodemailer.createTransport({
-            service: "Gmail",
-            auth: {
-              user: "lazerxd002@gmail.com",
-              pass: "oggv xfco evnc uhwv",
-            },
-          });
-
-          const mailOptions = {
-            from: "lazerxd002@gmail.com",
-            to: email,
-            subject: "Password Reset",
-            text: `You requested a password reset. Click this link to reset your password: http://localhost:3000/reset-password/${resetToken}`,
-          };
-
-          await transporter.sendMail(mailOptions);
-
-          return res.status(200).json({ msg: "Password reset email sent" });
-        }
-      );
+    const transporter = nodemailer.createTransport({
+      service: "Gmail",
+      auth: {
+        user: "lazerxd002@gmail.com",
+        pass: "oggv xfco evnc uhwv", // Consider using environment variables for sensitive data
+      },
     });
+
+    const mailOptions = {
+      from: "lazerxd002@gmail.com",
+      to: email,
+      subject: "Password Reset",
+      text: `You requested a password reset. Click this link to reset your password: http://localhost:3000/reset-password/${resetToken}`,
+    };
+
+    await transporter.sendMail(mailOptions);
+
+    return res.status(200).json({ msg: "Password reset email sent" });
   } catch (error) {
     console.error("Server error:", error);
     return res.status(500).json({ msg: "Server Error" });
   }
 });
+
 
 router.post("/reset-password", async (req, res) => {
   try {
-    console.log("✌️ req.body --->", req.body);
     const { token, newPassword } = req.body;
 
     const checkUserQuery = `
-        SELECT email, reset_token, reset_token_expiry 
-        FROM [registration] 
-        WHERE reset_token IS NOT NULL
-      `;
+      SELECT email, reset_token, reset_token_expiry 
+      FROM [registration] 
+      WHERE reset_token IS NOT NULL
+    `;
+    const users = await queryDatabase(checkUserQuery);
 
-    sql.query(connectionString, checkUserQuery, async (err, user) => {
-      if (err) {
-        console.error("Error executing query:", err);
-        return res.status(500).json({ msg: "Server Error" });
-      }
+    if (!users || users.length === 0) {
+      return res.status(404).json({ msg: "User not found" });
+    }
 
-      if (!user || user.length === 0) {
-        return res.status(404).json({ msg: "User not found" });
-      }
+    const user = users[0];
+    const hashedToken = user.reset_token;
+    const tokenExpiry = new Date(user.reset_token_expiry);
 
-      const hashedToken = user[0].reset_token;
-      const tokenExpiry = new Date(user[0].reset_token_expiry);
+    if (Date.now() > tokenExpiry) {
+      return res.status(400).json({ msg: "Token has expired" });
+    }
 
-      if (Date.now() > tokenExpiry) {
-        return res.status(400).json({ msg: "Token has expired" });
-      }
+    const isMatch = await bcrypt.compare(token, hashedToken);
+    if (!isMatch) {
+      return res.status(401).json({ msg: "Invalid token" });
+    }
 
-      const isMatch = await bcrypt.compare(token, hashedToken);
-      if (!isMatch) {
-        return res.status(401).json({ msg: "Invalid token" });
-      }
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
 
-      const hashedPassword = await bcrypt.hash(newPassword, 10);
-      const updatePasswordQuery = `
-          UPDATE [registration] 
-          SET password_hash = ?, reset_token = NULL, reset_token_expiry = NULL 
-          WHERE LOWER(email) = LOWER(?)
-        `;
+    const updatePasswordQuery = `
+      UPDATE [registration] 
+      SET password_hash = ?, reset_token = NULL, reset_token_expiry = NULL 
+      WHERE LOWER(email) = LOWER(?)
+    `;
+    await queryDatabase(updatePasswordQuery, [hashedPassword, user.email]);
 
-      sql.query(
-        connectionString,
-        updatePasswordQuery,
-        [hashedPassword, user[0].email],
-        (err, result) => {
-          if (err) {
-            console.error("Error updating password:", err);
-            return res.status(500).json({ msg: "Server Error" });
-          }
-
-          return res.status(200).json({ msg: "Password reset successfully" });
-        }
-      );
-    });
+    return res.status(200).json({ msg: "Password reset successfully" });
   } catch (error) {
     console.error("Server error:", error);
     return res.status(500).json({ msg: "Server Error" });
   }
 });
+
 
 // insurance
 
@@ -396,29 +333,26 @@ router.get("/insurance", authMiddleware, async (req, res) => {
         maturity_amount,
         nominee_name,
         nominee_relation,
-        status
+        status,document
       FROM insurance_policy
       WHERE user_id = ?
       ORDER BY policy_id DESC
     `;
-
   try {
     const policies = await queryDatabase(fetchPoliciesQuery, [user_id]);
     console.log("✌️policies --->", policies);
 
-    if (policies.length === 0) {
-      return res.status(404).json({ msg: "No insurance policies found" });
-    }
 
     res.status(200).json({
       policies,
       msg: "Insurance policies retrieved successfully",
     });
   } catch (err) {
-    console.error("Error fetching insurance policies:", err);
+    console.error("Error fetching insurance policies:-", err);
     res.status(500).json({ msg: "Server Error" });
   }
 });
+
 
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
@@ -436,140 +370,118 @@ router.post(
   authMiddleware,
   upload.single("document"),
   async (req, res) => {
-    const {
-      policyName,
-      policyNumber,
-      provider,
-      policyType,
-      policyPeriod,
-      premiumAmount,
-      coverageLimit,
-      maturityAmount,
-      nomineeName,
-      nomineeRelation,
-    } = req.body;
+    try {
+      const {
+        policyName,
+        policyNumber,
+        provider,
+        policyType,
+        policyPeriod,
+        premiumAmount,
+        coverageLimit,
+        maturityAmount,
+        nomineeName,
+        nomineeRelation,
+      } = req.body;
 
-    const user_id = req.user_id;
+      const user_id = req.user_id;
 
-    const parsedPremiumAmount = parseFloat(premiumAmount);
-    const parsedCoverageLimit = parseFloat(coverageLimit);
-    const parsedMaturityAmount = parseFloat(maturityAmount);
+      const parsedPremiumAmount = parseFloat(premiumAmount);
+      const parsedCoverageLimit = parseFloat(coverageLimit);
+      const parsedMaturityAmount = parseFloat(maturityAmount);
 
-    const finalNomineeName = nomineeName.trim() === "" ? null : nomineeName;
-    const finalNomineeRelation =
-      nomineeRelation.trim() === "" ? null : nomineeRelation;
+      const finalNomineeName = nomineeName?.trim() || null;
+      const finalNomineeRelation = nomineeRelation?.trim() || null;
 
-    let documentData = null;
-    if (req.file) {
-      try {
-        documentData = fs.readFileSync(req.file.path);
-      } catch (err) {
-        console.error("Error reading file:", err);
-        return res.status(500).json({ msg: "Error reading document file" });
+      let documentData = null;
+      if (req.file) {
+        try {
+          documentData = fs.readFileSync(req.file.path);
+        } catch (err) {
+          console.error("Error reading file:", err);
+          return res.status(500).json({ msg: "Error reading document file" });
+        }
       }
-    }
 
-    // Check if a policy with the same policy number and user_id already exists
-    const checkPolicyQuery = `
+      // Check if a policy with the same policy number and user_id already exists
+      const checkPolicyQuery = `
         SELECT * FROM insurance_policy WHERE policy_number = ? AND user_id = ?
       `;
+      const existingPolicy = await queryDatabase(checkPolicyQuery, [
+        policyNumber,
+        user_id,
+      ]);
 
-    sql.query(
-      connectionString,
-      checkPolicyQuery,
-      [policyNumber, user_id],
-      (err, result) => {
-        if (err) {
-          console.error("Error checking existing policy:", err);
-          return res.status(500).json({ msg: "Server Error" });
-        }
+      if (existingPolicy.length > 0) {
+        // Update existing policy
+        const updatePolicyQuery = `
+          UPDATE insurance_policy 
+          SET 
+            policy_name = ?, 
+            policy_type = ?, 
+            provider = ?, 
+            policy_period = ?, 
+            premium_amount = ?, 
+            coverage_limit = ?, 
+            maturity_amount = ?, 
+            nominee_name = ?, 
+            nominee_relation = ?, 
+            document = ?
+          WHERE policy_number = ? AND user_id = ?
+        `;
 
-        if (result.length > 0) {
-          // If the policy exists, update it
-          const updatePolicyQuery = `
-            UPDATE insurance_policy 
-            SET 
-              policy_name = ?, 
-              policy_type = ?, 
-              provider = ?, 
-              policy_period = ?, 
-              premium_amount = ?, 
-              coverage_limit = ?, 
-              maturity_amount = ?, 
-              nominee_name = ?, 
-              nominee_relation = ?, 
-              document = ?
-            WHERE policy_number = ? AND user_id = ?
-          `;
+        await queryDatabase(updatePolicyQuery, [
+          policyName,
+          policyType,
+          provider,
+          policyPeriod,
+          parsedPremiumAmount,
+          parsedCoverageLimit,
+          parsedMaturityAmount,
+          finalNomineeName,
+          finalNomineeRelation,
+          documentData || existingPolicy[0].document, // Retain the previous document if no new file is uploaded
+          policyNumber,
+          user_id,
+        ]);
 
-          sql.query(
-            connectionString,
-            updatePolicyQuery,
-            [
-              policyName,
-              policyType,
-              provider,
-              policyPeriod,
-              parsedPremiumAmount,
-              parsedCoverageLimit,
-              parsedMaturityAmount,
-              finalNomineeName,
-              finalNomineeRelation,
-              documentData || result[0].document, // Retain the previous document if no new file is uploaded
-              policyNumber,
-              user_id,
-            ],
-            (err, result) => {
-              if (err) {
-                console.error("Error updating insurance policy:", err);
-                return res.status(500).json({ msg: "Server Error" });
-              }
-              res
-                .status(200)
-                .json({ msg: "Insurance policy updated successfully" });
-            }
-          );
-        } else {
-          // If the policy does not exist, insert a new one
-          const insertPolicyQuery = `
-            INSERT INTO insurance_policy (
-              user_id, policy_number, policy_name, policy_type, provider, 
-              policy_period, premium_amount, coverage_limit, maturity_amount, 
-              nominee_name, nominee_relation, status, document
-            )
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'Active', ?)
-          `;
+        return res.status(200).json({
+          msg: "Insurance policy updated successfully",
+        });
+      } else {
+        // Insert new policy
+        const insertPolicyQuery = `
+          INSERT INTO insurance_policy (
+            user_id, policy_number, policy_name, policy_type, provider, 
+            policy_period, premium_amount, coverage_limit, maturity_amount, 
+            nominee_name, nominee_relation, status, document
+          )
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'Active', ?)
+        `;
 
-          sql.query(
-            connectionString,
-            insertPolicyQuery,
-            [
-              user_id,
-              policyNumber,
-              policyName,
-              policyType,
-              provider,
-              policyPeriod,
-              parsedPremiumAmount,
-              parsedCoverageLimit,
-              parsedMaturityAmount,
-              finalNomineeName,
-              finalNomineeRelation,
-              documentData, // Insert the file as binary data
-            ],
-            (err, result) => {
-              if (err) {
-                console.error("Error inserting insurance policy:", err);
-                return res.status(500).json({ msg: "Server Error" });
-              }
-              res
-                .status(201)
-                .json({ msg: "Insurance policy added successfully" });
-            }
-          );
-        }
+        await queryDatabase(insertPolicyQuery, [
+          user_id,
+          policyNumber,
+          policyName,
+          policyType,
+          provider,
+          policyPeriod,
+          parsedPremiumAmount,
+          parsedCoverageLimit,
+          parsedMaturityAmount,
+          finalNomineeName,
+          finalNomineeRelation,
+          documentData,
+        ]);
+
+        return res.status(201).json({
+          msg: "Insurance policy added successfully",
+        });
       }
-    );
+    } catch (error) {
+      console.error("Error processing insurance request:", error);
+      res.status(500).json({ msg: "Server Error" });
+    }
   }
 );
 
@@ -589,6 +501,7 @@ router.get("/deposits", authMiddleware, async (req, res) => {
         interest_rate,
         maturity_amount,
         status,
+        document,
         created_at,
         updated_at
       FROM fixed_deposit
@@ -599,11 +512,7 @@ router.get("/deposits", authMiddleware, async (req, res) => {
   try {
     const deposits = await queryDatabase(fetchDepositsQuery, [user_id]);
 
-    console.log("✌️deposits --->", deposits); // Log for debugging
-
-    if (deposits.length === 0) {
-      return res.status(404).json({ msg: "No deposits found" });
-    }
+ 
 
     // Return the deposits to the client
     res.status(200).json({
@@ -615,7 +524,6 @@ router.get("/deposits", authMiddleware, async (req, res) => {
     res.status(500).json({ msg: "Server Error" });
   }
 });
-
 const deposits_storage = multer.diskStorage({
   destination: function (req, file, cb) {
     cb(null, "uploads/deposits");
@@ -638,18 +546,10 @@ router.post(
   authMiddleware,
   deposits_upload.single("document"),
   async (req, res) => {
-    console.log("✌️req.body fffff--->", req.body);
     try {
       const {
-        depositId, // Assuming you are passing depositId to check for update
-        depositType,
-        depositName,
-        accountNumber,
-        bankName,
-        depositTerm,
-        depositAmount,
-        interestRate,
-        maturityAmount,
+        depositId, depositType, depositName, accountNumber, bankName,
+        depositTerm, depositAmount, interestRate, maturityAmount,
       } = req.body;
 
       let documentData = null;
@@ -662,7 +562,6 @@ router.post(
         }
       }
 
-      // If no document is provided, handle it as per your requirement
       if (!documentData) {
         return res.status(400).json({ msg: "No document data to upload" });
       }
@@ -672,100 +571,44 @@ router.post(
       const interestRateParsed = parseFloat(interestRate);
       const maturityAmountParsed = parseFloat(maturityAmount);
 
-      // Check if the deposit already exists for this user
       const checkDepositQuery = `
-          SELECT * FROM fixed_deposit WHERE user_id = ? AND deposit_id = ?
+        SELECT * FROM fixed_deposit WHERE user_id = ? AND deposit_id = ?
+      `;
+      const depositExists = await queryDatabase(checkDepositQuery, [user_id, depositId]);
+
+      if (depositExists.length > 0) {
+        const updateDepositQuery = `
+          UPDATE fixed_deposit SET 
+            deposit_type = ?, deposit_name = ?, account_number = ?, bank_name = ?, deposit_term = ?, 
+            deposit_amount = ?, interest_rate = ?, maturity_amount = ?, document = ?
+          WHERE user_id = ? AND deposit_id = ?
         `;
-
-      sql.query(
-        connectionString,
-        checkDepositQuery,
-        [user_id, depositId],
-        (err, result) => {
-          if (err) {
-            console.error("Error checking deposit existence:", err);
-            return res.status(500).json({ msg: "Error checking deposit" });
-          }
-
-          if (result.length > 0) {
-            // If deposit exists, update the deposit data
-            const updateDepositQuery = `
-                UPDATE fixed_deposit SET 
-                  deposit_type = ?, deposit_name = ?, account_number = ?, bank_name = ?, deposit_term = ?, 
-                  deposit_amount = ?, interest_rate = ?, maturity_amount = ?, document = ? 
-                WHERE user_id = ? AND deposit_id = ?
-              `;
-
-            sql.query(
-              connectionString,
-              updateDepositQuery,
-              [
-                depositType,
-                depositName,
-                accountNumber,
-                bankName,
-                depositTerm,
-                depositAmountParsed,
-                interestRateParsed,
-                maturityAmountParsed,
-                documentData,
-                user_id,
-                depositId, // depositId to identify which deposit to update
-              ],
-              (err, result) => {
-                if (err) {
-                  console.error("Error updating deposit data:", err);
-                  return res.status(500).json({ msg: "Server Error" });
-                }
-                res
-                  .status(200)
-                  .json({ msg: "Deposit details updated successfully" });
-              }
-            );
-          } else {
-            // If deposit does not exist, insert new deposit data
-            const insertDepositQuery = `
-                INSERT INTO fixed_deposit (
-                  user_id, deposit_type, deposit_name, account_number, bank_name, deposit_term,
-                  deposit_amount, interest_rate, maturity_amount, document
-                )
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-              `;
-
-            sql.query(
-              connectionString,
-              insertDepositQuery,
-              [
-                user_id,
-                depositType,
-                depositName,
-                accountNumber,
-                bankName,
-                depositTerm,
-                depositAmountParsed,
-                interestRateParsed,
-                maturityAmountParsed,
-                documentData,
-              ],
-              (err, result) => {
-                if (err) {
-                  console.error("Error inserting deposit data:", err);
-                  return res.status(500).json({ msg: "Server Error" });
-                }
-                res
-                  .status(201)
-                  .json({ msg: "Deposit details added successfully" });
-              }
-            );
-          }
-        }
-      );
+        await queryDatabase(updateDepositQuery, [
+          depositType, depositName, accountNumber, bankName, depositTerm, depositAmountParsed, 
+          interestRateParsed, maturityAmountParsed, documentData, user_id, depositId
+        ]);
+        return res.status(200).json({ msg: "Deposit details updated successfully" });
+      } else {
+        const insertDepositQuery = `
+          INSERT INTO fixed_deposit (
+            user_id, deposit_type, deposit_name, account_number, bank_name, deposit_term,
+            deposit_amount, interest_rate, maturity_amount, document
+          )
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        `;
+        await queryDatabase(insertDepositQuery, [
+          user_id, depositType, depositName, accountNumber, bankName, depositTerm,
+          depositAmountParsed, interestRateParsed, maturityAmountParsed, documentData
+        ]);
+        return res.status(201).json({ msg: "Deposit details added successfully" });
+      }
     } catch (error) {
       console.error("Error processing deposit details:", error);
       res.status(500).json({ msg: "Error processing deposit details" });
     }
   }
 );
+
 
 router.get("/recurring_deposits", authMiddleware, async (req, res) => {
   const user_id = req.user_id; // Get the user ID from the authenticated user
@@ -795,9 +638,7 @@ router.get("/recurring_deposits", authMiddleware, async (req, res) => {
     // Using the queryDatabase function to execute the query
     const deposits = await queryDatabase(fetchDepositsQuery, [user_id]);
 
-    if (deposits.length === 0) {
-      return res.status(404).json({ msg: "No recurring deposits found" });
-    }
+ 
 
     res.status(200).json({
       deposits,
@@ -809,103 +650,6 @@ router.get("/recurring_deposits", authMiddleware, async (req, res) => {
   }
 });
 
-// router.post("/recurring_deposits", authMiddleware, async (req, res) => {
-//   console.log("✌️ req.bodyssss --->", req.body);
-//   const { deposits, beneficiaries } = req.body; // Array of deposits
-//   const user_id = req.user_id; // Authenticated user ID
-//   const beneficiariesString = beneficiaries.join(',');
-
-//   try {
-//     for (const deposit of deposits) {
-//       // Check if a deposit with the given user_id exists
-//       const checkDepositQuery = `
-//         SELECT id
-//         FROM [dbo].[recurring_deposit]
-//         WHERE user_id = ? AND rd_number = ?
-//       `;
-
-//       const existingDepositResult = await queryDatabase(checkDepositQuery, [
-//         user_id,
-//         deposit.rdNumber,
-//       ]);
-
-//       if (existingDepositResult.length > 0) {
-//         // If deposit exists, update the record
-//         const updateDepositQuery = `
-//           UPDATE [dbo].[recurring_deposit]
-//           SET
-//             beneficiarie_user = ?,
-//             monthly_deposit_amount = ?,
-//             interest_rate = ?,
-//             start_date = ?,
-//             maturity_date = ?,
-//             maturity_amount = ?,
-//             bank_name = ?,
-//             status = ?,
-//             updated_at = GETDATE()
-//           WHERE id = ?
-//         `;
-
-//         await queryDatabase(updateDepositQuery, [
-//           beneficiariesString || null,
-//           deposit.depositAmount,
-//           deposit.interestRate,
-//           deposit.startDate,
-//           deposit.maturityDate,
-//           deposit.maturityAmount,
-//           deposit.bankName,
-//           deposit.status || "Active", // Default status if not provided
-//           existingDepositResult[0].id, // Use the existing deposit ID
-//         ]);
-
-//         console.log("Updated Recurring Deposit ID:", existingDepositResult[0].id);
-//       } else {
-//         // If no existing deposit, insert a new one
-//         const insertDepositQuery = `
-//           INSERT INTO [dbo].[recurring_deposit] (
-//             user_id,
-//             beneficiarie_user,
-//             rd_number,
-//             monthly_deposit_amount,
-//             interest_rate,
-//             start_date,
-//             maturity_date,
-//             maturity_amount,
-//             bank_name,
-//             status,
-//             created_at,
-//             updated_at
-//           )
-//           OUTPUT INSERTED.id
-//           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, GETDATE(), GETDATE())
-//         `;
-
-//         const insertDepositResult = await queryDatabase(insertDepositQuery, [
-//           user_id,
-//           beneficiariesString || null, // Nullable field
-//           deposit.rdNumber,
-//           deposit.depositAmount,
-//           deposit.interestRate,
-//           deposit.startDate,
-//           deposit.maturityDate,
-//           deposit.maturityAmount,
-//           deposit.bankName,
-//           deposit.status || "Active", // Default status if not provided
-//         ]);
-
-//         const rd_id = insertDepositResult[0].id;
-//         console.log("Inserted Recurring Deposit ID:", rd_id);
-//       }
-//     }
-
-//     res.status(201).json({
-//       msg: "Recurring deposits added/updated successfully!",
-//     });
-//   } catch (error) {
-//     console.error("Error:", error);
-//     res.status(500).json({ msg: "Server error." });
-//   }
-// });
 
 router.post("/recurring_deposits", authMiddleware, async (req, res) => {
   console.log("✌️ req.bodyssss --->", req.body);
@@ -1044,10 +788,7 @@ router.get("/properties", authMiddleware, async (req, res) => {
     // Using the queryDatabase function to execute the query
     const properties = await queryDatabase(fetchPropertiesQuery, [user_id]);
 
-    if (properties.length === 0) {
-      return res.status(404).json({ msg: "No properties found" });
-    }
-
+  
     res.status(200).json({
       properties,
       msg: "Properties retrieved successfully",
