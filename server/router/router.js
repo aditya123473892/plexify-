@@ -1092,28 +1092,17 @@ router.post(
   async (req, res) => {
     try {
       console.log("✌️req.body --->", req.body);
+      console.log("✌️req.file --->", req.file); // Check the uploaded file
 
       const bonds = JSON.parse(req.body.bonds);
       const beneficiaries = JSON.parse(req.body.beneficiaries);
-
       const user_id = req.user_id;
 
       if (!Array.isArray(beneficiaries)) {
-        return res
-          .status(400)
-          .json({ msg: "Beneficiaries should be an array of user IDs." });
+        return res.status(400).json({ msg: "Beneficiaries should be an array of user IDs." });
       }
 
-      const beneficiariesString = beneficiaries
-        .map((id) => Number(id))
-        .join(",");
-
-      const insertBondQuery = `
-            INSERT INTO [dbo].[bond] (
-              user_id, beneficiarie_user, issuer, bond_type, maturity_date, face_value, interest_rate, market_value, document
-            )
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);
-          `;
+      const beneficiariesString = beneficiaries.map((id) => Number(id)).join(",");
 
       let documentData = null;
       if (req.file) {
@@ -1121,61 +1110,100 @@ router.post(
         console.log("Document Data Buffer:", documentData);
       }
 
+      // Iterate over bonds and process each one
       for (let bond of bonds) {
         const {
           issuer,
-          type: bondType,
+         
+          bondType,
           maturityDate,
           faceValue,
           interestRate,
           marketValue,
+          description
         } = bond;
-
+console.log(bondType,'bondType')
         const issuerValidated = String(issuer || "");
         const bondTypeValidated = String(bondType || "");
-        const maturityDateValidated = maturityDate
-          ? new Date(maturityDate)
-          : null;
+        const maturityDateValidated = maturityDate ? new Date(maturityDate) : null;
         const faceValueValidated = Number(faceValue || 0);
         const interestRateValidated = Number(interestRate || 0);
         const marketValueValidated = Number(marketValue || 0);
 
-        console.log("Values being inserted:");
-        console.log({
+        const checkBondQuery = `
+          SELECT id, beneficiarie_user
+          FROM [dbo].[bond]
+          WHERE user_id = ? AND issuer = ? AND bond_type = ?;
+        `;
+        const existingBondResult = await queryDatabase(checkBondQuery, [
           user_id,
-          beneficiariesString,
           issuerValidated,
           bondTypeValidated,
-          maturityDateValidated,
-          faceValueValidated,
-          interestRateValidated,
-          marketValueValidated,
-          documentType: documentData ? typeof documentData : null,
-        });
-
-        await queryDatabase(insertBondQuery, [
-          user_id,
-          beneficiariesString,
-          issuerValidated,
-          bondTypeValidated,
-          maturityDateValidated,
-          faceValueValidated,
-          interestRateValidated,
-          marketValueValidated,
-          documentData, // This should be a Buffer or null
         ]);
+
+        if (existingBondResult.length > 0) {
+          // Bond exists - Update record
+          console.log(`Updating bond for issuer: ${issuerValidated}`);
+          const existingBeneficiaries = existingBondResult[0].beneficiarie_user || "";
+          const updatedBeneficiaries = existingBeneficiaries
+            ? `${existingBeneficiaries},${beneficiariesString}`
+            : beneficiariesString;
+
+          const updateBondQuery = `
+            UPDATE [dbo].[bond]
+            SET 
+              maturity_date = ?, 
+              face_value = ?, 
+              interest_rate = ?, 
+              market_value = ?, 
+              beneficiarie_user = ?, 
+              document = ?,
+              description = ?
+            WHERE user_id = ? AND issuer = ? AND bond_type = ?;
+          `;
+          await queryDatabase(updateBondQuery, [
+            maturityDateValidated,
+            faceValueValidated,
+            interestRateValidated,
+            marketValueValidated,
+            updatedBeneficiaries,
+            documentData,  // Pass the file buffer
+            description,
+            user_id,
+            issuerValidated,
+            bondTypeValidated,
+          ]);
+        } else {
+          // Bond does not exist - Insert new record
+          console.log(`Inserting new bond for issuer: ${issuerValidated}`);
+          const insertBondQuery = `
+            INSERT INTO [dbo].[bond] (
+              user_id, beneficiarie_user, issuer, bond_type, maturity_date, face_value, interest_rate, market_value, document, description
+            )
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+          `;
+          await queryDatabase(insertBondQuery, [
+            user_id,
+            beneficiariesString,
+            issuerValidated,
+            bondTypeValidated,
+            maturityDateValidated,
+            faceValueValidated,
+            interestRateValidated,
+            marketValueValidated,
+            documentData,  // Pass the file buffer
+            description,
+          ]);
+        }
       }
 
-      res
-        .status(201)
-        .json({ msg: "Bonds added successfully with beneficiaries!" });
+      res.status(201).json({ msg: "Bonds added or updated successfully with beneficiaries!" });
     } catch (error) {
       console.error("Error:", error);
       res.status(500).json({ msg: "Server error." });
     }
   }
 );
-
 router.get("/mutual-funds", authMiddleware, async (req, res) => {
   const user_id = req.user_id; // Get the user ID from the authenticated user
 
