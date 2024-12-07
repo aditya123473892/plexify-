@@ -41,7 +41,7 @@ const StockManagement = () => {
             "Content-Type": "application/json",
           },
         });
-  
+  console.log(response.data.stocks,'response.data.stocks')
         if (response.data.stocks && response.data.stocks.length > 0) {
           const formattedStocks = response.data.stocks.map((stock) => ({
             symbol: stock.symbol || "",
@@ -185,7 +185,7 @@ const StockManagement = () => {
 
   // Flatten and deduplicate the beneficiary IDs across all deposits
 const uniqueBeneficiaryIds = Array.from(
-  new Set(stocks.flatMap((deposit) => deposit.beneficiaryUser.split(",")))
+  new Set(stocks.flatMap((deposit) =>  deposit.beneficiaryUser ? deposit.beneficiaryUser.split(",") : []))
 );
   return (
     <div className="min-h-screen shadow-2xl bg-white p-6 rounded-lg md:mt-10 mt-20">
@@ -346,8 +346,7 @@ const uniqueBeneficiaryIds = Array.from(
 
 
 
-<div className="border p-4 rounded-lg mt-4 shadow-md bg-gray-50">
-  <h4 className="font-semibold text-lg mb-4">Selected Beneficiaries:</h4>
+<div className=" p-4 rounded-lg mt-4  bg-gray-50">
   
   <div className="flex flex-col space-y-4">
     {uniqueBeneficiaryIds.map((id) => {
@@ -404,9 +403,7 @@ const uniqueBeneficiaryIds = Array.from(
           />
         </FieldSection>
       ) : (
-        <p key={id} className="text-red-500">
-          Beneficiary with ID {id} not found.
-        </p>
+       ''
       );
     })}
   </div>

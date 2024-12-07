@@ -25,6 +25,8 @@ import { RiMoneyRupeeCircleFill, RiRefund2Fill } from "react-icons/ri";
 import "../assets/css/Sidebar.css";
 import styled from "styled-components";
 import wealthlogo from "../assets/images/Picture_1.png";
+import logo from "../assets/images/loger.png";
+
 import { GiBank } from "react-icons/gi";
 import { SiCryptpad, SiFormstack, SiOpensearch } from "react-icons/si";
 
@@ -391,52 +393,72 @@ function Sidebar() {
       <NavbarContainer
         isOpen={isOpen}
         sidebarWidth={sidebarWidth}
-        className="flex items-center justify-between bg-[#548831] text-white  px-6 py-4 shadow-md"
+        className="flex items-center justify-between bg-[#548831] text-white px-6 py-4 shadow-md"
       >
-        {/* Logo Section */}
-        <div className="flex items-center space-x-3">
-          <img src={wealthlogo} alt="Wealth Logo" className=" size-10" />
-          <p className="text-lg font-medium">Manage, Grow, Pass On</p>
+        <div className="flex justify-center">
+          <img
+            src={logo}
+            alt="Main Logo"
+            style={{
+              width: "170px",
+              height: "90px",
+            }}
+          />
         </div>
 
         {/* Text Section */}
-        <div className="text-center">
-          <h2 className="text-2xl md:text-4xl font-bold text-[#daa431]">
-            Manage Grow Inherit
-          </h2>
-          <p className="text1 text-sm md:text-base">
-            चिंतामुक्त भविष्य, विरासत का सुखद सफर
-          </p>
+        <div className="flex items-center justify-center space-x-4">
+          {/* Logo Section */}
+          <img
+            src={wealthlogo}
+            alt="Wealth Logo"
+            style={{
+              width: "64px", // Adjusted logo width
+              height: "64px", // Adjusted logo height
+              objectFit: "contain", // Maintain aspect ratio
+            }}
+          />
+
+          {/* Text Section */}
+          <div className="text-left">
+            <h2 className="text-2xl md:text-4xl font-bold text-[#daa431]">
+              Manage Grow Inherit
+            </h2>
+            <p className="text1 text-sm md:text-base">
+              चिंतामुक्त भविष्य, विरासत का सुखद सफर
+            </p>
+          </div>
         </div>
       </NavbarContainer>
     </div>
   );
 }
 const NavbarContainer = styled.nav`
-  background-color: #446b2b; /* Green color */
+  background-color: #446b2b;
   padding: 1rem;
-  display: flex !important;
+  display: flex;
   justify-content: space-between;
   align-items: center;
   color: white;
   position: fixed;
   top: 0;
   left: ${({ isOpen, sidebarWidth }) =>
-    isOpen ? `${sidebarWidth - 6}px` : "58px"}; /* Reduced by 6px */
+    isOpen ? `${sidebarWidth - 6}px` : "64px"};
   width: calc(
     100% -
       ${({ isOpen, sidebarWidth }) =>
-        isOpen ? `${sidebarWidth - 6}px` : "58px"} - 16px
-  ); /* Subtract scrollbar width */
+        isOpen ? `${sidebarWidth - 6}px` : "64px"}
+  );
+  height: 80px;
   transition: all 0.3s ease;
-  z-index: 1000;
 
   @media (max-width: 1200px) {
-    left: 0; /* Reset to full width on smaller screens */
-    width: 100%; /* Navbar takes full width on smaller screens */
+    left: 0;
+    width: 100%;
+    height: 70px;
 
     .text1 {
-      display: none; /* Hide text1 class */
+      display: none;
     }
   }
 `;

@@ -8,6 +8,7 @@ import {
   FaPlus,
   FaFileUpload,
   FaCheckCircle,
+  FaEye
 } from "react-icons/fa";
 import InputWithIcon from "../Components/InputWithIcon";
 import FieldSection from "../Components/FieldSection";
@@ -37,15 +38,21 @@ const NPSManagement = () => {
         });
 
         if (response.data.npsDetails && response.data.npsDetails.length > 0) {
-          // If NPS details are fetched, format them properly
-          const formattedNpsDetails = response.data.npsDetails.map((nps) => ({
+       
+          const formattedNpsDetails = response.data.npsDetails.map((nps) => {
+            const documentBlob = nps.document
+            ? new Blob([new Uint8Array(nps.document.data)], { type: "application/pdf" })
+            : null;
+        return{
             name: nps.name || "",
             phone: nps.phone || "",
             email: nps.email || "",
             npsNumber: nps.nps_number || "",
             contribution: nps.contribution || "",
             nominee: nps.nominee || "",
-          }));
+            document: setUploadedFile(documentBlob),
+        }
+          });
           setNpsDetails(formattedNpsDetails);
         } else {
           // If no NPS details are found, initialize with empty data
@@ -56,6 +63,7 @@ const NPSManagement = () => {
             npsNumber: "",
             contribution: "",
             nominee: "",
+            document: null,
           }]);
         }
       } catch (error) {
@@ -78,7 +86,11 @@ const NPSManagement = () => {
   };
 
   const handleFileChange = (e) => {
-    setUploadedFile(e.target.files[0]);
+    const { files } = e.target;
+    if (files && files[0]) {
+      setUploadedFile(files[0]); // Update the single document
+      console.log("Uploaded document:", files[0]);
+    }
   };
 
   const handleSubmit = async () => {
@@ -175,13 +187,38 @@ const NPSManagement = () => {
 
       <Section title="Document Upload">
         <div className="flex items-center border-l-2 border-[#538d2dfd] rounded-md shadow-lg mb-4">
-          <FaFileUpload className="text-[#538d2dfd] mx-2" />
+          
           <input
             type="file"
+              name="document"
+    accept="application/pdf"
             className="border-0 rounded-md p-3 w-full bg-transparent"
             onChange={handleFileChange}
           />
         </div>
+
+        {uploadedFile ? (
+    <div className="mt-4 flex items-center space-x-4">
+      <a
+        href={URL.createObjectURL(uploadedFile)}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="bg-[#538d2dfd] text-white p-2 rounded-md shadow-md hover:bg-[#4c7033fd] inline-flex items-center"
+      >
+        <FaEye className="mr-2" />
+        View Uploaded File
+      </a>
+      <button
+        onClick={() => setUploadedFile(null)} // Remove the document
+        className="text-red-500 hover:text-red-700 underline"
+      >
+        Remove File
+      </button>
+    </div>
+  ) : (
+    <p className="text-gray-500 mt-2">No document uploaded. Please upload one.</p>
+  )}
+
       </Section>
 
       <button

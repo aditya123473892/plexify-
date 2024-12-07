@@ -1,10 +1,11 @@
 import React, { useState, useContext, useEffect } from "react";
-import { FaClipboard, FaTag, FaCalendar, FaDollarSign } from "react-icons/fa";
+import { FaClipboard, FaTag, FaCalendar, FaDollarSign,FaEye } from "react-icons/fa";
 import InputWithIcon from "../Components/InputWithIcon";
 import Section from "../Components/Section";
 import axios from "axios";
 import { AuthContext } from "../Contexts/Context";
 import { toast, ToastContainer } from "react-toastify";
+import { Link } from "react-router-dom";
 
 const ManageDeposits = () => {
   const { API, token } = useContext(AuthContext);
@@ -26,12 +27,14 @@ const ManageDeposits = () => {
 
         if (response.data && response.data.deposits && response.data.deposits.length > 0) {
           const deposit = response.data.deposits[0];
-console.log('✌️deposit --->', deposit);
+          const documentBlob = deposit.document
+          ? new Blob([new Uint8Array(deposit.document.data)], { type: "application/pdf" }) 
+          : null;
 
 
           setDepositDetails({
             depositId: deposit.deposit_id || "",
-            depositType: deposit.deposit_type || "Fixed Deposit",
+            depositType: deposit.deposit_type || "",
             depositName: deposit.deposit_name || "",
             accountNumber: deposit.account_number || "",
             bankName: deposit.bank_name || "",
@@ -39,7 +42,23 @@ console.log('✌️deposit --->', deposit);
             depositAmount: deposit.deposit_amount || "",
             interestRate: deposit.interest_rate || "",
             maturityAmount: deposit.maturity_amount || "",
+            document:documentBlob,
           });
+          setIsEditMode(false);
+        }else{
+          setDepositDetails({
+            depositId:  "",
+            depositType: "Fixed Deposit",
+            depositName:  "",
+            accountNumber:  "",
+            bankName:"",
+            depositTerm: "",
+            depositAmount: "",
+            interestRate:"",
+            maturityAmount: "",
+            document:null,
+          });
+          setIsEditMode(true);
         }
         setIsLoading(false); // Set loading to false after data is fetched
       } catch (error) {
@@ -76,9 +95,15 @@ console.log('✌️deposit --->', deposit);
     }
   };
 
-  const handleFileChange = (e) => {
-    setFile(e.target.files[0]);
-  };
+ const handleFileChange = (e) => {
+    const { files } = e.target;
+    if (files && files[0]) {
+      setDepositDetails((prevData) => ({
+        ...prevData,
+        document: files[0], 
+      }));
+    }
+  }
 
   const handleSubmit = async () => {
     // Validation check
@@ -87,10 +112,7 @@ console.log('✌️deposit --->', deposit);
       return;
     }
 
-    if (!file) {
-      toast.error("Please upload a deposit document.");
-      return;
-    }
+  
 
     setLoading(true); // Start loading
 
@@ -100,8 +122,8 @@ console.log('✌️deposit --->', deposit);
         formDataToSend.append(key, depositDetails[key]);
       }
     });
-    formDataToSend.append("document", file); // Append the file correctly
-
+    formDataToSend.append("document", depositDetails.document); // Append the file correctly
+console.log(formDataToSend,'formDataToSend')
     try {
       const response = await axios.post(`${API}/deposits`, formDataToSend, {
         headers: {
@@ -216,32 +238,52 @@ console.log('✌️deposit --->', deposit);
             </div>
           </Section>
 
-          <section className="mb-10 border-l-2 border-[#538d2dfd] p-6 rounded-lg shadow">
-            <h2 className="text-xl font-semibold mb-4">Document Upload</h2>
+<Section title="Upload Document" className="mb-10">
+  <input
+    type="file"
+    name="document"
+    accept="application/pdf"
+    onChange={handleFileChange}
+    className="border-l-2 border-[#538d2dfd] shadow-lg p-2 text-white rounded-md w-full outline-0"
+    disabled={!isEditMode} // Disable if not in edit mode
+  />
 
-            <div className="relative flex items-center">
-              <input
-                type="file"
-                accept="application/pdf, image/*"
-                onChange={handleFileChange}
-                id="file-input"
-                className="hidden"
-                disabled={!isEditMode} // Disable if not in edit mode
-              />
-              <label
-                htmlFor="file-input"
-                className="cursor-pointer bg-[#538d2dfd] text-white py-2 px-4  rounded-md shadow-md hover:bg-[#4c7033fd]"
-              >
-                Choose a file
-              </label>
-
-              {file && (
-                <span className="ml-4 text-[#538d2dfd] font-semibold">
-                  {file.name}
-                </span>
-              )}
-            </div>
-          </section>
+  {/* Show uploaded or existing document */}
+  {depositDetails.document ? (
+    <div className="mt-4 flex items-center space-x-4">
+      <Link
+        to={URL.createObjectURL(depositDetails.document)}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="bg-[#538d2dfd] text-white p-2 rounded-md shadow-md hover:bg-[#4c7033fd] inline-flex items-center"
+      >
+        <FaEye className="mr-2" />
+        View Uploaded File
+      </Link>
+      <button
+        onClick={() => {setDepositDetails((prevData) => ({ ...prevData, document: null }))
+        setFile(null)}}
+        className="text-red-500 hover:text-red-700 underline"
+      >
+        Remove File
+      </button>
+    </div>
+  ) : depositDetails.existingBuffer ? (
+    <div className="mt-4">
+      <Link
+        to={URL.createObjectURL(new Blob([depositDetails.existingBuffer], { type: "application/pdf" }))}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="bg-[#538d2dfd] text-white p-2 rounded-md shadow-md hover:bg-[#4c7033fd] inline-flex items-center"
+      >
+        <FaEye className="mr-2" />
+        View Existing Document
+      </Link>
+    </div>
+  ) : (
+    <p className="text-gray-500 mt-2">No document available. Please upload one.</p>
+  )}
+</Section>
 
           <section className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
             <div className="border-l-2 border-[#538d2dfd] p-6 rounded-lg shadow">

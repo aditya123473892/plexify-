@@ -8,6 +8,7 @@ import {
   FaPlus,
   FaFileUpload,
   FaCheckCircle,
+  FaEye
 } from 'react-icons/fa';
 import axios from 'axios';
 import InputWithIcon from '../Components/InputWithIcon';
@@ -38,14 +39,22 @@ const EPFManagement = () => {
 
         if (response.data.epfDetails && response.data.epfDetails.length > 0) {
           // If EPF details are fetched, format them properly
-          const formattedEpfDetails = response.data.epfDetails.map((epf) => ({
-            name: epf.name || "",
+          const formattedEpfDetails = response.data.epfDetails.map((epf) => {
+            const documentBlob = epf.document
+            ? new Blob([new Uint8Array(epf.document.data)], { type: "application/pdf" })
+            : null;
+console.log(documentBlob,'documentBlob');
+
+            return{
+             name: epf.name || "",
             phone: epf.phone || "",
             email: epf.email || "",
             epfAccountNumber: epf.epf_account_number || "",
             contribution: epf.contribution || "",
             nominee: epf.nominee || "",
-          }));
+            document: setFile(documentBlob),
+            }
+          });
           setEpfDetails(formattedEpfDetails);
         } else {
           // If no EPF details are found, initialize with empty data
@@ -56,6 +65,7 @@ const EPFManagement = () => {
             epfAccountNumber: "",
             contribution: "",
             nominee: "",
+            document : null
           }]);
         }
       } catch (error) {
@@ -84,8 +94,10 @@ const EPFManagement = () => {
 
   // Handle file selection for upload
   const handleFileChange = (e) => {
-    const selectedFile = e.target.files[0];
-    setFile(selectedFile);
+    const { files } = e.target;
+    if (files && files[0]) {
+      setFile(files[0])
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -191,11 +203,28 @@ const EPFManagement = () => {
             onChange={handleFileChange}
           />
         </div>
-        <button
-          className="text-white py-2 px-4 rounded-md shadow-md bg-[#3a5e22fd] hover:bg-[#2f4b1dfd]"
-        >
-          Upload Document
-        </button>
+        {file ? (
+    <div className="mt-4 flex items-center space-x-4">
+      <a
+        href={URL.createObjectURL(file)}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="bg-[#538d2dfd] text-white p-2 rounded-md shadow-md hover:bg-[#4c7033fd] inline-flex items-center"
+      >
+        <FaEye className="mr-2" />
+        View Uploaded File
+      </a>
+      <button
+        onClick={() => setFile(null)} // Remove the document
+        className="text-red-500 hover:text-red-700 underline"
+      >
+        Remove File
+      </button>
+    </div>
+  ) : (
+    <p className="text-gray-500 mt-2">No document uploaded. Please upload one.</p>
+  )}
+
       </Section>
 
       {/* Submit Button */}

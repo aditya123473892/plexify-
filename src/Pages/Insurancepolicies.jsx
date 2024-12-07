@@ -1,65 +1,77 @@
 import React, { useState, useEffect, useContext } from "react";
 import axios from "axios";
-import { FaClipboard, FaTag, FaDollarSign, FaCheckCircle } from "react-icons/fa";
+import { MdDelete } from "react-icons/md";
+import { FaClipboard, FaTag, FaDollarSign, FaCheckCircle ,FaEye } from "react-icons/fa";
 import InputWithIcon from "../Components/InputWithIcon";
 import Section from "../Components/Section";
 import { AuthContext } from "../Contexts/Context";
 import { toast, ToastContainer } from "react-toastify";
+import { Link } from "react-router-dom";
 
 function InsurancePage() {
   const { API, token } = useContext(AuthContext);
-  const [formData, setFormData] = useState({
-    policyName: "",
-    policyNumber: "",
-    provider: "",
-    policyType: "Life Insurance",
-    policyPeriod: "",
-    premiumAmount: "",
-    coverageLimit: "",
-    maturityAmount: "",
-    nomineeName: "",
-    nomineeRelation: "",
-    document: null, // Add a state for the document
-  });
+  const [formData, setFormData] = useState({});
   const [loading, setLoading] = useState(false);
-  const [isEditMode, setIsEditMode] = useState(false); // Flag for edit mode
+  const [isEditMode, setIsEditMode] = useState(false); 
 
-  // Fetch insurance data on component mount
   useEffect(() => {
     const fetchInsuranceData = async () => {
+      setLoading(true);
       try {
         const response = await axios.get(`${API}/insurance`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
         });
-
-        if (response.data.policies.length > 0) {
-          const policy = response.data.policies[0]; // Assuming the user has only one policy for simplicity
+ 
+        if (response.data.policies && response.data.policies.length > 0) {
+          const policy = response.data.policies[0];
+          const documentBlob = policy.document
+          ? new Blob([new Uint8Array(policy.document.data)], { type: "application/pdf" }) 
+          : null;
           setFormData({
-            policyName: policy.policy_name,
-            policyNumber: policy.policy_number,
-            provider: policy.provider,
-            policyType: policy.policy_type,
-            policyPeriod: policy.policy_period,
-            premiumAmount: policy.premium_amount,
-            coverageLimit: policy.coverage_limit,
-            maturityAmount: policy.maturity_amount,
+            policyName: policy.policy_name || "",
+            policyNumber: policy.policy_number || "",
+            provider: policy.provider || "",
+            policyType: policy.policy_type || "",
+            policyPeriod: policy.policy_period || "",
+            premiumAmount: policy.premium_amount || "",
+            coverageLimit: policy.coverage_limit || "",
+            maturityAmount: policy.maturity_amount || "",
             nomineeName: policy.nominee_name || "",
             nomineeRelation: policy.nominee_relation || "",
-            document: null, // Assuming document is not fetched here
+            document:documentBlob,
+
+              
           });
-          setIsEditMode(false); // If data exists, set view mode
+          setIsEditMode(false); // View mode
+        } else {
+          setFormData({
+            policyName: "",
+            policyNumber: "",
+            provider: "",
+            policyType: "Life Insurance",
+            policyPeriod: "",
+            premiumAmount: "",
+            coverageLimit: "",
+            maturityAmount: "",
+            nomineeName: "",
+            nomineeRelation: "",
+            document: null,
+          });
+          setIsEditMode(true); // Edit mode to add new policy
         }
       } catch (error) {
         console.error("Error fetching insurance data:", error);
         toast.error("Failed to fetch insurance data.");
+      } finally {
+        setLoading(false);
       }
     };
-
+  
     fetchInsuranceData();
   }, [API, token]);
-
+  
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prevData) => ({
@@ -73,7 +85,7 @@ function InsurancePage() {
     if (files && files[0]) {
       setFormData((prevData) => ({
         ...prevData,
-        document: files[0], // Store the file in the state
+        document: files[0],
       }));
     }
   };
@@ -235,14 +247,52 @@ function InsurancePage() {
       </Section>
 
       <Section title="Upload Document" className="mb-10">
-        <input
-          type="file"
-          name="document"
-          onChange={handleFileChange}
-          className="border-l-2 border-[#538d2dfd] shadow-lg p-2 text-white rounded-md w-full outline-0"
-          disabled={!isEditMode} // Disable in view mode
-        />
-      </Section>
+  <input
+    type="file"
+    name="document"
+    accept="application/pdf"
+    onChange={handleFileChange}
+    className="border-l-2 border-[#538d2dfd] shadow-lg p-2 text-white rounded-md w-full outline-0"
+    disabled={!isEditMode} // Disable if not in edit mode
+  />
+
+  {/* Show uploaded or existing document */}
+  {formData.document ? (
+    <div className="mt-4 flex items-center space-x-4">
+      <Link
+        to={URL.createObjectURL(formData.document)}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="bg-[#538d2dfd] text-white p-2 rounded-md shadow-md hover:bg-[#4c7033fd] inline-flex items-center"
+      >
+        <FaEye className="mr-2" />
+        View Uploaded File
+      </Link>
+      <button
+        onClick={() => setFormData((prevData) => ({ ...prevData, document: null }))}
+        className="text-red-500 hover:text-red-700 underline"
+      >
+        Remove File
+      </button>
+    </div>
+  ) : formData.existingBuffer ? (
+    <div className="mt-4">
+      <Link
+        to={URL.createObjectURL(new Blob([formData.existingBuffer], { type: "application/pdf" }))}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="bg-[#538d2dfd] text-white p-2 rounded-md shadow-md hover:bg-[#4c7033fd] inline-flex items-center"
+      >
+        <FaEye className="mr-2" />
+        View Existing Document
+      </Link>
+    </div>
+  ) : (
+    <p className="text-gray-500 mt-2">No document available. Please upload one.</p>
+  )}
+</Section>
+
+
 
       <div className="text-right">
         <button

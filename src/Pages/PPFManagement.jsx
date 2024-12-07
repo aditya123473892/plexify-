@@ -7,6 +7,7 @@ import {
   FaPlus,
   FaFileUpload,
   FaCheckCircle,
+  FaEye
 } from "react-icons/fa";
 import InputWithIcon from "../Components/InputWithIcon";
 import FieldSection from "../Components/FieldSection";
@@ -44,14 +45,20 @@ const PPFManagement = () => {
 
         if (response.data.ppfDetails && response.data.ppfDetails.length > 0) {
           // If PPF details are fetched, format them properly
-          const formattedPpfDetails = response.data.ppfDetails.map((ppf) => ({
+          const formattedPpfDetails = response.data.ppfDetails.map((ppf) => {
+            const documentBlob = ppf.document
+            ? new Blob([new Uint8Array(ppf.document.data)], { type: "application/pdf" })
+            : null; 
+            return{
             name: ppf.name || "",
             phone: ppf.phone || "",
             email: ppf.email || "",
             ppfAccountNumber: ppf.ppf_account_number || "",
             contribution: ppf.contribution || "",
             nominee: ppf.nominee || "",
-          }));
+            document: setUploadedFile(documentBlob),
+            }
+          });
           setPpfDetails(formattedPpfDetails);
         } else {
           // If no PPF details are found, initialize with empty data
@@ -62,6 +69,7 @@ const PPFManagement = () => {
             ppfAccountNumber: "",
             contribution: "",
             nominee: "",
+            document:null
           }]);
         }
       } catch (error) {
@@ -95,9 +103,12 @@ const PPFManagement = () => {
     ]);
   };
 
-  // Handle file change
   const handleFileChange = (e) => {
-    setUploadedFile(e.target.files[0]);
+    const { files } = e.target;
+    if (files && files[0]) {
+      setUploadedFile(files[0]); // Update the single document
+      console.log("Uploaded document:", files[0]);
+    }
   };
 
   // Submit form data
@@ -196,16 +207,37 @@ const PPFManagement = () => {
 
       <Section title="Document Upload">
         <div className="flex items-center border-l-2 border-[#538d2dfd] rounded-md shadow-lg mb-4">
-          <FaFileUpload className="text-[#538d2dfd] mx-2" />
           <input
             type="file"
             className="border-0 rounded-md p-3 w-full bg-transparent"
             onChange={handleFileChange}
           />
         </div>
-        <button className="text-white py-2 px-4 rounded-md shadow-md bg-[#3a5e22fd] hover:bg-[#2f4b1dfd]">
+        {/* <button className="text-white py-2 px-4 rounded-md shadow-md bg-[#3a5e22fd] hover:bg-[#2f4b1dfd]">
           Upload Document
-        </button>
+        </button> */}
+        {uploadedFile ? (
+    <div className="mt-4 flex items-center space-x-4">
+      <a
+        href={URL.createObjectURL(uploadedFile)}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="bg-[#538d2dfd] text-white p-2 rounded-md shadow-md hover:bg-[#4c7033fd] inline-flex items-center"
+      >
+        <FaEye className="mr-2" />
+        View Uploaded File
+      </a>
+      <button
+        onClick={() => setUploadedFile(null)} // Remove the document
+        className="text-red-500 hover:text-red-700 underline"
+      >
+        Remove File
+      </button>
+    </div>
+  ) : (
+    <p className="text-gray-500 mt-2">No document uploaded. Please upload one.</p>
+  )}
+
       </Section>
 
       <button

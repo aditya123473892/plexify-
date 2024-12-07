@@ -1,30 +1,29 @@
 import React, { useState, useEffect, useContext } from "react";
+import axios from "axios";
 import {
-  FaBriefcase,
   FaMoneyBillWave,
-  FaInfoCircle,
-  FaPlus,
-  FaCheckCircle,
+  FaFileAlt,
   FaEdit,
   FaTrash,
+  FaStickyNote,
 } from "react-icons/fa";
-import axios from "axios";
-import { AuthContext } from "../Contexts/Context";
 import InputWithIcon from "../Components/InputWithIcon";
-import FieldSection from "../Components/FieldSection";
 import Section from "../Components/Section";
+import { AuthContext } from "../Contexts/Context";
 import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
-const OtherInvestments = () => {
+const InvestmentManagement = () => {
+  const { API, token } = useContext(AuthContext);
   const [investments, setInvestments] = useState([]);
-  const [editIndex, setEditIndex] = useState(null);
-  const [investmentForm, setInvestmentForm] = useState({
-    investmentType: "",
-    amountInvested: "",
-    currentValue: "",
+  const [formData, setFormData] = useState({
+    investment_type: "",
+    amount_invested: "",
+    current_value: "",
     notes: "",
   });
-  const { API, token } = useContext(AuthContext);
+  const [editIndex, setEditIndex] = useState(null);
+  const [loading, setLoading] = useState(false);
 
   // Fetch investments on component mount
   useEffect(() => {
@@ -37,36 +36,67 @@ const OtherInvestments = () => {
         headers: { Authorization: `Bearer ${token}` },
       });
       setInvestments(response.data.investments);
+      toast.success("Investments fetched successfully!");
     } catch (error) {
       console.error("Error fetching investments:", error);
-      toast.error("Error fetching investment data.");
+      toast.error("Failed to fetch investments.");
     }
   };
 
-  const handleInvestmentChange = (field, value) => {
-    setInvestmentForm({ ...investmentForm, [field]: value });
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prevData) => ({
+      ...prevData,
+      [name]: value,
+    }));
   };
 
   const addOrUpdateInvestment = async () => {
+    if (
+      !formData.investment_type ||
+      !formData.amount_invested ||
+      !formData.current_value
+    ) {
+      toast.error("Please fill in all required fields.");
+      return;
+    }
+
+    setLoading(true);
+
     try {
       if (editIndex !== null) {
-        // Update investment
-        const id = investments[editIndex].id;
-        await axios.put(`${API}/other-investments/${id}`, investmentForm, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        // Update existing investment
+        const id = investments[editIndex].investment_id;
+        await axios.put(
+          `${API}/other-investments/${id}`,
+          {
+            investment_type: formData.investment_type,
+            amount_invested: parseFloat(formData.amount_invested),
+            current_value: parseFloat(formData.current_value),
+            notes: formData.notes,
+          },
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
         toast.success("Investment updated successfully!");
       } else {
         // Add new investment
-        await axios.post(`${API}/other-investments`, investmentForm, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        await axios.post(
+          `${API}/other-investments`,
+          {
+            investment_type: formData.investment_type,
+            amount_invested: parseFloat(formData.amount_invested),
+            current_value: parseFloat(formData.current_value),
+            notes: formData.notes,
+          },
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
         toast.success("Investment added successfully!");
       }
-      setInvestmentForm({
-        investmentType: "",
-        amountInvested: "",
-        currentValue: "",
+
+      setFormData({
+        investment_type: "",
+        amount_invested: "",
+        current_value: "",
         notes: "",
       });
       setEditIndex(null);
@@ -74,12 +104,14 @@ const OtherInvestments = () => {
     } catch (error) {
       console.error("Error saving investment:", error);
       toast.error("An error occurred while saving the investment.");
+    } finally {
+      setLoading(false);
     }
   };
 
   const handleEdit = (index) => {
     setEditIndex(index);
-    setInvestmentForm(investments[index]);
+    setFormData(investments[index]);
   };
 
   const handleDelete = async (id) => {
@@ -91,117 +123,114 @@ const OtherInvestments = () => {
       fetchInvestments();
     } catch (error) {
       console.error("Error deleting investment:", error);
-      toast.error("An error occurred while deleting the investment.");
+      toast.error("Failed to delete investment.");
     }
   };
 
   return (
     <div className="min-h-screen shadow-2xl bg-white p-6 rounded-lg md:mt-10 mt-20">
+      <ToastContainer />
       <header className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-800 mb-2">
-          Manage Your Other Investments
-        </h1>
+        <h1 className="text-3xl font-bold">Manage Other Investments</h1>
+        <p className="mt-2">Add, view, and manage your investments.</p>
       </header>
 
-      <FieldSection
+      {/* Investment Form */}
+      <Section
         title={editIndex !== null ? "Edit Investment" : "New Investment"}
       >
-        <InputWithIcon
-          icon={<FaBriefcase className="text-[#538d2dfd] mx-2" />}
-          type="text"
-          placeholder="Investment Type"
-          value={investmentForm.investmentType}
-          onChange={(e) =>
-            handleInvestmentChange("investmentType", e.target.value)
-          }
-        />
-        <InputWithIcon
-          icon={<FaMoneyBillWave className="text-[#538d2dfd] mx-2" />}
-          type="number"
-          placeholder="Amount Invested"
-          value={investmentForm.amountInvested}
-          onChange={(e) =>
-            handleInvestmentChange("amountInvested", e.target.value)
-          }
-        />
-        <InputWithIcon
-          icon={<FaMoneyBillWave className="text-[#538d2dfd] mx-2" />}
-          type="number"
-          placeholder="Current Value"
-          value={investmentForm.currentValue}
-          onChange={(e) =>
-            handleInvestmentChange("currentValue", e.target.value)
-          }
-        />
-        <InputWithIcon
-          icon={<FaInfoCircle className="text-[#538d2dfd] mx-2" />}
-          type="text"
-          placeholder="Notes"
-          value={investmentForm.notes}
-          onChange={(e) => handleInvestmentChange("notes", e.target.value)}
-        />
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {[
+            {
+              icon: <FaFileAlt />,
+              name: "investment_type",
+              placeholder: "Investment Type",
+            },
+            {
+              icon: <FaMoneyBillWave />,
+              name: "amount_invested",
+              placeholder: "Amount Invested",
+              type: "number",
+            },
+            {
+              icon: <FaMoneyBillWave />,
+              name: "current_value",
+              placeholder: "Current Value",
+              type: "number",
+            },
+            {
+              icon: <FaStickyNote />,
+              name: "notes",
+              placeholder: "Notes (optional)",
+            },
+          ].map(({ icon, ...rest }) => (
+            <InputWithIcon
+              key={rest.name}
+              icon={icon}
+              value={formData[rest.name]}
+              onChange={handleChange}
+              {...rest}
+            />
+          ))}
+        </div>
+
         <button
           onClick={addOrUpdateInvestment}
-          className="text-white py-2 px-4 rounded-md shadow-md bg-[#3a5e22fd] hover:bg-[#2f4b1dfd] mt-4"
+          className="mt-4 bg-green-600 text-white py-2 px-6 rounded-md shadow hover:bg-green-700"
+          disabled={loading}
         >
-          <FaCheckCircle className="inline mr-2" />
-          {editIndex !== null ? "Update Investment" : "Add Investment"}
+          {loading ? "Saving..." : editIndex !== null ? "Update" : "Add"}
         </button>
-      </FieldSection>
+      </Section>
 
       {/* Investments Table */}
-      <section className="mt-8">
-        <h2 className="text-2xl font-bold text-gray-800 mb-4">Investments</h2>
-        <div className="overflow-x-auto">
-          <table className="table-auto border-collapse border border-gray-300 w-full text-left">
-            <thead>
-              <tr className="bg-gray-200">
-                <th className="border border-gray-300 px-4 py-2">Type</th>
-                <th className="border border-gray-300 px-4 py-2">Invested</th>
-                <th className="border border-gray-300 px-4 py-2">Value</th>
-                <th className="border border-gray-300 px-4 py-2">Notes</th>
-                <th className="border border-gray-300 px-4 py-2">Actions</th>
+      <Section title="Investments List">
+        <table className="table-auto w-full border-collapse border border-gray-300">
+          <thead>
+            <tr className="bg-gray-100">
+              <th className="border border-gray-300 px-4 py-2">Type</th>
+              <th className="border border-gray-300 px-4 py-2">Amount</th>
+              <th className="border border-gray-300 px-4 py-2">Value</th>
+              <th className="border border-gray-300 px-4 py-2">Notes</th>
+              <th className="border border-gray-300 px-4 py-2">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {investments.map((investment, index) => (
+              <tr key={investment.investment_id} className="hover:bg-gray-100">
+                <td className="border border-gray-300 px-4 py-2">
+                  {investment.investment_type}
+                </td>
+                <td className="border border-gray-300 px-4 py-2">
+                  {investment.amount_invested}
+                </td>
+                <td className="border border-gray-300 px-4 py-2">
+                  {investment.current_value}
+                </td>
+                <td className="border border-gray-300 px-4 py-2">
+                  {investment.notes || "N/A"}
+                </td>
+                <td className="border border-gray-300 px-4 py-2">
+                  <button
+                    onClick={() => handleEdit(index)}
+                    className="text-blue-500 hover:underline mr-2"
+                  >
+                    <FaEdit />
+                  </button>
+                  <button
+                    onClick={() => handleDelete(investment.investment_id)}
+                    className="text-red-500 hover:underline"
+                  >
+                    <FaTrash />
+                  </button>
+                </td>
               </tr>
-            </thead>
-            <tbody>
-              {investments.map((inv, idx) => (
-                <tr key={inv.id} className="hover:bg-gray-100">
-                  <td className="border border-gray-300 px-4 py-2">
-                    {inv.investmentType}
-                  </td>
-                  <td className="border border-gray-300 px-4 py-2">
-                    {inv.amountInvested}
-                  </td>
-                  <td className="border border-gray-300 px-4 py-2">
-                    {inv.currentValue}
-                  </td>
-                  <td className="border border-gray-300 px-4 py-2">
-                    {inv.notes}
-                  </td>
-                  <td className="border border-gray-300 px-4 py-2">
-                    <button
-                      onClick={() => handleEdit(idx)}
-                      className="text-blue-500 hover:underline mr-2"
-                    >
-                      <FaEdit />
-                    </button>
-                    <button
-                      onClick={() => handleDelete(inv.id)}
-                      className="text-red-500 hover:underline"
-                    >
-                      <FaTrash />
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </section>
-
-      <ToastContainer />
+            ))}
+          </tbody>
+        </table>
+      </Section>
     </div>
   );
 };
 
-export default OtherInvestments;
+export default InvestmentManagement;

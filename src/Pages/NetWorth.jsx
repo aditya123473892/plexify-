@@ -1,4 +1,4 @@
-import React, { useState, useContext } from "react";
+import React, { useState, useContext, useEffect } from "react";
 import { FaMoneyBillWave, FaPlus, FaCheckCircle } from "react-icons/fa";
 import { AuthContext } from "../Contexts/Context";
 import InputWithIcon from "../Components/InputWithIcon";
@@ -8,58 +8,119 @@ import { toast, ToastContainer } from "react-toastify";
 import axios from "axios";
 
 const NetWorth = () => {
-  const [assets, setAssets] = useState([{ name: "", value: "", type: "" }]);
-  const [liabilities, setLiabilities] = useState([
-    { name: "", value: "", type: "" },
-  ]);
-  const [savings, setSavings] = useState("");
-  const [property, setProperty] = useState("");
-  const [otherIncome, setOtherIncome] = useState("");
+  const [netWorthData, setNetWorthData] = useState({
+    id: null,
+    assets: [],
+    liabilities: [],
+    savings: "",
+    property: "",
+    otherIncome: "",
+    netWorth: 0,
+  });
 
   const { API, token } = useContext(AuthContext);
 
-  const handleAssetChange = (index, field, value) => {
-    const newAssets = [...assets];
-    newAssets[index][field] = value;
-    setAssets(newAssets);
+  useEffect(() => {
+    const fetchNetWorthData = async () => {
+      try {
+        const response = await axios.get(`${API}/networth`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        });
+  
+        console.log(response.data, "Fetched response data"); // Debug the structure
+  
+        if (response.data && response.data.netWorthData.length > 0) {
+          const assets = response.data.netWorthData
+            .filter((entry) => entry.asset_name)
+            .map((entry) => ({
+              name: entry.asset_name || "",
+              value: entry.asset_value || 0,
+              type: entry.asset_type || "",
+            }));
+  
+          const liabilities = response.data.netWorthData
+            .filter((entry) => entry.liability_name)
+            .map((entry) => ({
+              name: entry.liability_name || "",
+              value: entry.liability_value || 0,
+              type: entry.liability_type || "",
+            }));
+  
+          const firstEntry = response.data.netWorthData[0];
+  
+          setNetWorthData({
+            id: firstEntry.id,
+            assets,
+            liabilities,
+            savings: firstEntry.savings || "",
+            property: firstEntry.property_value || "",
+            otherIncome: firstEntry.other_income || "",
+            netWorth: firstEntry.net_worth || 0,
+          });
+        } else {
+          console.log("No data received, using default values.");
+          setNetWorthData({
+            id: null,
+            assets: [{ name: "", value: "", type: "" }],
+            liabilities: [{ name: "", value: "", type: "" }],
+            savings: "",
+            property: "",
+            otherIncome: "",
+            netWorth: 0,
+          });
+        }
+      } catch (error) {
+        console.error("Error fetching net worth data:", error);
+        toast.error("Error fetching net worth data. Please try again.");
+      }
+    };
+  
+    fetchNetWorthData();
+  }, [API, token]);
+  
+  
+  const handleFieldChange = (field, value) => {
+    setNetWorthData((prev) => ({ ...prev, [field]: value }));
   };
 
-  const handleLiabilityChange = (index, field, value) => {
-    const newLiabilities = [...liabilities];
-    newLiabilities[index][field] = value;
-    setLiabilities(newLiabilities);
+  const handleNestedFieldChange = (type, index, field, value) => {
+    const updatedList = [...netWorthData[type]];
+    updatedList[index][field] = value;
+    setNetWorthData((prev) => ({ ...prev, [type]: updatedList }));
   };
 
-  const addAsset = () => {
-    setAssets([...assets, { name: "", value: "", type: "" }]);
-  };
-
-  const addLiability = () => {
-    setLiabilities([...liabilities, { name: "", value: "", type: "" }]);
+  const addNewItem = (type) => {
+    setNetWorthData((prev) => ({
+      ...prev,
+      [type]: [...prev[type], { name: "", value: "", type: "" }],
+    }));
   };
 
   const calculateNetWorth = () => {
-    const totalAssets = assets.reduce(
+    const totalAssets = netWorthData.assets.reduce(
       (acc, asset) => acc + (parseFloat(asset.value) || 0),
       0
     );
-    const totalLiabilities = liabilities.reduce(
+    const totalLiabilities = netWorthData.liabilities.reduce(
       (acc, liability) => acc + (parseFloat(liability.value) || 0),
       0
     );
-    return totalAssets - totalLiabilities + parseFloat(savings || 0) + parseFloat(property || 0) + parseFloat(otherIncome || 0);
+    return (
+      totalAssets -
+      totalLiabilities +
+      parseFloat(netWorthData.savings || 0) +
+      parseFloat(netWorthData.property || 0) +
+      parseFloat(netWorthData.otherIncome || 0)
+    );
   };
-
-  const netWorth = calculateNetWorth();
 
   const handleSubmit = async () => {
     const data = {
-      assets,
-      liabilities,
-      savings: parseFloat(savings) || 0,
-      property: parseFloat(property) || 0,
-      otherIncome: parseFloat(otherIncome) || 0,
-      netWorth,
+      ...netWorthData,
+      netWorth: calculateNetWorth(),
     };
 
     try {
@@ -79,6 +140,8 @@ const NetWorth = () => {
     }
   };
 
+  const netWorth = calculateNetWorth();
+
   return (
     <div className="min-h-screen shadow-2xl bg-white p-6 rounded-lg md:mt-10 mt-20">
       <ToastContainer />
@@ -91,42 +154,47 @@ const NetWorth = () => {
         </p>
       </header>
 
- 
       {/* Assets Section */}
-      {assets.map((asset, index) => (
+      {netWorthData.assets.map((asset, index) => (
         <FieldSection title="Assets" key={index}>
           <InputWithIcon
             icon={<FaMoneyBillWave className="text-[#538d2dfd] mx-2" />}
             type="text"
             placeholder="Asset Name"
             value={asset.name}
-            onChange={(e) => handleAssetChange(index, "name", e.target.value)}
+            onChange={(e) =>
+              handleNestedFieldChange("assets", index, "name", e.target.value)
+            }
           />
           <InputWithIcon
             icon={<FaMoneyBillWave className="text-[#538d2dfd] mx-2" />}
             type="number"
             placeholder="Value"
             value={asset.value}
-            onChange={(e) => handleAssetChange(index, "value", e.target.value)}
+            onChange={(e) =>
+              handleNestedFieldChange("assets", index, "value", e.target.value)
+            }
           />
           <InputWithIcon
             icon={<FaMoneyBillWave className="text-[#538d2dfd] mx-2" />}
             type="text"
             placeholder="Type (e.g., Real Estate, Investment)"
             value={asset.type}
-            onChange={(e) => handleAssetChange(index, "type", e.target.value)}
+            onChange={(e) =>
+              handleNestedFieldChange("assets", index, "type", e.target.value)
+            }
           />
         </FieldSection>
       ))}
       <button
-        onClick={addAsset}
+        onClick={() => addNewItem("assets")}
         className="text-white py-2 px-4 rounded-md shadow-md bg-[#3a5e22fd] hover:bg-[#2f4b1dfd] mt-4"
       >
         <FaPlus className="inline mr-2" /> Add Asset
       </button>
 
       {/* Liabilities Section */}
-      {liabilities.map((liability, index) => (
+      {netWorthData.liabilities.map((liability, index) => (
         <FieldSection title="Liabilities" key={index}>
           <InputWithIcon
             icon={<FaMoneyBillWave className="text-[#538d2dfd] mx-2" />}
@@ -134,7 +202,7 @@ const NetWorth = () => {
             placeholder="Liability Name"
             value={liability.name}
             onChange={(e) =>
-              handleLiabilityChange(index, "name", e.target.value)
+              handleNestedFieldChange("liabilities", index, "name", e.target.value)
             }
           />
           <InputWithIcon
@@ -143,7 +211,7 @@ const NetWorth = () => {
             placeholder="Value"
             value={liability.value}
             onChange={(e) =>
-              handleLiabilityChange(index, "value", e.target.value)
+              handleNestedFieldChange("liabilities", index, "value", e.target.value)
             }
           />
           <InputWithIcon
@@ -151,12 +219,14 @@ const NetWorth = () => {
             type="text"
             placeholder="Type (e.g., Loan, Credit Card)"
             value={liability.type}
-            onChange={(e) => handleLiabilityChange(index, "type", e.target.value)}
+            onChange={(e) =>
+              handleNestedFieldChange("liabilities", index, "type", e.target.value)
+            }
           />
         </FieldSection>
       ))}
       <button
-        onClick={addLiability}
+        onClick={() => addNewItem("liabilities")}
         className="text-white py-2 px-4 rounded-md shadow-md bg-[#3a5e22fd] hover:bg-[#2f4b1dfd] mt-4"
       >
         <FaPlus className="inline mr-2" /> Add Liability

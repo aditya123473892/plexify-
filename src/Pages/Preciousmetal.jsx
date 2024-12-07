@@ -1,28 +1,22 @@
-import React, { useState, useContext } from "react";
-import { FaPlus, FaFileUpload, FaDollarSign } from "react-icons/fa";
+import React, { useState, useContext,useEffect } from "react";
+import { FaPlus,FaEye, FaFileUpload, FaDollarSign,FaUser,FaPhone,FaEnvelope,FaPercent,FaLink } from "react-icons/fa";
 import { AuthContext } from "../Contexts/Context";
 import { toast, ToastContainer } from "react-toastify";
 import Section from "../Components/Section";
 import InputWithIcon from "../Components/InputWithIcon"; // Importing the InputWithIcon component
 import axios from "axios";
+import FieldSection from "../Components/FieldSection";
 
 function PreciousMetalsInheritanceManagement() {
-  const { API, token } = useContext(AuthContext);
+  const { API, token,beneficiaryUser } = useContext(AuthContext);
   const [metals, setMetals] = useState([
     { metalType: "", weight: "", purchasePrice: "", currentValue: "", description: "" },
   ]);
   const [beneficiaries, setBeneficiaries] = useState([
-    {
-      name: "",
-      contact: "",
-      email: "",
-      entitlement: "",
-      relationship: "",
-      notify: false,
-    },
+   
   ]);
   const [document, setDocument] = useState(null);
-
+  const [addedBeneficiaries, setAddedBeneficiaries] = useState([]);
   const addMetal = () => {
     setMetals([
       ...metals,
@@ -30,19 +24,61 @@ function PreciousMetalsInheritanceManagement() {
     ]);
   };
 
-  const addBeneficiary = () => {
-    setBeneficiaries([
-      ...beneficiaries,
-      {
-        name: "",
-        contact: "",
-        email: "",
-        entitlement: "",
-        relationship: "",
-        notify: false,
-      },
-    ]);
-  };
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const response = await axios.get(`${API}/precious-metals`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        });
+  
+        if (response.data.metals && response.data.metals.length > 0) {
+          const formattedMetals = response.data.metals.map((metal) => {
+            const documentBlob = metal.document
+              ? new Blob([new Uint8Array(metal.document.data)], { type: "application/pdf" })
+              : null;
+  
+            return {
+              id: metal.id,
+              metalType: metal.metal_type || "",
+              weight: metal.weight || "",
+              purchasePrice: metal.purchase_price || "",
+              currentValue: metal.current_value || "",
+              description: metal.description || "",
+              beneficiaryUser: metal.beneficiarie_user || "",
+              document: setDocument(documentBlob),
+            };
+          });
+  
+          setMetals(formattedMetals);
+        } else {
+          setMetals([{
+            metalType: "",
+            weight: "",
+            purchasePrice: "",
+            currentValue: "",
+            description: "",
+            document: null,
+            beneficiaryUser: "",
+          }]);
+        }
+  
+        if (response.data.beneficiaries && response.data.beneficiaries.length > 0) {
+          setBeneficiaries(response.data.beneficiaries);
+        } else {
+          setBeneficiaries([]);
+        }
+      } catch (error) {
+        console.error("Error fetching data:", error);
+        toast.error("Error fetching data. Please try again.");
+      }
+    };
+  
+    fetchData();
+  }, [API, token]);
+  
 
   const handleMetalChange = (index, field, value) => {
     // For weight field, allow only up to two decimal places
@@ -69,11 +105,10 @@ function PreciousMetalsInheritanceManagement() {
   const handleDocumentUpload = (e) => {
     setDocument(e.target.files[0]);
   };
-
   const handleSubmit = async () => {
     const formData = new FormData();
     formData.append("metals", JSON.stringify(metals));
-    formData.append("beneficiaries", JSON.stringify(beneficiaries));
+    formData.append("beneficiaries", JSON.stringify(beneficiaries.map((beneficiary) => beneficiary.beneficiary_id)));
     if (document) {
       formData.append("document", document);
     }
@@ -85,17 +120,43 @@ function PreciousMetalsInheritanceManagement() {
           "Content-Type": "multipart/form-data",
         },
       });
-      if (response.data.success) {
         toast.success("Data saved successfully!");
-      } else {
-        toast.error("Failed to save data.");
-      }
+   
     } catch (error) {
       console.error("Error saving data:", error);
       toast.error("An error occurred.");
     }
   };
 
+  const handleAddBeneficiary = (userIndex) => {
+    if (beneficiaryUser.length > 0 && !addedBeneficiaries.includes(userIndex)) {
+      const user = beneficiaryUser[userIndex];
+      const newBeneficiary = {
+        beneficiary_id: user.beneficiary_id || "",
+        name: user.name || "",
+        contact: user.contact || "",
+        email: user.email || "",
+        entitlement: user.entitlement || "",
+        relationship: user.relationship || "",
+        notify: false,
+      };
+
+      setBeneficiaries([...beneficiaries, newBeneficiary]);
+      setAddedBeneficiaries([...addedBeneficiaries, userIndex]);
+    } else {
+      toast.error("This user has already been added or no users are available.");
+    }
+  };
+
+  const getBeneficiaryById = (id) => {
+    return beneficiaryUser.find(
+      (user) => String(user.beneficiary_id) === String(id)
+    ) || null;
+  };
+const uniqueBeneficiaryIds = Array.from(
+  new Set(metals.flatMap((deposit) =>deposit.beneficiaryUser ? deposit.beneficiaryUser.split(",") : []))
+);
+console.log(metals)
   return (
     <div className="min-h-screen shadow-2xl bg-white p-6 rounded-lg md:mt-10 mt-20">
       <header className="mb-8">
@@ -174,103 +235,179 @@ function PreciousMetalsInheritanceManagement() {
         </button>
       </Section>
 
-      <Section className="bg-white p-6 rounded-lg shadow-md">
-        <h2 className="text-2xl font-semibold text-gray-800 mb-4">
-          Beneficiary Information
-        </h2>
-        {beneficiaries.map((beneficiary, index) => (
-          <div key={index} className="mb-4 border-b pb-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <InputWithIcon
-                icon={<FaDollarSign />}
-                placeholder="Beneficiary Name"
-                value={beneficiary.name}
-                onChange={(e) =>
-                  handleBeneficiaryChange(index, "name", e.target.value)
-                }
-              />
+   
+      <Section title="Upload Document" className="mb-10">
+      
 
-              <InputWithIcon
-                icon={<FaDollarSign />}
-                placeholder="Contact Number"
-                value={beneficiary.contact}
-                onChange={(e) =>
-                  handleBeneficiaryChange(index, "contact", e.target.value)
-                }
-              />
-
-              <InputWithIcon
-                icon={<FaDollarSign />}
-                placeholder="Email Address"
-                value={beneficiary.email}
-                onChange={(e) =>
-                  handleBeneficiaryChange(index, "email", e.target.value)
-                }
-              />
-
-              <InputWithIcon
-                icon={<FaDollarSign />}
-                placeholder="Percentage of Entitlement"
-                type='number'
-                value={beneficiary.entitlement}
-                onChange={(e) =>
-                  handleBeneficiaryChange(index, "entitlement", e.target.value)
-                }
-              />
-
-              <InputWithIcon
-                icon={<FaDollarSign />}
-                placeholder="Relationship"
-                value={beneficiary.relationship}
-                onChange={(e) =>
-                  handleBeneficiaryChange(index, "relationship", e.target.value)
-                }
-              />
-              <label className="inline-flex items-center mt-2">
-                <input
-                  type="checkbox"
-                  className="mr-2"
-                  checked={beneficiary.notify}
-                  onChange={(e) =>
-                    handleBeneficiaryChange(index, "notify", e.target.checked)
-                  }
-                />
-                Notify by Email
-              </label>
-            </div>
-          </div>
-        ))}
-        <button
-          onClick={addBeneficiary}
-          className="bg-[#3d5e27fd] text-white py-3 px-8 rounded-md shadow-md hover:bg-[#4c7033fd] transition-all"
-        >
-          <FaPlus className="inline mr-2" /> Add Beneficiary
-        </button>
-      </Section>
-
-      <Section className="mb-10 border-l-2 border-[#538d2dfd] p-6 rounded-lg shadow">
-        <h2 className="text-xl font-semibold mb-4">Document Upload</h2>
-
-        <div className="relative flex items-center">
           <input
-            type="file"
-            accept="application/pdf, image/*"
+         type="file"
+         name="document"
+         accept="application/pdf"
             onChange={handleDocumentUpload}
-            id="file-input"
-            className="hidden"
+            
+            className="border-l-2 border-[#538d2dfd] shadow-lg p-2 text-white rounded-md w-full outline-0"
           />
-          <label
-            htmlFor="file-input"
-            className="cursor-pointer bg-[#538d2dfd] text-white py-2 px-4 rounded-md shadow-md hover:bg-[#4c7033fd]"
-          >
-            Choose a file
-          </label>
-
-          {document && (
-            <span className="ml-4 text-sm text-gray-600">{document.name}</span>
-          )}
-        </div>
+         {document ? (
+    <div className="mt-4 flex items-center space-x-4">
+      <a
+        href={URL.createObjectURL(document)}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="bg-[#538d2dfd] text-white p-2 rounded-md shadow-md hover:bg-[#4c7033fd] inline-flex items-center"
+      >
+        <FaEye className="mr-2" />
+        View Uploaded File
+      </a>
+      <button
+        onClick={() => setDocument(null)} // Remove the document
+        className="text-red-500 hover:text-red-700 underline"
+      >
+        Remove File
+      </button>
+    </div>
+  ) : (
+    <p className="text-gray-500 mt-2">No document uploaded. Please upload one.</p>
+  )}
       </Section>
+
+      <Section>
+  <h3 className="font-semibold text-xl">Beneficiaries</h3>
+  <div className="mb-6">
+    <select
+      onChange={(e) => handleAddBeneficiary(e.target.value)}
+      className="border-l-2 border-[#538d2dfd] shadow-lg p-2 text-white rounded-md w-full outline-0 bg-[#538d2dfd]"
+    >
+      <option value="" disabled selected>Select a beneficiary</option>
+      {beneficiaryUser &&
+        beneficiaryUser
+          .filter((user, index) => !addedBeneficiaries.includes(index))
+          .map((user, index) => (
+            <option key={index} value={index}>
+              {user.name}
+            </option>
+          ))}
+    </select>
+  </div>
+  
+  <div className="grid mb-4">
+    {beneficiaries.map((beneficiary, index) => (
+      <FieldSection key={index}>
+        <InputWithIcon
+          icon={<FaUser />}
+          type="text"
+          placeholder="Beneficiary Name"
+          value={beneficiary.name}
+          onChange={(e) =>
+            handleBeneficiaryChange(index, "name", e.target.value)
+          }
+        />
+        <InputWithIcon
+          icon={<FaPhone />}
+          type="text"
+          placeholder="Contact"
+          value={beneficiary.contact}
+          onChange={(e) =>
+            handleBeneficiaryChange(index, "contact", e.target.value)
+          }
+        />
+        <InputWithIcon
+          icon={<FaEnvelope />}
+          type="email"
+          placeholder="Email"
+          value={beneficiary.email}
+          onChange={(e) =>
+            handleBeneficiaryChange(index, "email", e.target.value)
+          }
+        />
+        <InputWithIcon
+          icon={<FaPercent />}
+          type="number"
+          placeholder="Entitlement %"
+          value={beneficiary.entitlement}
+          onChange={(e) =>
+            handleBeneficiaryChange(index, "entitlement", e.target.value)
+          }
+        />
+        <InputWithIcon
+          icon={<FaLink />}
+          type="text"
+          placeholder="Relationship"
+          value={beneficiary.relationship}
+          onChange={(e) =>
+            handleBeneficiaryChange(index, "relationship", e.target.value)
+          }
+        />
+      </FieldSection>
+    ))}
+  </div>
+
+
+<div className=" p-4 rounded-lg mt-4  bg-gray-50">
+  
+  <div className="flex flex-col space-y-4">
+    {uniqueBeneficiaryIds.map((id) => {
+      const beneficiary = getBeneficiaryById(id); // Use updated function
+      return beneficiary ? (
+        <FieldSection
+          key={id}
+          className="flex flex-col md:flex-row md:space-x-4"
+        >
+          <InputWithIcon
+            icon={<FaUser />}
+            type="text"
+            placeholder="Beneficiary Name"
+            value={beneficiary.name}
+            onChange={(e) =>
+              handleBeneficiaryChange("name", id, e.target.value)
+            }
+          />
+          <InputWithIcon
+            icon={<FaPhone />}
+            type="text"
+            placeholder="Contact"
+            value={beneficiary.contact}
+            onChange={(e) =>
+              handleBeneficiaryChange("contact", id, e.target.value)
+            }
+          />
+          <InputWithIcon
+            icon={<FaEnvelope />}
+            type="email"
+            placeholder="Email"
+            value={beneficiary.email}
+            onChange={(e) =>
+              handleBeneficiaryChange("email", id, e.target.value)
+            }
+          />
+          <InputWithIcon
+            icon={<FaPercent />}
+            type="number"
+            placeholder="Entitlement %"
+            value={beneficiary.entitlement}
+            onChange={(e) =>
+              handleBeneficiaryChange("entitlement", id, e.target.value)
+            }
+          />
+          <InputWithIcon
+            icon={<FaLink />}
+            type="text"
+            placeholder="Relationship"
+            value={beneficiary.relationship}
+            onChange={(e) =>
+              handleBeneficiaryChange("relationship", id, e.target.value)
+            }
+          />
+        </FieldSection>
+      ) : (
+        ''
+      );
+    })}
+  </div>
+</div>
+
+
+</Section>
+
 
       <div className="flex justify-center mb-4 mt-10">
         <button

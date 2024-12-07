@@ -211,9 +211,8 @@ setProperties([{
       (user) => String(user.beneficiary_id) === String(id)
     ) || null;
   };
-    // Flatten and deduplicate the beneficiary IDs across all deposits
 const uniqueBeneficiaryIds = Array.from(
-  new Set(properties.flatMap((deposit) => deposit.beneficiaryUser.split(",")))
+  new Set(properties.flatMap((deposit) =>deposit.beneficiaryUser ? deposit.beneficiaryUser.split(",") : []))
 );
 
 
@@ -424,8 +423,7 @@ const uniqueBeneficiaryIds = Array.from(
   </div>
 
 
-<div className="border p-4 rounded-lg mt-4 shadow-md bg-gray-50">
-  <h4 className="font-semibold text-lg mb-4">Selected Beneficiaries:</h4>
+<div className=" p-4 rounded-lg mt-4  bg-gray-50">
   
   <div className="flex flex-col space-y-4">
     {uniqueBeneficiaryIds.map((id) => {
@@ -482,9 +480,7 @@ const uniqueBeneficiaryIds = Array.from(
           />
         </FieldSection>
       ) : (
-        <p key={id} className="text-red-500">
-          Beneficiary with ID {id} not found.
-        </p>
+        ''
       );
     })}
   </div>

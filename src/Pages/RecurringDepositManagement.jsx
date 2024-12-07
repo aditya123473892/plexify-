@@ -23,10 +23,7 @@ function RecurringDepositManagement() {
           },
         });
 
-        // Check if data exists, then set state
-   
         if (response.data.deposits && response.data.deposits.length > 0) {
-          // Map deposits to a format compatible with the form
           const formattedDeposits = response.data.deposits.map((deposit) => ({
             id: deposit.id,
             bankName: deposit.bank_name || "",
@@ -183,8 +180,13 @@ function RecurringDepositManagement() {
   };
   
   const uniqueBeneficiaryIds = Array.from(
-    new Set(deposits.flatMap((deposit) => deposit.beneficiaryUser.split(",")))
+    new Set(
+      deposits.flatMap((deposit) => 
+        deposit.beneficiaryUser ? deposit.beneficiaryUser.split(",") : []
+      )
+    )
   );
+  
   return (
     <div className="min-h-screen shadow-2xl bg-white p-6 rounded-lg md:mt-10 mt-20">
       <header className="mb-8">
@@ -240,7 +242,7 @@ function RecurringDepositManagement() {
                 icon={<FaCalendarAlt />}
                 type="date"
                 placeholder="Start Date"
-                value={deposit.startDate}
+                value={deposit.startDate }
                 onChange={(e) =>
                   handleDepositChange(index, "startDate", e.target.value)
                 }
@@ -345,78 +347,9 @@ function RecurringDepositManagement() {
             </FieldSection>
           ))}
 
-{/* {deposits.map((deposit, depositIndex) => (
-  <div key={depositIndex} className="border p-4 rounded-lg mt-4 shadow-md bg-gray-50">
-    {deposit.beneficiaryUser && (
-      <div className="mt-4  p-4 rounded-lg">
-        <h4 className="font-semibold text-lg">Selected Beneficiaries:</h4>
-        
-       
-        {deposit.beneficiaryUser
-          .split(',') // Split the IDs into an array
-          .map((id) => {
-            const beneficiary = getBeneficiaryById(id); // Use updated function
-            return beneficiary ? (
-              <FieldSection key={id}>
-                <InputWithIcon
-                  icon={<FaUser />}
-                  type="text"
-                  placeholder="Beneficiary Name"
-                  value={beneficiary.name}
-                  onChange={(e) =>
-                    handleBeneficiaryChange(depositIndex, "name", e.target.value)
-                  }
-                />
-                <InputWithIcon
-                  icon={<FaPhone />}
-                  type="text"
-                  placeholder="Contact"
-                  value={beneficiary.contact}
-                  onChange={(e) =>
-                    handleBeneficiaryChange(depositIndex, "contact", e.target.value)
-                  }
-                />
-                <InputWithIcon
-                  icon={<FaEnvelope />}
-                  type="email"
-                  placeholder="Email"
-                  value={beneficiary.email}
-                  onChange={(e) =>
-                    handleBeneficiaryChange(depositIndex, "email", e.target.value)
-                  }
-                />
-                <InputWithIcon
-                  icon={<FaPercent />}
-                  type="number"
-                  placeholder="Entitlement %"
-                  value={beneficiary.entitlement}
-                  onChange={(e) =>
-                    handleBeneficiaryChange(depositIndex, "entitlement", e.target.value)
-                  }
-                />
-                <InputWithIcon
-                  icon={<FaLink />}
-                  type="text"
-                  placeholder="Relationship"
-                  value={beneficiary.relationship}
-                  onChange={(e) =>
-                    handleBeneficiaryChange(depositIndex, "relationship", e.target.value)
-                  }
-                />
-              </FieldSection>
-            ) : (
-              <p key={id} className="text-red-500">
-                Beneficiary with ID {id} not found.
-              </p>
-            );
-          })}
-      </div>
-    )}
-  </div>
-))} */}
 
-<div className="border p-4 rounded-lg mt-4 shadow-md bg-gray-50">
-  <h4 className="font-semibold text-lg mb-4">Selected Beneficiaries:</h4>
+
+<div className=" p-4 rounded-lg mt-4  bg-gray-50">
   
   <div className="flex flex-col space-y-4">
     {uniqueBeneficiaryIds.map((id) => {
@@ -473,9 +406,7 @@ function RecurringDepositManagement() {
           />
         </FieldSection>
       ) : (
-        <p key={id} className="text-red-500">
-          Beneficiary with ID {id} not found.
-        </p>
+       ''
       );
     })}
   </div>

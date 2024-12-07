@@ -6,6 +6,7 @@ import { AuthContext } from "../Contexts/Context";
 import "react-toastify/dist/ReactToastify.css";
 import Section from "../Components/Section";
 import InputWithIcon from "../Components/InputWithIcon";
+import FieldSection from "../Components/FieldSection";
 
 const WillForm = () => {
   const { API, token } = useContext(AuthContext);
@@ -221,62 +222,53 @@ const WillForm = () => {
 
 
         {/* Wealth Details Section */}
+
         <Section className="bg-white p-6 rounded-lg shadow-md">
-          <h2 className="text-2xl font-semibold text-gray-800 mb-4 flex items-center">
-            Wealth Details
-            <button
-              onClick={fetchWealthDetails}
-              className="ml-4 text-[#538d2dfd] hover:underline flex items-center"
-            >
-              <FaSyncAlt className="mr-2" /> Refresh
-            </button>
-          </h2>
-          {loading ? (
-            <p>Loading wealth details...</p>
-          ) : wealthDetails.length > 0 ? (
-            <div className="overflow-x-auto">
-              <table className="table-auto border-collapse border border-gray-300 w-full text-left">
-                <thead>
-                  <tr className="bg-gray-200">
-                    <th className="border border-gray-300 px-4 py-2">Type</th>
-                    <th className="border border-gray-300 px-4 py-2">
-                      Details
-                    </th>
-                    <th className="border border-gray-300 px-4 py-2">Value</th>
-                    <th className="border border-gray-300 px-4 py-2">
-                      Actions
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {wealthDetails.map((item) => (
-                    <tr key={item.id} className="hover:bg-gray-100">
-                      <td className="border border-gray-300 px-4 py-2">
-                        {item.type}
-                      </td>
-                      <td className="border border-gray-300 px-4 py-2">
-                        {item.details}
-                      </td>
-                      <td className="border border-gray-300 px-4 py-2">
-                        {item.value}
-                      </td>
-                      <td className="border border-gray-300 px-4 py-2">
-                        <button
-                          onClick={() => handleDeleteWealth(item.id)}
-                          className="text-[#538d2dfd] hover:underline"
-                        >
-                          <FaTrash />
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+  <h2 className="text-2xl font-semibold text-gray-800 mb-4 flex items-center">
+    Wealth Details
+    <button
+      onClick={fetchWealthDetails}
+      className="ml-4 text-[#538d2dfd] hover:underline flex items-center"
+    >
+      <FaSyncAlt className="mr-2" /> Refresh
+    </button>
+  </h2>
+  {loading ? (
+    <div className="flex justify-center">
+      <div className="animate-spin h-8 w-8 border-t-2 border-blue-500 rounded-full"></div>
+    </div>
+  ) : wealthDetails.length > 0 ? (
+    Object.entries(
+      wealthDetails.reduce((acc, item) => {
+        if (!acc[item.type]) acc[item.type] = [];
+        acc[item.type].push(item);
+        return acc;
+      }, {})
+    ).map(([type, items]) => (
+      <FieldSection key={type} title={`${type} (${items.length})`}>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          {items.map((item) => (
+            <div key={item.id} className="bg-white p-4 border border-gray-300 rounded-lg shadow-md hover:shadow-lg transition duration-300">
+              <h4 className="text-lg font-semibold text-gray-800">{item.details}</h4>
+              <p className="text-sm text-gray-600 mb-4">Value: {item.value}</p>
+              <button
+                onClick={() => handleDeleteWealth(item.id)}
+                className="text-[#538d2dfd] hover:underline"
+                aria-label={`Delete ${type}`}
+                title={`Delete ${type}`}
+              >
+                <FaTrash />
+              </button>
             </div>
-          ) : (
-            <p className="text-gray-600">No wealth details available.</p>
-          )}
-        </Section>
+          ))}
+        </div>
+      </FieldSection>
+    ))
+  ) : (
+    <p className="text-gray-600">No wealth details available.</p>
+  )}
+</Section>
+
 
         {/* Witness Information Section */}
         <Section className="bg-white p-6 rounded-lg shadow-md">
