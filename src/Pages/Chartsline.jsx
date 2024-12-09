@@ -1,22 +1,40 @@
 import React, { useState, useEffect, useContext } from "react";
 import axios from "axios";
-import {
-  LineChart,
-  Line,
-  PieChart,
-  Pie,
-  Cell,
-  ResponsiveContainer,
-} from "recharts";
 import { AuthContext } from "../Contexts/Context";
 
 const Chartsline = () => {
   const [financialData, setFinancialData] = useState(null);
+  const [beneficiaries, setBeneficiaries] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const { API, token } = useContext(AuthContext);
 
   useEffect(() => {
+    const fetchBeneficiaries = async () => {
+      try {
+        const response = await axios.get(`${API}/beneficiary_user`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        // Process and map the beneficiary data
+        const fetchedBeneficiaries = response.data.beneficiaries.map((beneficiary) => ({
+          id: beneficiary.beneficiary_id,
+          name: beneficiary.name || "N/A",
+          relation: beneficiary.relationship || "N/A",
+          document_path: beneficiary.document_path || null,
+          entitlement: parseFloat(beneficiary.entitlement) || 0, // Ensure numeric value
+        }));
+        setBeneficiaries(fetchedBeneficiaries);
+      } catch (err) {
+        console.error("Error fetching beneficiaries:", err);
+        setError("Error fetching beneficiaries. Please try again later.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
     const fetchFinancialSummary = async () => {
       try {
         const response = await axios.get(`${API}/financial-summary`, {
@@ -25,163 +43,164 @@ const Chartsline = () => {
           },
         });
         setFinancialData(response.data);
-        setLoading(false);
       } catch (err) {
+        console.error("Failed to load financial summary:", err);
         setError("Failed to load financial summary. Please try again later.");
-        setLoading(false);
       }
     };
 
+    fetchBeneficiaries();
     fetchFinancialSummary();
   }, [API, token]);
-console.log('✌️financialData --->', financialData);
-  const maxValue = Math.max(
-    financialData?.total_wealth || 0,
-    financialData?.total_liabilities || 0,
-    financialData?.net_worth || 0
-  );
 
-  // Data for Line chart (dynamically updating based on financialData)
-  const lineData = [
-    {
-      name: "Total Wealth",
-      value: financialData ? financialData.total_wealth : 0,
-    },
-    {
-      name: "Total Liabilities",
-      value: financialData ? financialData.total_liabilities : 0,
-    },
-    {
-      name: "Net Worth",
-      value: financialData ? financialData.net_worth : 0,
-    },
-  ];
-
-  // Pie chart data (example)
-  const pieData = [
-    {
-      name: "Liabilities",
-      value: financialData ? (financialData.total_liabilities / maxValue) * 100 : 0,
-      color: "#ff0000",
-    },
-    {
-      name: "Assets",
-      value: financialData ? (financialData.total_wealth / maxValue) * 100 : 0,
-      color: "#00aaff",
-    },
-    {
-      name: "Networth",
-      value: financialData ? (financialData.net_worth / maxValue) * 100 : 0,
-      color: "#ffaa00",
-    },
-  ];
-
-  // Extract top investments from financialData
   const topInvestments = financialData?.top_investments || [];
-
-  // Calculate the total value of all investments
   const totalInvestmentValue = topInvestments.reduce((total, investment) => total + investment.value, 0);
 
-  // Add percentage to each investment
   const investmentsWithPercentage = topInvestments.map((investment) => ({
     ...investment,
     percentage: ((investment.value / totalInvestmentValue) * 100).toFixed(2),
   }));
 
-  // Calculate percentage change
-  const calculatePercentageChange = (oldValue, newValue) => {
-    if (oldValue === 0) return 0;
-    return ((newValue - oldValue) / oldValue) * 100;
+  const handleViewAll = (section) => {
+    console.log(`View all clicked for ${section}`);
+    // Add your navigation or modal logic here
   };
 
   if (loading) return <div>Loading...</div>;
-  if (error) return <div>{error}</div>;
 
   return (
     <div className="dashboard">
-      {/* Sales Per Day / Line chart representing wealth, liabilities, net worth */}
-      <div className="dashboard-card sales-per-day">
-        <h3>Wealth Overview</h3>
-        <ResponsiveContainer width="100%" height={100}>
-          <LineChart data={lineData}>
-            <Line
-              type="monotone"
-              dataKey="value"
-              stroke="#8884d8"
-              strokeWidth={2}
-            />
-          </LineChart>
-        </ResponsiveContainer>
-        <div className="sales-info">
-          <p>
-            {financialData && financialData.total_wealth} <span>Networth</span>
-          </p>
-          <p>
-            {financialData && financialData.today_sales} <span>Today Sales</span>
-          </p>
+      <style>
+        {`
+          .dashboard {
+            display: flex;
+            justify-content: space-between;
+            gap: 20px;
+          }
+          .dashboard-card {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 20px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+            background-color: white;
+            height: 400px; /* Fixed height for uniformity */
+            overflow: hidden;
+          }
+          .card-content {
+            flex: 1;
+            overflow-y: auto;
+          }
+          .beneficiary-item img {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            margin-right: 15px;
+          }
+          .progress-bar {
+            height: 10px;
+            width: 100%;
+            background-color: #eee;
+            border-radius: 5px;
+            overflow: hidden;
+            margin-top: 5px;
+          }
+          .progress-bar .progress {
+            height: 100%;
+            background-color: #4caf50;
+          }
+          .view-all-button {
+            display: inline-block;
+            margin-top: 10px;
+            padding: 8px 16px;
+            font-size: 14px;
+            color: white;
+            background-color: #8884d8;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            text-align: center;
+            transition: background-color 0.3s ease;
+          }
+          .view-all-button:hover {
+            background-color: #6b6ab7;
+          }
+        `}
+      </style>
+
+      {/* Beneficiaries Section */}
+      <div className="dashboard-card beneficiaries">
+        <h3>Beneficiaries</h3>
+        <div className="card-content">
+          {error ? (
+            <div>{error}</div>
+          ) : beneficiaries.length > 0 ? (
+            beneficiaries.slice(0, 3).map((beneficiary) => (
+              <div key={beneficiary.id} className="beneficiary-item">
+                <img
+                  src={
+                    beneficiary.document_path || "https://via.placeholder.com/50"
+                  }
+                  alt={`Beneficiary ${beneficiary.name}`}
+                />
+                <div style={{ flex: 1 }}>
+                  <p style={{ margin: 0, fontWeight: "bold" }}>
+                    {beneficiary.name}
+                  </p>
+                  <p style={{ margin: 0, color: "#555" }}>
+                    Relation: {beneficiary.relation}
+                  </p>
+                  <div className="progress-bar">
+                    <div
+                      className="progress"
+                      style={{
+                        width: `${Math.min(beneficiary.entitlement, 100)}%`,
+                      }}
+                    ></div>
+                  </div>
+                </div>
+              </div>
+            ))
+          ) : (
+            <div>No beneficiaries available</div>
+          )}
         </div>
-        <div className="mini-stats">
-          {lineData.map((data, index) => {
-            if (index === 0) return null;
-            const prevValue = lineData[index - 1].value;
-            const percentageChange = calculatePercentageChange(prevValue, data.value);
-            return (
-              <p key={index}>
-                {data.name} <span style={{ color: percentageChange < 0 ? "red" : "green" }}>
-                  {percentageChange.toFixed(2)}%
-                </span>
-              </p>
-            );
-          })}
-        </div>
+        <button
+          className="view-all-button"
+          onClick={() => handleViewAll("Beneficiaries")}
+        >
+          View All
+        </button>
       </div>
 
-      {/* Total Revenue / Pie chart */}
-      <div className="dashboard-card total-revenue">
-        <h3>Net Worth</h3>
-        <ResponsiveContainer width="100%" height={150}>
-          <PieChart>
-            <Pie
-              data={pieData}
-              dataKey="value"
-              outerRadius={50}
-              innerRadius={30}
-              paddingAngle={5}
-            >
-              {pieData.map((entry, index) => (
-                <Cell key={`cell-${index}`} fill={entry.color} />
-              ))}
-            </Pie>
-          </PieChart>
-        </ResponsiveContainer>
-        <div className="pie-labels">
-          {pieData.map((item, index) => (
-            <p key={index} style={{ color: item.color }} className=" gap-2">
-              {item.name} <span>{item.value.toFixed(2)} %</span>
-            </p>
-          ))}
-        </div>
-      </div>
-
-      {/* Top 5 Investments */}
+      {/* Top 5 Investments Section */}
       <div className="dashboard-card investments">
         <h3>Top 5 Investments</h3>
-        {investmentsWithPercentage.map((investment, index) => (
-          <div key={index} className="investment-item my-2">
-            <span className=" px-3">{investment.name}</span>
-            <span>{investment.percentage}%</span> {/* Show percentage */}
-            <div className="progress-bar">
-              <div
-                className="progress"
-                style={{
-                  width: `${investment.percentage}%`, // Set width based on the calculated percentage
-                  backgroundColor: "#8884d8",
-                }}
-              ></div>
+        <div className="card-content">
+          {investmentsWithPercentage.map((investment, index) => (
+            <div key={index} className="investment-item">
+              <span style={{ flex: 1 }}>{investment.name}</span>
+              <span>{investment.percentage}%</span>
+              <div className="progress-bar" style={{ flex: 1, marginLeft: "15px" }}>
+                <div
+                  className="progress"
+                  style={{
+                    width: `${investment.percentage}%`,
+                    backgroundColor: "#8884d8",
+                  }}
+                ></div>
+              </div>
             </div>
-           
-          </div>
-        ))}
+          ))}
+        </div>
+        <button
+          className="view-all-button"
+          onClick={() => handleViewAll("Top Investments")}
+        >
+          View All
+        </button>
       </div>
     </div>
   );

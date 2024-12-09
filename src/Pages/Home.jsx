@@ -11,6 +11,7 @@ import Chartsline from "./Chartsline";
 import VideoChat from "../Components/Videochat";
 import { AuthContext } from "../Contexts/Context";
 import axios from "axios";
+import LiabilitiesSlider from "../Components/Liabilitis";
 ChartJS.register(ArcElement, Tooltip, Legend);
 const Home = () => {
   const { API, token } = useContext(AuthContext);
@@ -282,6 +283,7 @@ console.log('✌️maxValue --->', financialData ? ((financialData.total_liabili
         <Chartsline></Chartsline>
 
         <PaymentsSlider />
+        <LiabilitiesSlider></LiabilitiesSlider>
         <Accordion />
       </div>
     </>

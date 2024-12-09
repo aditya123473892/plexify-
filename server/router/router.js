@@ -12,14 +12,15 @@ const authMiddleware = require("../auth/authMiddleware");
 const secret = "iwfhugafwofjwhig3hwigk3wnig3uwmgkmewoipj39gw8hqoijhi3hgwgkwni";
 const connectionString =
 
-// 'Driver={ODBC Driver 17 for SQL Server};Server=PLEXIFY;Database=PLEXIFY;Trusted_Connection=yes;';
+'Driver={ODBC Driver 17 for SQL Server};Server=PLEXIFY;Database=Plexify;Trusted_Connection=yes;';
 
- "Driver={ODBC Driver 17 for SQL Server};Server=DESKTOP-BBKLDAG\\SQLEXPRESS01;Database=DB;Trusted_Connection=yes;";
+ // "Driver={ODBC Driver 17 for SQL Server};Server=DESKTOP-BBKLDAG\\SQLEXPRESS01;Database=DB;Trusted_Connection=yes;";
 
 //  "Driver={ODBC Driver 18 for SQL Server};Server=MOHIT\\SQLEXPRESS;Database=master;Trusted_Connection=yes;TrustServerCertificate=yes;";
 
+// 'Driver={ODBC Driver 17 for SQL Server};Server=tcp:223.177.191.179,1433;Database=PLEXIFY;Trusted_Connection=yes;Uid=AJIT;Pwd=Plexify2025;'
 
-
+ 
 const queryDatabase = (query, params) => {
   return new Promise((resolve, reject) => {
     sql.query(connectionString, query, params, (err, result) => {
@@ -136,94 +137,221 @@ router.post("/signin", async (req, res) => {
 });
 
 
-router.get("/beneficiary_user", authMiddleware, async (req, res) => {
-  const user_id = req.user_id;
-  const query = `
-      SELECT * 
-      FROM [dbo].[beneficiaries]
-      WHERE user_id = ?
-    `;
-  const data = await queryDatabase(query, [user_id]);
-  res.status(200).json(data);
+const beneficiaryStorage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    const uploadPath = path.join(__dirname, "../uploads/beneficiaries/");
+    cb(null, uploadPath);
+  },
+  filename: (req, file, cb) => {
+    cb(null, Date.now() + path.extname(file.originalname));
+  },
 });
-router.post("/add-beneficiary",authMiddleware, async (req, res) => {
-  try {
-    const userId = req.user_id;
-    const { name, contact, email, entitlement, notify, relationship } =
-      req.body;
 
-    if (!userId || !name || !entitlement || !relationship) {
-      return res.status(400).json({ msg: "Please fill all required fields." });
-    }
+const beneficiaryUpload = multer({ storage: beneficiaryStorage });
 
-    const checkUserQuery = `SELECT user_id FROM dbo.registration WHERE user_id = ?`;
-    const userExists = await queryDatabase(checkUserQuery, [userId]);
-
-    if (userExists.length === 0) {
-      return res
-        .status(400)
-        .json({ msg: "Invalid user_id. Please register the user first." });
-    }
-
-    const insertBeneficiaryQuery = `
-      INSERT INTO dbo.beneficiaries 
-      (user_id, name, contact, email, entitlement, relationship, notify) 
-      VALUES (?, ?, ?, ?, ?, ?, ?)
-    `;
-    const result = await queryDatabase(insertBeneficiaryQuery, [
-      userId,
-      name,
-      contact || null,
-      email || null,
-      entitlement,
-      relationship,
-      notify || 0,
-    ]);
-
-    res.status(201).json({
-      msg: "Beneficiary added successfully",
-      beneficiaryId: result.insertId,
-    });
-  } catch (error) {
-    console.error("Error adding beneficiary:", error);
-    res.status(500).json({ msg: "Server error." });
+// Helper to ensure upload directory exists
+const ensureUploadDirectoryExists = (dirPath) => {
+  const fs = require("fs");
+  if (!fs.existsSync(dirPath)) {
+    fs.mkdirSync(dirPath, { recursive: true });
   }
-});
+};
+ensureUploadDirectoryExists(path.join(__dirname, "../uploads/beneficiaries/"));
+
+// router.post(
+//   "/add-beneficiary",
+//   authMiddleware,
+//   beneficiaryUpload.single("document"),
+//   async (req, res) => {
+//     try {
+//       const { name, contact, email, entitlement, relationship, notify } = req.body;
+//       const user_id = req.user_id;
+
+//       const parsedEntitlement = parseFloat(entitlement);
+//       const finalContact = contact?.trim() || null;
+//       const finalEmail = email?.trim() || null;
+//       const finalNotify = notify === "true" || notify === 1 || notify === "1";
+
+//       let documentPath = req.file ? req.file.path : null;
+
+//       // Validate required fields
+//       if (!user_id || !name?.trim() || isNaN(parsedEntitlement) || !relationship?.trim()) {
+//         return res.status(400).json({ msg: "Please fill all required fields." });
+//       }
+
+//       // Check if beneficiary already exists
+//       const checkBeneficiaryQuery = `
+//         SELECT * FROM beneficiaries WHERE name = ? AND user_id = ?
+//       `;
+//       const existingBeneficiary = await queryDatabase(checkBeneficiaryQuery, [name, user_id]);
+
+//       if (existingBeneficiary.length > 0) {
+//         // Update existing beneficiary
+//         const updateBeneficiaryQuery = `
+//           UPDATE beneficiaries 
+//           SET 
+//             contact = ?, 
+//             email = ?, 
+//             entitlement = ?, 
+//             relationship = ?, 
+//             notify = ?, 
+//             document_path = COALESCE(?, document_path)
+//           WHERE name = ? AND user_id = ?
+//         `;
+
+//         await queryDatabase(updateBeneficiaryQuery, [
+//           finalContact,
+//           finalEmail,
+//           parsedEntitlement,
+//           relationship,
+//           finalNotify,
+//           documentPath,
+//           name,
+//           user_id,
+//         ]);
+
+//         return res.status(200).json({ msg: "Beneficiary updated successfully" });
+//       } else {
+//         // Insert new beneficiary
+//         const insertBeneficiaryQuery = `
+//           INSERT INTO beneficiaries (
+//             user_id, name, contact, email, entitlement, relationship, notify, document_path
+//           )
+//           VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+//         `;
+
+//         await queryDatabase(insertBeneficiaryQuery, [
+//           user_id,
+//           name.trim(),
+//           finalContact,
+//           finalEmail,
+//           parsedEntitlement,
+//           relationship.trim(),
+//           finalNotify,
+//           documentPath,
+//         ]);
+
+//         return res.status(201).json({ msg: "Beneficiary added successfully" });
+//       }
+//     } catch (error) {
+//       console.error("Error processing beneficiary request:", error);
+//       res.status(500).json({ msg: "Server Error" });
+//     }
+//   }
+// );
+
+// router.get("/beneficiary_user", authMiddleware, async (req, res) => {
+//   const user_id = req.user_id;
+
+//   const fetchBeneficiariesQuery = `
+//     SELECT 
+//       beneficiary_id, user_id, name, contact, email, entitlement, 
+//       relationship, notify, document_path, created_at, updated_at
+//     FROM beneficiaries
+//     WHERE user_id = ?
+//     ORDER BY beneficiary_id DESC
+//   `;
+
+//   try {
+//     const beneficiaries = await queryDatabase(fetchBeneficiariesQuery, [user_id]);
+
+//     res.status(200).json({
+//       beneficiaries,
+//       msg: "Beneficiaries retrieved successfully",
+//     });
+//   } catch (error) {
+//     console.error("Error fetching beneficiaries:", error);
+//     res.status(500).json({ msg: "Server Error" });
+//   }
+// });
+
+// router.put(
+//   "/update-beneficiary/:beneficiary_id",
+//   authMiddleware,
+//   beneficiaryUpload.single("document"),
+//   async (req, res) => {
+//     try {
+//       const { beneficiary_id } = req.params;
+//       const { name, contact, email, entitlement, relationship, notify } = req.body;
+//       const user_id = req.user_id;
+
+//       const parsedEntitlement = parseFloat(entitlement);
+//       const finalContact = contact?.trim() || null;
+//       const finalEmail = email?.trim() || null;
+//       const finalNotify = notify === "true" || notify === 1 || notify === "1";
+
+//       const documentPath = req.file ? req.file.path : null;
+
+//       // Validate required fields
+//       if (!name?.trim() || isNaN(parsedEntitlement) || !relationship?.trim()) {
+//         return res.status(400).json({ msg: "Please fill all required fields." });
+//       }
+
+//       const updateBeneficiaryQuery = `
+//         UPDATE beneficiaries 
+//         SET 
+//           name = ?, 
+//           contact = ?, 
+//           email = ?, 
+//           entitlement = ?, 
+//           relationship = ?, 
+//           notify = ?, 
+//           document_path = COALESCE(?, document_path)
+//         WHERE beneficiary_id = ? AND user_id = ?
+//       `;
+
+//       const result = await queryDatabase(updateBeneficiaryQuery, [
+//         name.trim(),
+//         finalContact,
+//         finalEmail,
+//         parsedEntitlement,
+//         relationship.trim(),
+//         finalNotify,
+//         documentPath,
+//         beneficiary_id,
+//         user_id,
+//       ]);
+
+//       if (result.affectedRows === 0) {
+//         return res.status(404).json({ msg: "Beneficiary not found or unauthorized access." });
+//       }
+
+//       res.status(200).json({ msg: "Beneficiary updated successfully." });
+//     } catch (error) {
+//       console.error("Error updating beneficiary:", error);
+//       res.status(500).json({ msg: "Server Error" });
+//     }
+//   }
+// );
+
+// router.delete(
+//   "/delete-beneficiary/:beneficiary_id",
+//   authMiddleware,
+//   async (req, res) => {
+//     try {
+//       const { beneficiary_id } = req.params;
+//       const user_id = req.user_id;
+
+//       const deleteBeneficiaryQuery = `
+//         DELETE FROM beneficiaries 
+//         WHERE beneficiary_id = ? AND user_id = ?
+//       `;
+
+//       const result = await queryDatabase(deleteBeneficiaryQuery, [beneficiary_id, user_id]);
+
+//       if (result.affectedRows === 0) {
+//         return res.status(404).json({ msg: "Beneficiary not found or unauthorized access." });
+//       }
+
+//       res.status(200).json({ msg: "Beneficiary deleted successfully." });
+//     } catch (error) {
+//       console.error("Error deleting beneficiary:", error);
+//       res.status(500).json({ msg: "Server Error" });
+//     }
+//   }
+// );
 
 
-router.get("/beneficiaries", async (req, res) => {
-  try {
-    const { userId, beneficiaryId } = req.query;
-
-    let fetchQuery = `SELECT * FROM dbo.beneficiaries`;
-    const queryParams = [];
-
-    if (userId) {
-      fetchQuery += ` WHERE user_id = ?`;
-      queryParams.push(userId);
-    }
-    if (beneficiaryId) {
-      fetchQuery += userId
-        ? ` AND beneficiary_id = ?`
-        : ` WHERE beneficiary_id = ?`;
-      queryParams.push(beneficiaryId);
-    }
-
-    const results = await queryDatabase(fetchQuery, queryParams);
-
-    if (results.length === 0) {
-      return res.status(404).json({ msg: "No beneficiaries found." });
-    }
-
-    res.status(200).json({
-      msg: "Beneficiaries retrieved successfully",
-      beneficiaries: results,
-    });
-  } catch (error) {
-    console.error("Error fetching beneficiaries:", error);
-    res.status(500).json({ msg: "Server error." });
-  }
-});
 
 
 router.post("/forgot-password", async (req, res) => {
@@ -924,7 +1052,6 @@ router.get("/stocks", authMiddleware, async (req, res) => {
   try {
     const stocks = await queryDatabase(fetchStocksQuery, [user_id]);
 
- console.log(stocks,'f')
     res.status(200).json({
       stocks,
       msg: "Stocks retrieved successfully",
@@ -1532,7 +1659,7 @@ router.get("/bank-accounts", authMiddleware, async (req, res) => {
 
     const accounts = await queryDatabase(fetchAccountsQuery, [user_id]);
 
-    if (accounts.length === 0) {
+    if (!accounts || accounts.length === 0) {
       return res.status(404).json({ msg: "No bank accounts found" });
     }
 
@@ -1542,12 +1669,76 @@ router.get("/bank-accounts", authMiddleware, async (req, res) => {
     });
   } catch (err) {
     console.error("Error fetching bank accounts:", err);
-    res.status(500).json({ msg: "Server Error" });
+    res.status(500).json({ msg: "Server error while fetching bank accounts" });
   }
 });
 
-// POST a new bank account
+// POST: Add multiple bank accounts
 router.post("/bank-accounts", authMiddleware, async (req, res) => {
+  const { accounts } = req.body; // Expecting an array of account objects
+  const user_id = req.user_id;
+
+  if (!Array.isArray(accounts) || accounts.length === 0) {
+    return res
+      .status(400)
+      .json({ msg: "At least one account must be provided." });
+  }
+
+  try {
+    const insertAccountQuery = `
+      INSERT INTO bank_accounts (
+        account_holder, account_number, bank_name, account_type, balance, notes, user_id
+      ) 
+      VALUES (?, ?, ?, ?, ?, ?, ?);
+    `;
+
+    const saveAccountPromises = accounts.map((account) => {
+      const {
+        account_holder,
+        account_number,
+        bank_name,
+        account_type,
+        balance,
+        notes,
+      } = account;
+
+      if (
+        !account_holder ||
+        !account_number ||
+        !bank_name ||
+        !account_type ||
+        !balance
+      ) {
+        throw new Error(
+          "Account holder, account number, bank name, account type, and balance are required."
+        );
+      }
+
+      return queryDatabase(insertAccountQuery, [
+        account_holder,
+        account_number,
+        bank_name,
+        account_type,
+        parseFloat(balance),
+        notes || null,
+        user_id,
+      ]);
+    });
+
+    await Promise.all(saveAccountPromises);
+
+    res.status(201).json({ msg: "Bank accounts added successfully" });
+  } catch (err) {
+    console.error("Error adding bank accounts:", err);
+    res
+      .status(500)
+      .json({ msg: "Error adding bank accounts", error: err.message });
+  }
+});
+
+// PUT: Update a single bank account by ID
+router.put("/bank-accounts/:id", authMiddleware, async (req, res) => {
+  const { id } = req.params;
   const {
     account_holder,
     account_number,
@@ -1571,44 +1762,6 @@ router.post("/bank-accounts", authMiddleware, async (req, res) => {
   }
 
   try {
-    const insertAccountQuery = `
-      INSERT INTO bank_accounts (
-        account_holder, account_number, bank_name, account_type, balance, notes, user_id
-      )
-      VALUES (?, ?, ?, ?, ?, ?, ?);
-    `;
-
-    await queryDatabase(insertAccountQuery, [
-      account_holder,
-      account_number,
-      bank_name,
-      account_type,
-      parseFloat(balance),
-      notes || null,
-      user_id,
-    ]);
-
-    res.status(201).json({ msg: "Bank account added successfully" });
-  } catch (err) {
-    console.error("Error adding bank account:", err);
-    res.status(500).json({ msg: "Server Error" });
-  }
-});
-
-// PUT (Update) a bank account
-router.put("/bank-accounts/:id", authMiddleware, async (req, res) => {
-  const { id } = req.params;
-  const {
-    account_holder,
-    account_number,
-    bank_name,
-    account_type,
-    balance,
-    notes,
-  } = req.body;
-  const user_id = req.user_id;
-
-  try {
     const updateAccountQuery = `
       UPDATE bank_accounts
       SET 
@@ -1618,7 +1771,7 @@ router.put("/bank-accounts/:id", authMiddleware, async (req, res) => {
         account_type = ?, 
         balance = ?, 
         notes = ?, 
-        updated_at = GETDATE()
+        updated_at = NOW()
       WHERE id = ? AND user_id = ?;
     `;
 
@@ -1642,11 +1795,13 @@ router.put("/bank-accounts/:id", authMiddleware, async (req, res) => {
     res.status(200).json({ msg: "Bank account updated successfully" });
   } catch (err) {
     console.error("Error updating bank account:", err);
-    res.status(500).json({ msg: "Server Error" });
+    res
+      .status(500)
+      .json({ msg: "Server error while updating bank account" });
   }
 });
 
-// DELETE a bank account
+// DELETE: Remove a bank account by ID
 router.delete("/bank-accounts/:id", authMiddleware, async (req, res) => {
   const { id } = req.params;
   const user_id = req.user_id;
@@ -1668,23 +1823,28 @@ router.delete("/bank-accounts/:id", authMiddleware, async (req, res) => {
     res.status(200).json({ msg: "Bank account deleted successfully" });
   } catch (err) {
     console.error("Error deleting bank account:", err);
-    res.status(500).json({ msg: "Server Error" });
+    res
+      .status(500)
+      .json({ msg: "Server error while deleting bank account" });
   }
 });
+
 router.post("/retirement-accounts", authMiddleware, async (req, res) => {
+  const { accounts } = req.body; // Expecting an array of accounts
+  const userId = req.user_id;
+
+  if (!Array.isArray(accounts) || accounts.length === 0) {
+    return res.status(400).json({ msg: "Accounts data is required." });
+  }
+
   try {
-    console.log("✌️ req.body --->", req.body);
-    const { accounts } = req.body; // Destructure accounts from request body
-    const userId = req.user_id; // Assuming the user ID is passed via authMiddleware
-
     const insertAccountQuery = `
-        INSERT INTO retirement_accounts (
-          account_holder, account_type, institution_name, current_balance, total_contributions, notes, user_id
-        )
-        VALUES (?, ?, ?, ?, ?, ?, ?);
-      `;
+      INSERT INTO retirement_accounts (
+        account_holder, account_type, institution_name, current_balance, total_contributions, notes, user_id
+      )
+      VALUES (?, ?, ?, ?, ?, ?, ?);
+    `;
 
-    // Loop through each account object and save to the database
     const saveAccountPromises = accounts.map((account) => {
       const {
         accountHolder,
@@ -1695,25 +1855,33 @@ router.post("/retirement-accounts", authMiddleware, async (req, res) => {
         notes,
       } = account;
 
-      // Prepare parameters for the insert query
-      const params = [
-        accountHolder, // account_holder
-        accountType, // account_type
-        institutionName, // institution_name
-        parseFloat(currentBalance), // current_balance (convert string to number)
-        parseFloat(contributions), // total_contributions (convert string to number)
-        notes, // notes
-        userId, // user_id
-      ];
+      if (
+        !accountHolder ||
+        !accountType ||
+        !institutionName ||
+        !currentBalance ||
+        !contributions
+      ) {
+        throw new Error(
+          "All required fields (accountHolder, accountType, institutionName, currentBalance, contributions) must be provided."
+        );
+      }
 
-      return queryDatabase(insertAccountQuery, params); // Execute the query
+      return queryDatabase(insertAccountQuery, [
+        accountHolder,
+        accountType,
+        institutionName,
+        parseFloat(currentBalance),
+        parseFloat(contributions),
+        notes || null,
+        userId,
+      ]);
     });
 
-    // Execute all insert queries concurrently
     await Promise.all(saveAccountPromises);
 
     res
-      .status(200)
+      .status(201)
       .json({ msg: "Retirement account details saved successfully!" });
   } catch (error) {
     console.error("Error saving retirement account details:", error);
@@ -1722,12 +1890,23 @@ router.post("/retirement-accounts", authMiddleware, async (req, res) => {
       .json({ msg: "Error saving retirement account details", error });
   }
 });
-router.get("/retirement-accounts", authMiddleware, async (req, res) => {
-  try {
-    const userId = req.user_id;
 
+// GET: Fetch all retirement accounts for the authenticated user
+router.get("/retirement-accounts", authMiddleware, async (req, res) => {
+  const userId = req.user_id;
+
+  try {
     const fetchAccountsQuery = `
-      SELECT * 
+      SELECT 
+        id, 
+        account_holder, 
+        account_type, 
+        institution_name, 
+        current_balance, 
+        total_contributions, 
+        notes, 
+        created_at, 
+        updated_at
       FROM retirement_accounts
       WHERE user_id = ?
       ORDER BY account_holder ASC;
@@ -1735,57 +1914,82 @@ router.get("/retirement-accounts", authMiddleware, async (req, res) => {
 
     const accounts = await queryDatabase(fetchAccountsQuery, [userId]);
 
-    res.status(200).json({ accounts });
+    if (!accounts || accounts.length === 0) {
+      return res.status(404).json({ msg: "No retirement accounts found" });
+    }
+
+    res.status(200).json({
+      accounts,
+      msg: "Retirement accounts retrieved successfully",
+    });
   } catch (error) {
     console.error("Error fetching retirement accounts:", error);
     res.status(500).json({ msg: "Error fetching retirement accounts", error });
   }
 });
 
-// GET Route: Fetch a single retirement account by ID
+// GET: Fetch a single retirement account by ID
 router.get("/retirement-accounts/:id", authMiddleware, async (req, res) => {
-  try {
-    const accountId = req.params.id;
-    const userId = req.user_id;
+  const accountId = req.params.id;
+  const userId = req.user_id;
 
+  try {
     const fetchAccountQuery = `
-      SELECT * 
-      FROM retirement_accounts 
+      SELECT 
+        id, 
+        account_holder, 
+        account_type, 
+        institution_name, 
+        current_balance, 
+        total_contributions, 
+        notes, 
+        created_at, 
+        updated_at
+      FROM retirement_accounts
       WHERE id = ? AND user_id = ?;
     `;
 
-    const [account] = await queryDatabase(fetchAccountQuery, [
-      accountId,
-      userId,
-    ]);
+    const [account] = await queryDatabase(fetchAccountQuery, [accountId, userId]);
 
-    if (account) {
-      res.status(200).json({ account });
-    } else {
-      res
+    if (!account) {
+      return res
         .status(404)
         .json({ msg: "Retirement account not found or unauthorized" });
     }
+
+    res.status(200).json({ account });
   } catch (error) {
     console.error("Error fetching retirement account:", error);
     res.status(500).json({ msg: "Error fetching retirement account", error });
   }
 });
 
-// PUT Route: Update a retirement account by ID
+// PUT: Update a retirement account by ID
 router.put("/retirement-accounts/:id", authMiddleware, async (req, res) => {
-  try {
-    const accountId = req.params.id;
-    const userId = req.user_id;
-    const {
-      accountHolder,
-      accountType,
-      institutionName,
-      currentBalance,
-      contributions,
-      notes,
-    } = req.body;
+  const accountId = req.params.id;
+  const userId = req.user_id;
+  const {
+    accountHolder,
+    accountType,
+    institutionName,
+    currentBalance,
+    contributions,
+    notes,
+  } = req.body;
 
+  if (
+    !accountHolder ||
+    !accountType ||
+    !institutionName ||
+    !currentBalance ||
+    !contributions
+  ) {
+    return res.status(400).json({
+      msg: "All required fields (accountHolder, accountType, institutionName, currentBalance, contributions) must be provided.",
+    });
+  }
+
+  try {
     const updateAccountQuery = `
       UPDATE retirement_accounts
       SET 
@@ -1794,7 +1998,8 @@ router.put("/retirement-accounts/:id", authMiddleware, async (req, res) => {
         institution_name = ?, 
         current_balance = ?, 
         total_contributions = ?, 
-        notes = ?
+        notes = ?, 
+        updated_at = NOW()
       WHERE id = ? AND user_id = ?;
     `;
 
@@ -1804,21 +2009,51 @@ router.put("/retirement-accounts/:id", authMiddleware, async (req, res) => {
       institutionName,
       parseFloat(currentBalance),
       parseFloat(contributions),
-      notes,
+      notes || null,
       accountId,
       userId,
     ]);
 
-    if (result.affectedRows > 0) {
-      res.status(200).json({ msg: "Retirement account updated successfully!" });
-    } else {
-      res
+    if (result.affectedRows === 0) {
+      return res
         .status(404)
         .json({ msg: "Retirement account not found or unauthorized" });
     }
+
+    res
+      .status(200)
+      .json({ msg: "Retirement account updated successfully!" });
   } catch (error) {
     console.error("Error updating retirement account:", error);
     res.status(500).json({ msg: "Error updating retirement account", error });
+  }
+});
+
+// DELETE: Remove a retirement account by ID
+router.delete("/retirement-accounts/:id", authMiddleware, async (req, res) => {
+  const accountId = req.params.id;
+  const userId = req.user_id;
+
+  try {
+    const deleteAccountQuery = `
+      DELETE FROM retirement_accounts
+      WHERE id = ? AND user_id = ?;
+    `;
+
+    const result = await queryDatabase(deleteAccountQuery, [accountId, userId]);
+
+    if (result.affectedRows === 0) {
+      return res
+        .status(404)
+        .json({ msg: "Retirement account not found or unauthorized" });
+    }
+
+    res
+      .status(200)
+      .json({ msg: "Retirement account deleted successfully!" });
+  } catch (error) {
+    console.error("Error deleting retirement account:", error);
+    res.status(500).json({ msg: "Error deleting retirement account", error });
   }
 });
 
@@ -1848,25 +2083,30 @@ router.delete("/retirement-accounts/:id", authMiddleware, async (req, res) => {
   }
 });
 // POST route: Add commodities
+// GET: Fetch all commodities for a user
 router.get("/commodities", authMiddleware, async (req, res) => {
+  const user_id = req.user_id;
+
+  const fetchCommoditiesQuery = `
+    SELECT 
+      id, 
+      commodity_name, 
+      commodity_type, 
+      unit_of_measure, 
+      market_price, 
+      stock_quantity, 
+      provider, 
+      acquisition_date, 
+      expiry_date, 
+      description, 
+      status 
+    FROM commodities
+    WHERE user_id = ?
+    ORDER BY id DESC;
+  `;
+
   try {
-    const fetchCommoditiesQuery = `
-      SELECT 
-        id, 
-        commodity_name, 
-        commodity_type, 
-        unit_of_measure, 
-        market_price, 
-        stock_quantity, 
-        provider, 
-        acquisition_date, 
-        expiry_date, 
-        description, 
-        status 
-      FROM commodities
-      ORDER BY id DESC;
-    `;
-    const commodities = await queryDatabase(fetchCommoditiesQuery);
+    const commodities = await queryDatabase(fetchCommoditiesQuery, [user_id]);
 
     if (!commodities || commodities.length === 0) {
       return res.status(404).json({ msg: "No commodities found" });
@@ -1882,50 +2122,57 @@ router.get("/commodities", authMiddleware, async (req, res) => {
   }
 });
 
-// POST a new commodity
-router.post(
-  "/commodities",
-  authMiddleware,
-  upload.single("document"),
-  async (req, res) => {
-    const {
-      commodity_name,
-      commodity_type,
-      unit_of_measure,
-      market_price,
-      stock_quantity,
-      provider,
-      acquisition_date,
-      expiry_date,
-      description,
-      status,
-    } = req.body;
+// POST: Add multiple commodities
+router.post("/commodities", authMiddleware, async (req, res) => {
+  try {
+    const { commodities } = req.body; // Expecting an array of commodity objects
+    const user_id = req.user_id;
 
-    // Input validation
-    if (
-      !commodity_name ||
-      !commodity_type ||
-      !unit_of_measure ||
-      !market_price ||
-      !stock_quantity ||
-      !provider ||
-      !acquisition_date ||
-      !expiry_date ||
-      !status
-    ) {
-      return res.status(400).json({ msg: "All fields are required" });
+    if (!Array.isArray(commodities) || commodities.length === 0) {
+      return res.status(400).json({ msg: "Commodities data is required." });
     }
 
-    try {
-      const insertCommodityQuery = `
-        INSERT INTO commodities (
-          commodity_name, commodity_type, unit_of_measure, market_price, 
-          stock_quantity, provider, acquisition_date, expiry_date, 
-          description, status
-        ) 
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
-      `;
-      await queryDatabase(insertCommodityQuery, [
+    const insertCommodityQuery = `
+      INSERT INTO commodities (
+        commodity_name, commodity_type, unit_of_measure, market_price, 
+        stock_quantity, provider, acquisition_date, expiry_date, 
+        description, status, user_id
+      ) 
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+    `;
+
+    // Loop through each commodity object and save to the database
+    const saveCommodityPromises = commodities.map((commodity) => {
+      const {
+        commodity_name,
+        commodity_type,
+        unit_of_measure,
+        market_price,
+        stock_quantity,
+        provider,
+        acquisition_date,
+        expiry_date,
+        description,
+        status,
+      } = commodity;
+
+      if (
+        !commodity_name ||
+        !commodity_type ||
+        !unit_of_measure ||
+        !market_price ||
+        !stock_quantity ||
+        !provider ||
+        !acquisition_date ||
+        !expiry_date ||
+        !status
+      ) {
+        throw new Error(
+          "All required fields (commodity_name, commodity_type, unit_of_measure, market_price, stock_quantity, provider, acquisition_date, expiry_date, status) must be provided."
+        );
+      }
+
+      return queryDatabase(insertCommodityQuery, [
         commodity_name,
         commodity_type,
         unit_of_measure,
@@ -1936,17 +2183,21 @@ router.post(
         expiry_date,
         description || null, // Allow null for description
         status,
+        user_id,
       ]);
+    });
 
-      res.status(201).json({ msg: "Commodity added successfully" });
-    } catch (err) {
-      console.error("Error adding commodity:", err);
-      res.status(500).json({ msg: "Server error while adding commodity" });
-    }
+    // Execute all insert queries concurrently
+    await Promise.all(saveCommodityPromises);
+
+    res.status(201).json({ msg: "Commodities added successfully!" });
+  } catch (err) {
+    console.error("Error adding commodities:", err);
+    res.status(500).json({ msg: "Error adding commodities", error: err.message });
   }
-);
+});
 
-// PUT (Update) a commodity
+// PUT: Update a single commodity by ID
 router.put("/commodities/:id", authMiddleware, async (req, res) => {
   const { id } = req.params;
   const {
@@ -1961,6 +2212,7 @@ router.put("/commodities/:id", authMiddleware, async (req, res) => {
     description,
     status,
   } = req.body;
+  const user_id = req.user_id;
 
   if (
     !commodity_name ||
@@ -1973,7 +2225,9 @@ router.put("/commodities/:id", authMiddleware, async (req, res) => {
     !expiry_date ||
     !status
   ) {
-    return res.status(400).json({ msg: "All fields are required" });
+    return res.status(400).json({
+      msg: "All required fields (commodity_name, commodity_type, unit_of_measure, market_price, stock_quantity, provider, acquisition_date, expiry_date, status) must be provided.",
+    });
   }
 
   try {
@@ -1989,8 +2243,9 @@ router.put("/commodities/:id", authMiddleware, async (req, res) => {
         acquisition_date = ?, 
         expiry_date = ?, 
         description = ?, 
-        status = ?
-      WHERE id = ?;
+        status = ?, 
+        updated_at = NOW()
+      WHERE id = ? AND user_id = ?;
     `;
 
     const result = await queryDatabase(updateCommodityQuery, [
@@ -2005,10 +2260,11 @@ router.put("/commodities/:id", authMiddleware, async (req, res) => {
       description || null,
       status,
       id,
+      user_id,
     ]);
 
     if (result.affectedRows === 0) {
-      return res.status(404).json({ msg: "Commodity not found" });
+      return res.status(404).json({ msg: "Commodity not found or unauthorized" });
     }
 
     res.status(200).json({ msg: "Commodity updated successfully" });
@@ -2018,16 +2274,21 @@ router.put("/commodities/:id", authMiddleware, async (req, res) => {
   }
 });
 
-// DELETE a commodity
+// DELETE: Remove a commodity by ID
 router.delete("/commodities/:id", authMiddleware, async (req, res) => {
   const { id } = req.params;
+  const user_id = req.user_id;
 
   try {
-    const deleteCommodityQuery = `DELETE FROM commodities WHERE id = ?;`;
-    const result = await queryDatabase(deleteCommodityQuery, [id]);
+    const deleteCommodityQuery = `
+      DELETE FROM commodities
+      WHERE id = ? AND user_id = ?;
+    `;
+
+    const result = await queryDatabase(deleteCommodityQuery, [id, user_id]);
 
     if (result.affectedRows === 0) {
-      return res.status(404).json({ msg: "Commodity not found" });
+      return res.status(404).json({ msg: "Commodity not found or unauthorized" });
     }
 
     res.status(200).json({ msg: "Commodity deleted successfully" });
@@ -2040,21 +2301,21 @@ router.delete("/commodities/:id", authMiddleware, async (req, res) => {
 router.get("/other-investments", authMiddleware, async (req, res) => {
   const user_id = req.user_id;
 
-  try {
-    const fetchInvestmentsQuery = `
-      SELECT 
-        investment_id, 
-        investment_type, 
-        amount_invested, 
-        current_value, 
-        notes, 
-        created_at, 
-        updated_at 
-      FROM other_investments
-      WHERE user_id = ?
-      ORDER BY investment_id DESC;
-    `;
+  const fetchInvestmentsQuery = `
+    SELECT 
+      investment_id, 
+      investment_type, 
+      amount_invested, 
+      current_value, 
+      notes, 
+      created_at, 
+      updated_at 
+    FROM other_investments
+    WHERE user_id = ?
+    ORDER BY investment_id DESC;
+  `;
 
+  try {
     const investments = await queryDatabase(fetchInvestmentsQuery, [user_id]);
 
     if (investments.length === 0) {
@@ -2071,8 +2332,60 @@ router.get("/other-investments", authMiddleware, async (req, res) => {
   }
 });
 
-// POST a new investment
+// POST: Add multiple investments
 router.post("/other-investments", authMiddleware, async (req, res) => {
+  try {
+    const { investments } = req.body; // Expecting an array of investment objects
+    const user_id = req.user_id;
+
+    if (!Array.isArray(investments) || investments.length === 0) {
+      return res.status(400).json({ msg: "Investments data is required." });
+    }
+
+    const insertInvestmentQuery = `
+      INSERT INTO other_investments (
+        investment_type, amount_invested, current_value, notes, user_id
+      )
+      VALUES (?, ?, ?, ?, ?);
+    `;
+
+    // Loop through each investment object and save to the database
+    const saveInvestmentPromises = investments.map((investment) => {
+      const {
+        investment_type,
+        amount_invested,
+        current_value,
+        notes,
+      } = investment;
+
+      if (!investment_type || !amount_invested || !current_value) {
+        throw new Error("Investment type, amount invested, and current value are required.");
+      }
+
+      const params = [
+        investment_type,
+        parseFloat(amount_invested),
+        parseFloat(current_value),
+        notes || null,
+        user_id,
+      ];
+
+      return queryDatabase(insertInvestmentQuery, params);
+    });
+
+    // Execute all insert queries concurrently
+    await Promise.all(saveInvestmentPromises);
+
+    res.status(200).json({ msg: "Investments added successfully!" });
+  } catch (err) {
+    console.error("Error adding investments:", err);
+    res.status(500).json({ msg: "Error adding investments", error: err.message });
+  }
+});
+
+// PUT: Update a single investment by ID
+router.put("/other-investments/:id", authMiddleware, async (req, res) => {
+  const { id } = req.params;
   const { investment_type, amount_invested, current_value, notes } = req.body;
   const user_id = req.user_id;
 
@@ -2083,35 +2396,6 @@ router.post("/other-investments", authMiddleware, async (req, res) => {
   }
 
   try {
-    const insertInvestmentQuery = `
-      INSERT INTO other_investments (
-        investment_type, amount_invested, current_value, notes, user_id
-      )
-      VALUES (?, ?, ?, ?, ?);
-    `;
-
-    await queryDatabase(insertInvestmentQuery, [
-      investment_type,
-      parseFloat(amount_invested),
-      parseFloat(current_value),
-      notes || null,
-      user_id,
-    ]);
-
-    res.status(201).json({ msg: "Investment added successfully" });
-  } catch (err) {
-    console.error("Error adding investment:", err);
-    res.status(500).json({ msg: "Server Error" });
-  }
-});
-
-// PUT (Update) an investment
-router.put("/other-investments/:id", authMiddleware, async (req, res) => {
-  const { id } = req.params;
-  const { investment_type, amount_invested, current_value, notes } = req.body;
-  const user_id = req.user_id;
-
-  try {
     const updateInvestmentQuery = `
       UPDATE other_investments
       SET 
@@ -2119,7 +2403,7 @@ router.put("/other-investments/:id", authMiddleware, async (req, res) => {
         amount_invested = ?, 
         current_value = ?, 
         notes = ?, 
-        updated_at = GETDATE()
+        updated_at = NOW()
       WHERE investment_id = ? AND user_id = ?;
     `;
 
@@ -2133,9 +2417,7 @@ router.put("/other-investments/:id", authMiddleware, async (req, res) => {
     ]);
 
     if (result.affectedRows === 0) {
-      return res
-        .status(404)
-        .json({ msg: "Investment not found or unauthorized" });
+      return res.status(404).json({ msg: "Investment not found or unauthorized" });
     }
 
     res.status(200).json({ msg: "Investment updated successfully" });
@@ -2145,7 +2427,7 @@ router.put("/other-investments/:id", authMiddleware, async (req, res) => {
   }
 });
 
-// DELETE an investment
+// DELETE: Remove an investment by ID
 router.delete("/other-investments/:id", authMiddleware, async (req, res) => {
   const { id } = req.params;
   const user_id = req.user_id;
@@ -2159,9 +2441,7 @@ router.delete("/other-investments/:id", authMiddleware, async (req, res) => {
     const result = await queryDatabase(deleteInvestmentQuery, [id, user_id]);
 
     if (result.affectedRows === 0) {
-      return res
-        .status(404)
-        .json({ msg: "Investment not found or unauthorized" });
+      return res.status(404).json({ msg: "Investment not found or unauthorized" });
     }
 
     res.status(200).json({ msg: "Investment deleted successfully" });
@@ -2209,7 +2489,6 @@ router.get("/networth", authMiddleware, async (req, res) => {
     res.status(500).json({ msg: "Server error while fetching net worth data" });
   }
 });
-
 
 
 router.post("/networth", authMiddleware, async (req, res) => {
@@ -2375,10 +2654,6 @@ router.post("/networth", authMiddleware, async (req, res) => {
     res.status(500).json({ msg: "Error saving net worth details", error });
   }
 });
-
-
-
-
 
 const npsStorage = multer.diskStorage({
   destination: function (req, file, cb) {
@@ -2893,7 +3168,6 @@ OFFSET 0 ROWS FETCH NEXT 5 ROWS ONLY;
       value: investment.current_value,
     }));
 
-    console.log("✌️top_investments --->", topInvestments);
     res.status(200).json({
       total_wealth: totalWealth,
       total_liabilities: totalLiabilities,
@@ -2906,5 +3180,72 @@ OFFSET 0 ROWS FETCH NEXT 5 ROWS ONLY;
     res.status(500).json({ msg: "Server Error" });
   }
 });
+
+
+
+
+router.get("/summery_count", authMiddleware, async (req, res) => {
+  const user_id = req.user_id;
+
+  // Simplified query with only 10 tables
+  const summaryQuery = `
+    SELECT 
+        'insurance_policy' AS table_name, COUNT(*) AS row_count 
+    FROM insurance_policy 
+    WHERE user_id = ?
+    UNION
+    SELECT 
+        'mutual_funds', COUNT(*) 
+    FROM mutual_funds 
+    WHERE user_id = ?
+    UNION
+    SELECT 
+        'cryptocurrencies', COUNT(*) 
+    FROM cryptocurrencies 
+    WHERE user_id = ?
+    UNION
+    SELECT 
+        'properties', COUNT(*) 
+    FROM properties 
+    WHERE user_id = ?
+    UNION
+    SELECT 
+        'stocks', COUNT(*) 
+    FROM stocks 
+    WHERE user_id = ?
+    UNION
+    SELECT 
+        'bond', COUNT(*) 
+    FROM bond 
+    WHERE user_id = ?
+  `;
+
+  try {
+    // Execute query and get rows
+    const rows = await queryDatabase(summaryQuery, Array(6).fill(user_id));
+
+    // Create a summary object with table names as keys and row counts as values
+    const summaryData = {};
+    rows.forEach((row) => {
+      summaryData[row.table_name] = row.row_count;
+    });
+
+    console.log("Summary Data:", summaryData);  // Log for debugging
+
+    // Send response with formatted summary data
+    res.status(200).json({
+      summary: summaryData,
+      msg: "Summary retrieved successfully",
+    });
+  } catch (error) {
+    console.error("Error fetching summary:", error);  // Log the error
+    res.status(500).json({ msg: "Server Error" });
+  }
+});
+
+
+
+
+
 
 module.exports = router;

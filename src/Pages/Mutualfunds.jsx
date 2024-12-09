@@ -12,7 +12,20 @@ function MutualFundsManagement() {
   
   const [document, setDocument] = useState(null); // For handling file uploads
 
-
+  const addFund = () => {
+    setFunds([
+      ...funds,
+      {
+        fundName: "",
+        fundManager: "",
+        investmentAmount: "",
+        currentValue: "",
+        fundType: "",
+        riskLevel: "",
+        notify: false,
+      },
+    ]);
+  };
 
   useEffect(() => {
     const fetchData = async () => {
@@ -64,21 +77,6 @@ function MutualFundsManagement() {
     fetchData();
   }, [API, token]);
   
-  const addFund = () => {
-    setFunds([
-      ...funds,
-      {
-        fundName: "",
-        fundManager: "",
-        investmentAmount: "",
-        currentValue: "",
-        fundType: "",
-        riskLevel: "",
-        notify: false,
-      },
-    ]);
-  };
-
   const handleFundChange = (index, field, value) => {
     const updatedFunds = [...funds];
     updatedFunds[index][field] = value;

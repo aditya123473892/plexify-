@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useContext } from "react";
 import axios from "axios";
+import InputWithIcon from "../Components/InputWithIcon";
+import FieldSection from "../Components/FieldSection";
 import {
   FaSeedling,
   FaWeightHanging,
@@ -8,8 +10,6 @@ import {
   FaBuilding,
   FaInfoCircle,
 } from "react-icons/fa";
-import InputWithIcon from "../Components/InputWithIcon";
-import Section from "../Components/Section";
 import { AuthContext } from "../Contexts/Context";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -17,22 +17,8 @@ import "react-toastify/dist/ReactToastify.css";
 const CommodityManagement = () => {
   const { API, token } = useContext(AuthContext);
   const [commodities, setCommodities] = useState([]);
-  const [formData, setFormData] = useState({
-    commodity_name: "",
-    commodity_type: "",
-    unit_of_measure: "",
-    market_price: "",
-    stock_quantity: "",
-    provider: "",
-    acquisition_date: "",
-    expiry_date: "",
-    description: "",
-    status: "Available",
-  });
-  const [isEditMode, setIsEditMode] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  // Fetch commodities on component mount
   useEffect(() => {
     fetchCommodities();
   }, []);
@@ -45,106 +31,89 @@ const CommodityManagement = () => {
       setCommodities(response.data.commodities || []);
     } catch (error) {
       console.error("Error fetching commodities:", error);
-      toast.error("Failed to fetch commodities. Please try again later.");
+      toast.error("Failed to fetch commodities. Please try again.");
     }
   };
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prevData) => ({
-      ...prevData,
-      [name]: value,
-    }));
+  const addCommodity = () => {
+    setCommodities([
+      ...commodities,
+      {
+        id: "",
+        commodity_name: "",
+        commodity_type: "",
+        unit_of_measure: "",
+        market_price: "",
+        stock_quantity: "",
+        provider: "",
+        acquisition_date: "",
+        expiry_date: "",
+        description: "",
+        status: "Available",
+      },
+    ]);
   };
 
-  const validateForm = () => {
-    const requiredFields = [
-      "commodity_name",
-      "commodity_type",
-      "unit_of_measure",
-      "market_price",
-      "stock_quantity",
-      "provider",
-      "acquisition_date",
-    ];
-    for (const field of requiredFields) {
-      if (!formData[field]) {
-        toast.error(
-          `Please fill in the required field: ${field.replace("_", " ")}`
-        );
-        return false;
-      }
+  const handleChange = (index, field, value) => {
+    const updated = [...commodities];
+    updated[index][field] = value;
+    setCommodities(updated);
+  };
+
+  const validateForm = () =>
+    commodities.every((commodity) =>
+      [
+        "commodity_name",
+        "commodity_type",
+        "unit_of_measure",
+        "market_price",
+        "stock_quantity",
+        "provider",
+        "acquisition_date",
+      ].every((key) => commodity[key])
+    );
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!validateForm()) {
+      toast.error("Please fill in all required fields.");
+      return;
     }
-    return true;
-  };
-
-  const handleSave = async () => {
-    if (!validateForm()) return;
 
     setLoading(true);
 
     try {
-      if (isEditMode) {
-        // Update existing commodity
-        const id = formData.id; // Assume `id` is part of `formData` during editing
-        await axios.put(`${API}/commodities/${id}`, formData, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        toast.success("Commodity updated successfully!");
-      } else {
-        // Add new commodity
-        await axios.post(`${API}/commodities`, formData, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        toast.success("Commodity added successfully!");
-      }
-
-      resetForm();
+      await axios.post(
+        `${API}/commodities`,
+        { commodities },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      toast.success("Commodities saved successfully!");
       fetchCommodities();
     } catch (error) {
-      console.error("Error saving commodity:", error);
-      toast.error(
-        "An error occurred while saving the commodity. Please try again."
-      );
+      console.error("Error saving commodities:", error);
+      toast.error("Failed to save commodities. Please try again.");
     } finally {
       setLoading(false);
     }
   };
 
-  const resetForm = () => {
-    setFormData({
-      commodity_name: "",
-      commodity_type: "",
-      unit_of_measure: "",
-      market_price: "",
-      stock_quantity: "",
-      provider: "",
-      acquisition_date: "",
-      expiry_date: "",
-      description: "",
-      status: "Available",
-    });
-    setIsEditMode(false);
-  };
-
-  const handleEdit = (commodity) => {
-    setFormData(commodity);
-    setIsEditMode(true);
-  };
-
-  const handleDelete = async (id) => {
-    if (!window.confirm("Are you sure you want to delete this commodity?"))
+  const handleDelete = async (index) => {
+    const commodityId = commodities[index]?.id;
+    if (!commodityId) {
+      setCommodities((prev) => prev.filter((_, i) => i !== index));
       return;
+    }
 
     try {
-      await axios.delete(`${API}/commodities/${id}`, {
+      await axios.delete(`${API}/commodities/${commodityId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       toast.success("Commodity deleted successfully!");
       fetchCommodities();
     } catch (error) {
       console.error("Error deleting commodity:", error);
-      toast.error("Failed to delete commodity. Please try again later.");
+      toast.error("Failed to delete commodity. Please try again.");
     }
   };
 
@@ -153,144 +122,127 @@ const CommodityManagement = () => {
       <ToastContainer />
       <header className="mb-8">
         <h1 className="text-3xl font-bold">Manage Commodities</h1>
-        <p className="mt-2">Add, view, and manage your commodities.</p>
+        <p className="mt-2">Add, edit, and manage your commodities.</p>
       </header>
 
-      {/* Commodity Form */}
-      <Section title={isEditMode ? "Edit Commodity" : "New Commodity"}>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {[
-            {
-              icon: <FaSeedling />,
-              name: "commodity_name",
-              placeholder: "Commodity Name",
-            },
-            {
-              icon: <FaSeedling />,
-              name: "commodity_type",
-              placeholder: "Commodity Type",
-            },
-            {
-              icon: <FaWeightHanging />,
-              name: "unit_of_measure",
-              placeholder: "Unit of Measure",
-            },
-            {
-              icon: <FaMoneyBillWave />,
-              name: "market_price",
-              placeholder: "Market Price",
-              type: "number",
-            },
-            {
-              icon: <FaMoneyBillWave />,
-              name: "stock_quantity",
-              placeholder: "Stock Quantity",
-              type: "number",
-            },
-            { icon: <FaBuilding />, name: "provider", placeholder: "Provider" },
-            {
-              icon: <FaCalendarAlt />,
-              name: "acquisition_date",
-              placeholder: "Acquisition Date",
-              type: "date",
-            },
-            {
-              icon: <FaCalendarAlt />,
-              name: "expiry_date",
-              placeholder: "Expiry Date (optional)",
-              type: "date",
-            },
-            {
-              icon: <FaInfoCircle />,
-              name: "description",
-              placeholder: "Description (optional)",
-            },
-          ].map(({ icon, ...rest }) => (
-            <InputWithIcon
-              key={rest.name}
-              icon={icon}
-              value={formData[rest.name]}
-              onChange={handleChange}
-              {...rest}
-            />
-          ))}
+      <form onSubmit={handleSubmit}>
+        {commodities.map((commodity, index) => (
+          <div key={index} className="mb-4 border-b pb-4">
+            <FieldSection title={`Commodity #${index + 1}`}>
+              <InputWithIcon
+                icon={<FaSeedling />}
+                type="text"
+                placeholder="Commodity Name"
+                value={commodity.commodity_name}
+                onChange={(e) =>
+                  handleChange(index, "commodity_name", e.target.value)
+                }
+              />
+              <InputWithIcon
+                icon={<FaSeedling />}
+                type="text"
+                placeholder="Commodity Type"
+                value={commodity.commodity_type}
+                onChange={(e) =>
+                  handleChange(index, "commodity_type", e.target.value)
+                }
+              />
+              <InputWithIcon
+                icon={<FaWeightHanging />}
+                type="text"
+                placeholder="Unit of Measure"
+                value={commodity.unit_of_measure}
+                onChange={(e) =>
+                  handleChange(index, "unit_of_measure", e.target.value)
+                }
+              />
+              <InputWithIcon
+                icon={<FaMoneyBillWave />}
+                type="number"
+                placeholder="Market Price"
+                value={commodity.market_price}
+                onChange={(e) =>
+                  handleChange(index, "market_price", e.target.value)
+                }
+              />
+              <InputWithIcon
+                icon={<FaMoneyBillWave />}
+                type="number"
+                placeholder="Stock Quantity"
+                value={commodity.stock_quantity}
+                onChange={(e) =>
+                  handleChange(index, "stock_quantity", e.target.value)
+                }
+              />
+              <InputWithIcon
+                icon={<FaBuilding />}
+                type="text"
+                placeholder="Provider"
+                value={commodity.provider}
+                onChange={(e) =>
+                  handleChange(index, "provider", e.target.value)
+                }
+              />
+              <InputWithIcon
+                icon={<FaCalendarAlt />}
+                type="date"
+                placeholder="Acquisition Date"
+                value={commodity.acquisition_date}
+                onChange={(e) =>
+                  handleChange(index, "acquisition_date", e.target.value)
+                }
+              />
+              <InputWithIcon
+                icon={<FaCalendarAlt />}
+                type="date"
+                placeholder="Expiry Date (optional)"
+                value={commodity.expiry_date}
+                onChange={(e) =>
+                  handleChange(index, "expiry_date", e.target.value)
+                }
+              />
+              <InputWithIcon
+                icon={<FaInfoCircle />}
+                type="text"
+                placeholder="Description (optional)"
+                value={commodity.description}
+                onChange={(e) =>
+                  handleChange(index, "description", e.target.value)
+                }
+              />
+            </FieldSection>
+            <div className="flex justify-end mt-2 space-x-4">
+              <button
+                type="button"
+                onClick={() => handleDelete(index)}
+                className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        ))}
+
+        <div className="flex justify-center mb-6">
+          <button
+            type="button"
+            onClick={addCommodity}
+            className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
+          >
+            Add New Commodity
+          </button>
         </div>
 
-        <button
-          onClick={handleSave}
-          className="mt-4 bg-green-600 text-white py-2 px-6 rounded-md shadow hover:bg-green-700"
-          disabled={loading}
-        >
-          {loading
-            ? "Saving..."
-            : isEditMode
-            ? "Save Changes"
-            : "Add Commodity"}
-        </button>
-        {isEditMode && (
+        <div className="flex justify-center mb-6">
           <button
-            onClick={resetForm}
-            className="ml-4 mt-4 bg-gray-600 text-white py-2 px-6 rounded-md shadow hover:bg-gray-700"
+            type="submit"
+            className="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700"
+            disabled={loading}
           >
-            Cancel Edit
+            {loading ? "Saving..." : "Save Commodities"}
           </button>
-        )}
-      </Section>
-
-      {/* Commodities List */}
-      <Section title="Commodities List">
-        <table className="table-auto w-full border-collapse border border-gray-300">
-          <thead>
-            <tr className="bg-gray-100">
-              <th className="border border-gray-300 px-4 py-2">Name</th>
-              <th className="border border-gray-300 px-4 py-2">Type</th>
-              <th className="border border-gray-300 px-4 py-2">Unit</th>
-              <th className="border border-gray-300 px-4 py-2">Price</th>
-              <th className="border border-gray-300 px-4 py-2">Stock</th>
-              <th className="border border-gray-300 px-4 py-2">Provider</th>
-              <th className="border border-gray-300 px-4 py-2">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {commodities.map((commodity) => (
-              <tr key={commodity.id} className="hover:bg-gray-100">
-                <td className="border border-gray-300 px-4 py-2">
-                  {commodity.commodity_name}
-                </td>
-                <td className="border border-gray-300 px-4 py-2">
-                  {commodity.commodity_type}
-                </td>
-                <td className="border border-gray-300 px-4 py-2">
-                  {commodity.unit_of_measure}
-                </td>
-                <td className="border border-gray-300 px-4 py-2">
-                  {commodity.market_price}
-                </td>
-                <td className="border border-gray-300 px-4 py-2">
-                  {commodity.stock_quantity}
-                </td>
-                <td className="border border-gray-300 px-4 py-2">
-                  {commodity.provider}
-                </td>
-                <td className="border border-gray-300 px-4 py-2">
-                  <button
-                    onClick={() => handleEdit(commodity)}
-                    className="text-blue-500 hover:underline mr-2"
-                  >
-                    Edit
-                  </button>
-                  <button
-                    onClick={() => handleDelete(commodity.id)}
-                    className="text-red-500 hover:underline"
-                  >
-                    Delete
-                  </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </Section>
+        </div>
+      </form>
     </div>
   );
 };

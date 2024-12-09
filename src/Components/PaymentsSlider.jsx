@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect, useContext } from "react";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Pagination, Autoplay } from "swiper/modules";
 import "swiper/swiper-bundle.css";
@@ -9,54 +9,146 @@ import {
   FaBuilding,
   FaChartLine,
 } from "react-icons/fa";
+import { AuthContext } from "../Contexts/Context";
+import axios from "axios";
 
 const PaymentsSlider = () => {
+
+
+  
+  const { API, token } = useContext(AuthContext);
+  const [summaryData, setSummaryData] = useState([]);
+  useEffect(() => {
+    const fetchSummaryData = async () => {
+      try {
+       
+        const response = await axios.get(`${API}/summery_count`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        setSummaryData(response.data.summary);
+      } catch (err) {
+
+        console.error(err);
+      }
+    };
+
+    fetchSummaryData();
+  }, []);
+
+  const [investmentCounts, setInvestmentCounts] = useState({
+    mutualFunds: 0,
+    bonds: 0,
+    cryptocurrencies: 0,
+    properties: 0,
+    stocks: 0,
+  });
+console.log(summaryData,'summaryData')
   const payments = [
     {
-      id: 1,
+      id: "mutualFunds",
       icon: <FaHandshake />,
       title: "Mutual Funds",
       description:
         "Investment service pooling funds from multiple investors for diverse portfolios.",
+      endpoint: "mutual-funds",
       color: "border-l-8 border-[#f68121] text-[#f68121]",
+      count:summaryData.mutual_funds
     },
     {
-      id: 2,
+      id: "bonds",
       icon: <FaFileInvoiceDollar />,
       title: "Bonds",
       description:
         "Fixed-income securities issued by governments or corporations for borrowing.",
+      endpoint: "bonds",
       color: "border-l-8 border-[#ed1c24] text-[#ed1c24]",
+      count:summaryData.bond
     },
     {
-      id: 3,
+      id: "cryptocurrencies",
       icon: <FaBitcoin />,
       title: "Cryptocurrencies",
       description:
         "Decentralized digital or virtual currencies secured by cryptography technology.",
+      endpoint: "cryptocurrencies",
       color: "border-l-8 border-[#582c8b] text-[#582c8b]",
+      count:summaryData.cryptocurrencies
     },
     {
-      id: 4,
+      id: "properties",
       icon: <FaBuilding />,
-      title: "Property",
+      title: "Properties",
       description:
         "Real estate assets including land and physical structures for investment.",
+      endpoint: "properties",
       color: "border-l-8 border-[#0166b4] text-[#0166b4]",
+      count:summaryData.properties 
     },
     {
-      id: 5,
+      id: "stocks",
       icon: <FaChartLine />,
-      title: "Stock",
+      title: "Stocks",
       description:
         "Ownership shares in a company representing proportional ownership interest.",
+      endpoint: "stocks",
       color: "border-l-8 border-[#ed1c24] text-[#ed1c24]",
+      count:summaryData.stocks
     },
   ];
 
+  const fetchInvestmentCounts = async () => {
+    try {
+      // Fetch data from all endpoints concurrently
+      const promises = payments.map(({ endpoint }) =>
+        axios.get(`${API}/${endpoint}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        })
+      );
+
+      const responses = await Promise.all(promises);
+
+      // Extract counts based on specific API response structures
+      const counts = responses.reduce((acc, response, index) => {
+        const { data } = response;
+
+        switch (payments[index].id) {
+          case "mutualFunds":
+            acc.mutualFunds = data.mutualFunds?.length || data.items?.length || 0;
+            break;
+          case "bonds":
+            acc.bonds = data.bonds?.length || data.items?.length || 0;
+            break;
+          case "cryptocurrencies":
+            acc.cryptocurrencies = data.cryptos?.length || 0; // Use `data.cryptos`
+            break;
+          case "properties":
+            acc.properties = data.properties?.length || data.items?.length || 0;
+            break;
+          case "stocks":
+            acc.stocks = data.stocks?.length || data.items?.length || 0;
+            break;
+          default:
+            acc[payments[index].id] = data.items?.length || data.length || 0; // General fallback
+        }
+
+        return acc;
+      }, {});
+
+      setInvestmentCounts(counts);
+    } catch (error) {
+      console.error("Error fetching investment counts:", error);
+    }
+  };
+
+  useEffect(() => {
+    fetchInvestmentCounts();
+  }, []);
+
   return (
     <div className="payments_content mx-6">
-      <div className="text-2xl font-bold text-center my-12">Your Payments</div>
+      <div className="text-2xl font-bold text-center my-12">Your Assets</div>
       <Swiper
         className="mySwiper1 mt-10"
         style={{ height: "300px" }}
@@ -69,13 +161,12 @@ const PaymentsSlider = () => {
         }}
         loop={true}
         breakpoints={{
-          // Adjust the number of slides per view based on screen width
-          320: { slidesPerView: 1, spaceBetween: 10 }, // Mobile
-          768: { slidesPerView: 2, spaceBetween: 15 }, // Tablet
-          1024: { slidesPerView: 3, spaceBetween: 20 }, // Desktop
+          320: { slidesPerView: 1, spaceBetween: 10 },
+          768: { slidesPerView: 2, spaceBetween: 15 },
+          1024: { slidesPerView: 3, spaceBetween: 20 },
         }}
       >
-        {payments.map(({ id, icon, title, description, color }) => (
+        {payments.map(({ id, icon, title, description, color,count }) => (
           <SwiperSlide
             key={id}
             style={{ background: "transparent", height: "230px" }}
@@ -89,7 +180,7 @@ const PaymentsSlider = () => {
                 {description}
               </h6>
               <div className="number-box text-xl font-bold mt-4 rounded-s-3xl absolute bottom-3">
-                0{id}
+                {count}
               </div>
             </div>
           </SwiperSlide>

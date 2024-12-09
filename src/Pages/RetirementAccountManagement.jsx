@@ -1,276 +1,211 @@
-import React, { useState, useContext } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import axios from "axios";
-import {
-  FaUser,
-  FaMoneyBillWave,
-  FaBuilding,
-  FaInfoCircle,
-  FaPlus,
-  FaCheckCircle,
-  FaEdit,
-  FaTrash,
-} from "react-icons/fa";
 import InputWithIcon from "../Components/InputWithIcon";
 import FieldSection from "../Components/FieldSection";
-import Section from "../Components/Section";
-import { toast, ToastContainer } from "react-toastify";
+import {
+  FaUser,
+  FaInfoCircle,
+  FaBuilding,
+  FaMoneyBillWave,
+  FaTrash,
+} from "react-icons/fa";
 import { AuthContext } from "../Contexts/Context";
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 const RetirementAccountManagement = () => {
   const { API, token } = useContext(AuthContext);
   const [accounts, setAccounts] = useState([]);
-  const [editIndex, setEditIndex] = useState(null);
-  const [accountForm, setAccountForm] = useState({
-    accountHolder: "",
-    accountType: "",
-    institutionName: "",
-    currentBalance: "",
-    contributions: "",
-    notes: "",
-  });
   const [loading, setLoading] = useState(false);
 
-  // Fetch accounts on component mount
+  // Fetch retirement accounts on component mount
+  useEffect(() => {
+    fetchAccounts();
+  }, []);
+
   const fetchAccounts = async () => {
     try {
       const response = await axios.get(`${API}/retirement-accounts`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      setAccounts(response.data.accounts);
+      setAccounts(response.data.accounts || []);
     } catch (error) {
       console.error("Error fetching accounts:", error);
-      toast.error("Error fetching retirement account data.");
+      toast.error("Failed to fetch retirement accounts.");
     }
   };
 
-  // Update or add a new account
-  const addOrUpdateAccount = async () => {
-    if (!validateAccounts()) return;
-
-    setLoading(true);
-    try {
-      if (editIndex !== null) {
-        // Update existing account
-        const id = accounts[editIndex].id;
-        await axios.put(`${API}/retirement-accounts/${id}`, accountForm, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        toast.success("Retirement account updated successfully!");
-      } else {
-        // Add a new account
-        await axios.post(`${API}/retirement-accounts`, accountForm, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        toast.success("Retirement account added successfully!");
-      }
-
-      setAccountForm({
-        accountHolder: "",
-        accountType: "",
-        institutionName: "",
-        currentBalance: "",
+  const addAccount = () =>
+    setAccounts([
+      ...accounts,
+      {
+        id: "",
+        account_holder: "",
+        account_type: "",
+        institution_name: "",
+        current_balance: "",
         contributions: "",
         notes: "",
-      });
-      setEditIndex(null);
+      },
+    ]);
+
+  const handleChange = (index, field, value) => {
+    const updated = [...accounts];
+    updated[index][field] = value;
+    setAccounts(updated);
+  };
+
+  const validateForm = () =>
+    accounts.every((account) =>
+      [
+        "account_holder",
+        "account_type",
+        "institution_name",
+        "current_balance",
+      ].every((key) => account[key])
+    );
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!validateForm()) {
+      toast.error("Please fill in all required fields.");
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      await axios.post(
+        `${API}/retirement-accounts`,
+        { accounts },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      toast.success("Retirement accounts saved successfully!");
       fetchAccounts();
     } catch (error) {
-      console.error("Error saving retirement account:", error);
-      toast.error("An error occurred while saving the account.");
+      console.error("Error saving accounts:", error);
+      toast.error("Failed to save retirement accounts. Please try again.");
     } finally {
       setLoading(false);
     }
   };
 
-  const validateAccounts = () => {
-    const {
-      accountHolder,
-      accountType,
-      institutionName,
-      currentBalance,
-      contributions,
-    } = accountForm;
-    if (
-      !accountHolder ||
-      !accountType ||
-      !institutionName ||
-      !currentBalance ||
-      !contributions
-    ) {
-      toast.error("All fields except 'Notes' are required.");
-      return false;
+  const handleDelete = async (index) => {
+    const accountId = accounts[index]?.id;
+    if (!accountId) {
+      setAccounts((prev) => prev.filter((_, i) => i !== index));
+      return;
     }
-    if (isNaN(currentBalance) || currentBalance <= 0) {
-      toast.error("Current Balance must be a positive number.");
-      return false;
-    }
-    if (isNaN(contributions) || contributions < 0) {
-      toast.error("Contributions must be a non-negative number.");
-      return false;
-    }
-    return true;
-  };
 
-  const handleAccountChange = (field, value) => {
-    setAccountForm({ ...accountForm, [field]: value });
-  };
-
-  const handleEdit = (index) => {
-    setEditIndex(index);
-    setAccountForm(accounts[index]);
-  };
-
-  const handleDelete = async (id) => {
     try {
-      await axios.delete(`${API}/retirement-accounts/${id}`, {
+      await axios.delete(`${API}/retirement-accounts/${accountId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       toast.success("Retirement account deleted successfully!");
       fetchAccounts();
     } catch (error) {
       console.error("Error deleting account:", error);
-      toast.error("An error occurred while deleting the account.");
+      toast.error("Failed to delete the retirement account.");
     }
   };
 
   return (
     <div className="min-h-screen shadow-2xl bg-white p-6 rounded-lg md:mt-10 mt-20">
+      <ToastContainer />
       <header className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-800 mb-2">
-          Manage Your Retirement Accounts
-        </h1>
-        <p className="text-gray-600">
-          Keep track of your retirement accounts and monitor your savings for
-          the future.
-        </p>
+        <h1 className="text-3xl font-bold">Manage Retirement Accounts</h1>
+        <p className="mt-2">Add, edit, and manage your retirement accounts.</p>
       </header>
 
-      {/* Account Form Section */}
-      <FieldSection
-        title={
-          editIndex !== null
-            ? "Edit Retirement Account"
-            : "New Retirement Account"
-        }
-      >
-        <InputWithIcon
-          icon={<FaUser className="text-[#538d2dfd] mx-2" />}
-          type="text"
-          placeholder="Account Holder Name"
-          value={accountForm.accountHolder}
-          onChange={(e) => handleAccountChange("accountHolder", e.target.value)}
-        />
-        <InputWithIcon
-          icon={<FaInfoCircle className="text-[#538d2dfd] mx-2" />}
-          type="text"
-          placeholder="Account Type (e.g., 401k, IRA)"
-          value={accountForm.accountType}
-          onChange={(e) => handleAccountChange("accountType", e.target.value)}
-        />
-        <InputWithIcon
-          icon={<FaBuilding className="text-[#538d2dfd] mx-2" />}
-          type="text"
-          placeholder="Institution Name"
-          value={accountForm.institutionName}
-          onChange={(e) =>
-            handleAccountChange("institutionName", e.target.value)
-          }
-        />
-        <InputWithIcon
-          icon={<FaMoneyBillWave className="text-[#538d2dfd] mx-2" />}
-          type="number"
-          placeholder="Current Balance"
-          value={accountForm.currentBalance}
-          onChange={(e) =>
-            handleAccountChange("currentBalance", e.target.value)
-          }
-        />
-        <InputWithIcon
-          icon={<FaMoneyBillWave className="text-[#538d2dfd] mx-2" />}
-          type="number"
-          placeholder="Total Contributions"
-          value={accountForm.contributions}
-          onChange={(e) => handleAccountChange("contributions", e.target.value)}
-        />
-        <InputWithIcon
-          icon={<FaInfoCircle className="text-[#538d2dfd] mx-2" />}
-          type="text"
-          placeholder="Additional Notes"
-          value={accountForm.notes}
-          onChange={(e) => handleAccountChange("notes", e.target.value)}
-        />
-        <button
-          onClick={addOrUpdateAccount}
-          className="text-white py-2 px-4 rounded-md shadow-md bg-[#3a5e22fd] hover:bg-[#2f4b1dfd] mt-4"
-        >
-          <FaCheckCircle className="inline mr-2" />
-          {editIndex !== null ? "Update Account" : "Add Account"}
-        </button>
-      </FieldSection>
+      <form onSubmit={handleSubmit}>
+        {accounts.map((account, index) => (
+          <div key={index} className="mb-4 border-b pb-4">
+            <FieldSection title={`Retirement Account #${index + 1}`}>
+              <InputWithIcon
+                icon={<FaUser />}
+                type="text"
+                placeholder="Account Holder"
+                value={account.account_holder}
+                onChange={(e) =>
+                  handleChange(index, "account_holder", e.target.value)
+                }
+              />
+              <InputWithIcon
+                icon={<FaInfoCircle />}
+                type="text"
+                placeholder="Account Type"
+                value={account.account_type}
+                onChange={(e) =>
+                  handleChange(index, "account_type", e.target.value)
+                }
+              />
+              <InputWithIcon
+                icon={<FaBuilding />}
+                type="text"
+                placeholder="Institution Name"
+                value={account.institution_name}
+                onChange={(e) =>
+                  handleChange(index, "institution_name", e.target.value)
+                }
+              />
+              <InputWithIcon
+                icon={<FaMoneyBillWave />}
+                type="number"
+                placeholder="Current Balance"
+                value={account.current_balance}
+                onChange={(e) =>
+                  handleChange(index, "current_balance", e.target.value)
+                }
+              />
+              <InputWithIcon
+                icon={<FaMoneyBillWave />}
+                type="number"
+                placeholder="Total Contributions"
+                value={account.contributions}
+                onChange={(e) =>
+                  handleChange(index, "contributions", e.target.value)
+                }
+              />
+              <InputWithIcon
+                icon={<FaInfoCircle />}
+                type="text"
+                placeholder="Notes (optional)"
+                value={account.notes}
+                onChange={(e) => handleChange(index, "notes", e.target.value)}
+              />
+            </FieldSection>
+            <div className="flex justify-end mt-2 space-x-4">
+              <button
+                type="button"
+                onClick={() => handleDelete(index)}
+                className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        ))}
 
-      {/* Accounts Table Section */}
-      <section className="mt-8">
-        <h2 className="text-2xl font-bold text-gray-800 mb-4">
-          Retirement Accounts
-        </h2>
-        <div className="overflow-x-auto">
-          <table className="table-auto border-collapse border border-gray-300 w-full text-left">
-            <thead>
-              <tr className="bg-gray-200">
-                <th className="border border-gray-300 px-4 py-2">
-                  Account Holder
-                </th>
-                <th className="border border-gray-300 px-4 py-2">Type</th>
-                <th className="border border-gray-300 px-4 py-2">
-                  Institution
-                </th>
-                <th className="border border-gray-300 px-4 py-2">Balance</th>
-                <th className="border border-gray-300 px-4 py-2">
-                  Contributions
-                </th>
-                <th className="border border-gray-300 px-4 py-2">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {accounts.map((account, idx) => (
-                <tr key={account.id} className="hover:bg-gray-100">
-                  <td className="border border-gray-300 px-4 py-2">
-                    {account.accountHolder}
-                  </td>
-                  <td className="border border-gray-300 px-4 py-2">
-                    {account.accountType}
-                  </td>
-                  <td className="border border-gray-300 px-4 py-2">
-                    {account.institutionName}
-                  </td>
-                  <td className="border border-gray-300 px-4 py-2">
-                    {account.currentBalance}
-                  </td>
-                  <td className="border border-gray-300 px-4 py-2">
-                    {account.contributions}
-                  </td>
-                  <td className="border border-gray-300 px-4 py-2">
-                    <button
-                      onClick={() => handleEdit(idx)}
-                      className="text-blue-500 hover:underline mr-2"
-                    >
-                      <FaEdit />
-                    </button>
-                    <button
-                      onClick={() => handleDelete(account.id)}
-                      className="text-red-500 hover:underline"
-                    >
-                      <FaTrash />
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+        <div className="flex justify-center mb-6">
+          <button
+            type="button"
+            onClick={addAccount}
+            className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
+          >
+            Add New Account
+          </button>
         </div>
-      </section>
 
-      <ToastContainer />
+        <div className="flex justify-center mb-6">
+          <button
+            type="submit"
+            className="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700"
+            disabled={loading}
+          >
+            {loading ? "Saving..." : "Save Accounts"}
+          </button>
+        </div>
+      </form>
     </div>
   );
 };
