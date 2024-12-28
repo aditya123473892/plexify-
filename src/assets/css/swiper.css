@@ -1,0 +1,179 @@
+.sec_swiper {
+    width: 100%;
+  }
+  
+  .hero {
+    position: relative;
+    overflow: hidden;
+    border-radius: 10px;
+    box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+  }
+  
+  .hero-profile-img {
+    width: 100%;
+    height: 300px;
+    object-fit: cover;
+    border-radius: 10px;
+  }
+  
+  .hero-description-bk {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.3);
+    z-index: 1;
+  }
+  
+
+  .hero-description {
+    position: absolute;
+    bottom: 10px;
+    left: 10px;
+    z-index: 3;
+  }
+  
+
+
+
+  .hero-description-bk {
+    background-image: linear-gradient(0deg, rgb(63, 94, 251), rgb(219 119 139));
+    border-radius: 30px;
+    position: absolute;
+    top: 55%;
+    left: -5px;
+    height: 65%;
+    width: 108%;
+    transform: skew(19deg, -9deg);
+}
+
+.second .hero-description-bk {
+    background-image: linear-gradient(-20deg, #134ebb, #e7d25c)
+}
+
+.hero-description p {
+    color: #134ebb;
+}
+
+.hero-description p {
+    margin-left: 150px;
+    font-weight: 700;
+    color: #fff;
+}
+
+.hero-logo {
+    height: 80px;
+    width: 80px;
+    border-radius: 20px;
+    background-color: #fff;
+    position: absolute;
+    bottom: 30%;
+    left: 30px;
+    overflow: hidden;
+    z-index: 2;
+    box-shadow: 5px 5px 30px rgba(0, 0, 0, 0.7);
+}
+
+.hero-logo img {
+    height: 100%;
+}
+
+
+
+
+
+
+
+
+/* Payments Slider */
+.payments_content {
+    margin: 0 25px;
+}
+
+.payments_content .swiper.mySwiper1 {
+    margin-top: 40px;
+    height: 300px;
+}
+
+.payments_content .swiper-slide {
+    background: transparent;
+    height: 230px;
+}
+
+
+
+.payments_content .swiper {
+    width: 100%;
+    height: 150px;
+    margin: 20px auto;
+}
+
+
+
+.payments_content .swiper-slide li {
+    list-style: none;
+    width: 100%;
+    height: 230px;
+    padding: 25px 30px;
+    background: #eee;
+    position: relative;
+    background-image: linear-gradient(to bottom right, #e9eaecda, #ffffff);
+    filter: drop-shadow(10px 10px 10px rgba(0, 0, 0, 0.25));
+    box-shadow: inset 2px 2px 2px white, inset -1px -1px 1px rgba(0, 0, 0, 0.25);
+    text-align: center;
+    display: inline-block;
+    margin-bottom: 25px;
+    border-radius: 20px;
+    cursor: pointer;
+    transition: all 0.2s ease-in;
+
+}.payments_content .swiper-slide li:hover{
+    transform: translateY(4px);
+}
+
+.payments_content .swiper-slide li h5 {
+    font-size: 25px;
+    font-weight: 800;
+    margin-bottom: 15px;
+}
+
+.payments_content .swiper-slide li h6 {
+    font-size: 14px;
+    font-weight: 400;
+    margin-bottom: 0;
+}
+
+.payments_content .swiper-slide li.color-1 {
+    border: 10px solid #f68121;
+}
+
+.payments_content .swiper-slide li.color-2 {
+    border: 10px solid #ed1c24;
+}
+
+.payments_content .swiper-slide li.color-3 {
+    border: 10px solid #582c8b;
+}
+
+.payments_content .swiper-slide li.color-4 {
+    border: 10px solid #0166b4;
+}
+
+.payments_content .swiper-slide li i {
+    font-size: 35px;
+    margin-bottom: 15px;
+}
+
+.payments_content .swiper-slide li.color-1 i {
+    color: #f68121;
+}
+
+.payments_content .swiper-slide li.color-2 i {
+    color: #ed1c24;
+}
+
+.payments_content .swiper-slide li.color-3 i {
+    color: #582c8b;
+}
+
+.payments_content .swiper-slide li.color-4 i {
+    color: #0166b4;
+}

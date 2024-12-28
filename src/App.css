@@ -1,0 +1,436 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body{
+  
+  background: radial-gradient(circle, #538d2d 0%, rgba(253, 253, 253, 0.801) 100%), url('./assets/images/bg.jpg');
+
+}
+
+  /* .bg1 {
+
+    background: radial-gradient(circle, rgba(255, 253, 253, 0.644) 0%, rgba(253, 253, 253, 0.801) 100%), url('./assets/images/bg.jpg');
+    background-attachment: fixed;
+    background-size: cover;
+    background-position: center;
+  }
+   */
+
+
+   .bg1 {
+
+    background-attachment: fixed;
+    background-size: cover;
+    background-position: center;
+}
+
+  input[type="checkbox"] {
+    accent-color: #4e7a30; 
+}
+
+
+input[type="radio"] {
+    accent-color: #4e7a30; 
+}
+
+.glass{background: rgba(255, 255, 255, 0.2);
+  border-radius: 16px;
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(5px);
+  -webkit-backdrop-filter: blur(5px);
+  border: 1px solid rgba(255, 255, 255, 0.3);}
+
+
+  .bground{ position: absolute;
+    z-index: -1;
+    width: 70%;
+    height: 79%;
+    background-color: rgb(24, 94, 15);
+    border-radius: 63% 37% 88% 12% / 71% 39% 61% 29%;}
+
+    .bground2{ position: absolute;
+      z-index: -1;
+      width: 70%;
+      height: 79%;
+     
+      border-radius: 63% 37% 88% 12% / 71% 39% 61% 29%;}
+
+
+
+      /* src/components/Dashboard.css */
+
+.dashboard {
+  display: flex;
+  gap: 20px;
+  padding: 20px 0px;
+}
+
+.dashboard-card {
+  background: #fff;
+  border-radius: 8px;
+  padding: 20px ;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  width: 100%;
+}
+
+.sales-per-day .sales-info,
+.sales-per-day .mini-stats {
+  display: flex;
+  justify-content: space-between;
+  font-size: 14px;
+  margin-top: 10px;
+}
+
+.sales-per-day .mini-stats p {
+  font-weight: bold;
+}
+
+.total-revenue .pie-labels p {
+  font-size: 14px;
+  display: flex;
+  justify-content: space-between;
+  margin: 5px 0;
+}
+
+.traffic-sources .traffic-source {
+  display: flex;
+  align-items: center;
+  margin: 8px 0;
+  font-size: 14px;
+}
+
+.traffic-sources .progress-bar {
+  flex: 1;
+  background: #e0e0e0;
+  border-radius: 4px;
+  margin: 0 10px;
+  height: 8px;
+}
+
+.traffic-sources .progress {
+  height: 100%;
+  border-radius: 4px;
+}
+
+
+.Toastify__toast{z-index: 100000 !important;}
+
+
+
+
+
+.dashboard {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  padding: 20px 0px;
+  justify-content: space-between;
+}
+
+.dashboard-card {
+  background-color: #fff;
+  border-radius: 8px;
+  padding: 20px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  flex: 1 1 calc(33.333% - 20px);
+  display: flex;
+  flex-direction: column;
+}
+
+.sales-info, .pie-labels, .traffic-source {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 10px;
+}
+
+.progress-bar {
+  width: 100%;
+  height: 8px;
+  background-color: #f1f1f1;
+  border-radius: 4px;
+  overflow: hidden;
+  /* margin: 0 10px; */
+}
+
+.progress {
+  height: 100%;
+}
+
+@media (max-width: 768px) {
+  .dashboard-card {
+    flex: 1 1 calc(50% - 20px);
+  }
+}
+
+@media (max-width: 480px) {
+  .dashboard {
+    flex-direction: column;
+  }
+
+  .dashboard-card {
+    flex: 1 1 100%;
+  }
+}
+.sidebar {
+  transition: all 0.3s ease;
+  display: block;
+}
+
+@media (max-width: 1200px) {
+  .sidebar {
+    display: none; }
+  
+
+
+    
+  }
+
+
+  
+/* General Layout */
+.profile-container {
+  display: flex;
+  gap: 20px;
+  font-family: Arial, sans-serif;
+  margin: 20px;
+  background-color: #f9f9f9;
+  padding: 20px;
+  border-radius: 10px;
+}
+
+.left-section,
+.right-section {
+  flex: 1;
+  min-width: 300px;
+  padding: 20px;
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0px 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+.profile-header {
+  text-align: left;
+  margin-bottom: 20px;
+}
+
+.profile-name {
+  font-size: 22px;
+  font-weight: bold;
+  color: #333;
+}
+
+.profile-title {
+  font-size: 16px;
+  color: #777;
+  margin-top: 5px;
+}
+
+.profile-desc {
+  color: #555;
+  font-size: 14px;
+}
+
+.status {
+  margin-top: 15px;
+}
+
+.status-active {
+  color: green;
+  font-weight: bold;
+}
+
+.member-info {
+  margin-top: 5px;
+}
+
+.section-title {
+  font-size: 18px;
+  font-weight: bold;
+  margin-bottom: 15px;
+  color: #444;
+}
+
+.similar-profiles {
+  margin-top: 30px;
+}
+
+.beneficiary-list {
+  display: flex;
+  gap: 15px;
+}
+
+.beneficiary {
+  text-align: center;
+}
+
+.beneficiary img {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  border: 2px solid #ddd;
+}
+
+.beneficiary p {
+  font-size: 14px;
+  margin-top: 5px;
+  color: #333;
+}
+
+/* Right Section */
+.about-section p,
+.experience-section ul,
+.education-section ul {
+  margin-bottom: 10px;
+}
+
+ul {
+  padding-left: 20px;
+  list-style-type: none;
+}
+
+ul li::before {
+  content: "• ";
+  color: teal;
+  font-weight: bold;
+  display: inline-block;
+  width: 1em;
+}
+/* General Layout */
+.profile-container {
+  display: flex;
+  gap: 20px;
+  font-family: Arial, sans-serif;
+  margin: 20px;
+  background-color: #f9f9f9;
+  padding: 20px;
+  border-radius: 10px;
+}
+
+.left-section,
+.right-section {
+  flex: 1;
+  min-width: 300px;
+  padding: 20px;
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0px 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+.profile-header {
+  text-align: left;
+  margin-bottom: 20px;
+}
+
+.profile-name {
+  font-size: 22px;
+  font-weight: bold;
+  color: #333;
+}
+
+.profile-title {
+  font-size: 16px;
+  color: #777;
+  margin-top: 5px;
+}
+
+.profile-desc {
+  color: #555;
+  font-size: 14px;
+}
+
+.status {
+  margin-top: 15px;
+}
+
+.status-active {
+  color: green;
+  font-weight: bold;
+}
+
+.member-info {
+  margin-top: 5px;
+}
+
+.section-title {
+  font-size: 18px;
+  font-weight: bold;
+  margin-bottom: 15px;
+  color: #444;
+}
+
+.similar-profiles {
+  margin-top: 30px;
+}
+
+.beneficiary-list {
+  display: flex;
+  gap: 15px;
+}
+
+.beneficiary {
+  text-align: center;
+}
+
+.beneficiary img {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  border: 2px solid #ddd;
+}
+
+.beneficiary p {
+  font-size: 14px;
+  margin-top: 5px;
+  color: #333;
+}
+
+/* Button Styles */
+.add-beneficiary-btn {
+  margin-top: 20px;
+  padding: 10px 20px;
+  background-color: #4caf50;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: bold;
+}
+
+.add-beneficiary-btn:hover {
+  background-color: #45a049;
+}
+.loader {
+  border: 8px solid #f3f3f3;
+  border-top: 8px solid #538d2d;
+  border-radius: 50%;
+  width: 60px;
+  height: 60px;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+/* Add fonts to the global styles */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&family=Roboto+Mono:wght@400;700&display=swap');
+
+/* Default text styles */
+body {
+  font-family: 'Poppins', sans-serif;
+  color: #333;
+}
+
+/* Numbers font */
+.number-font {
+  font-family: 'Roboto Mono', monospace;
+}
+input, select, textarea {
+  font-family: "Poppins", sans-serif; /* or any preferred font */
+}

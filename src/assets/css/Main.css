@@ -1,0 +1,17 @@
+.background {
+    position: relative; 
+    height: 100vh;
+    overflow: hidden; 
+    background: url('../images/bg.jpg') center/cover no-repeat;   
+}
+
+.background::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(to right, rgba(13, 77, 22, 0.705), rgba(6, 255, 48, 0.02)); /* Adjust the second rgba value for transparency */
+    z-index: 1; /* Place the gradient overlay above the background image */
+}
