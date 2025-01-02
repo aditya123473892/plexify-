@@ -14,6 +14,8 @@ import { Link } from "react-router-dom";
 
 const WillForm = () => {
   const { API, token,beneficiaryUser } = useContext(AuthContext);
+  console.log(beneficiaryUser,'beneficiaryUser');
+  
   const [personalInfo, setPersonalInfo] = useState({
 
   });
@@ -445,6 +447,74 @@ const WillForm = () => {
   )}
           </Section>
 
+
+
+          <div className="my-7 border-l-2 border-[#538d2dfd] p-6 rounded-lg shadow text-black">
+  <h2 className="text-2xl font-semibold text-[#538d2dfd] mb-6">Beneficiaries</h2>
+  {beneficiaryUser && beneficiaryUser.length > 0 ? (
+    <div className="grid lg:grid-cols-4 md:grid-cols-3 gap-6">
+{beneficiaryUser.map((beneficiary, index) => {
+  // Helper function to convert buffer to base64 string
+  const bufferToBase64 = (buffer) => {
+    const binary = String.fromCharCode.apply(null, new Uint8Array(buffer.data));
+    return `data:${buffer.type};base64,${btoa(binary)}`;
+  };
+
+  return (
+    <div
+      key={beneficiary.beneficiary_id}
+      className="p-4 border-l-2 border-[#538d2dfd] rounded-lg shadow hover:shadow-md transition duration-200 ease-in-out flex flex-col items-center text-center"
+    >
+      {/* Profile Picture or Initials */}
+      <div className="w-20 h-20 rounded-full bg-gray-200 flex items-center justify-center text-gray-500 font-semibold text-lg">
+        {beneficiary.document && beneficiary.document.data ? (
+          <img
+            src={bufferToBase64(beneficiary.document)} // Convert buffer to base64 string
+            alt="Beneficiary"
+            className="w-full h-full object-cover rounded-full"
+          />
+        ) : (
+          beneficiary.name
+            .split(" ")
+            .map((n) => n[0])
+            .join("")
+            .toUpperCase()
+        )}
+      </div>
+
+      {/* Beneficiary Name */}
+      <p className="mt-4 text-lg font-semibold text-[#538d2dfd]">
+        {beneficiary.name}
+      </p>
+
+      {/* Relationship */}
+      <p className="text-black text-sm">
+        <strong>Relationship:</strong> {beneficiary.relationship}
+      </p>
+
+      {/* Contact */}
+      <p className="text-black text-sm">
+        <strong>Contact:</strong>{" "}
+        {beneficiary.contact ? beneficiary.contact : "Not provided"}
+      </p>
+
+      {/* Entitlement */}
+      <p className="text-black text-sm">
+        <strong>Entitlement:</strong> {beneficiary.entitlement}%
+      </p>
+    </div>
+  );
+})}
+
+
+
+    </div>
+  ) : (
+    <p>No beneficiaries added yet.</p>
+  )}
+</div>
+
+
           <Section className="bg-white p-6 rounded-lg shadow-md">
             <h2 className="text-2xl font-semibold text-gray-800 mb-4">Witnesses</h2>
             {witnesses.map((witness, index) => (
@@ -533,12 +603,12 @@ const WillForm = () => {
                 <img
                   src={wealthlogo}
                   alt="Wealth Logo"
-                  className=" absolute right-1 top-[-30px] w-24"
+                  className=" absolute right-1  w-24"
                 />
-                <div className=" flex pb-5 justify-center">
-                  <h2 className="text-6xl md:text-4xl font-bold text-[#daa431] plexify-font">
+                <div className=" flex pb-8 justify-center">
+                  <div className="text-6xl  font-bold text-[#a87913] plexify-font">
                     Last Will
-                  </h2>
+                  </div>
                   {/* <p className="text-xl text-black pt-3">
               चिंतामुक्त भविष्य, विरासत का सुखद सफर
             </p> */}
@@ -611,9 +681,9 @@ const WillForm = () => {
 {/* Beneficiaries Section */}
 <div className="my-7 border-l-2 border-[#538d2dfd] p-6 rounded-lg shadow text-black">
   <h2 className="text-2xl font-semibold text-[#538d2dfd] mb-6">Beneficiaries</h2>
-  {beneficiaryUser.beneficiaries && beneficiaryUser.beneficiaries.length > 0 ? (
+  {beneficiaryUser && beneficiaryUser.length > 0 ? (
     <div className="grid lg:grid-cols-4 md:grid-cols-3 gap-6">
-{beneficiaryUser.beneficiaries.map((beneficiary, index) => {
+{beneficiaryUser.map((beneficiary, index) => {
   // Helper function to convert buffer to base64 string
   const bufferToBase64 = (buffer) => {
     const binary = String.fromCharCode.apply(null, new Uint8Array(buffer.data));

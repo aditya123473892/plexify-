@@ -31,48 +31,7 @@ import { GiBank } from "react-icons/gi";
 import { SiCryptpad, SiFormstack, SiOpensearch } from "react-icons/si";
 
 function Sidebar() {
-  const Logo = styled.div`
-    font-size: 1.5rem;
-    font-weight: bold;
-    cursor: pointer;
-  `;
 
-  const UserIcon = styled.div`
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    position: relative;
-
-    &:hover {
-      color: #61dafb;
-    }
-  `;
-
-  const DropdownMenu = styled.ul`
-    list-style: none;
-    position: absolute;
-    top: 50px;
-    right: 0;
-    background-color: white;
-    padding: 1rem;
-    width: 150px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    display: ${({ isOpen }) => (isOpen ? "block" : "none")};
-    z-index: 1001;
-    border-radius: 6px;
-  `;
-
-  const DropdownItem = styled.li`
-    padding: 0.5rem;
-    cursor: pointer;
-    text-align: left;
-    color: #333;
-
-    &:hover {
-      background-color: #f0f0f0;
-    }
-  `;
 
   const [isWealthOpen, setWealthOpen] = useState(false);
   const [isLiabilitiesOpen, setLiabilitiesOpen] = useState(false);
@@ -89,24 +48,7 @@ function Sidebar() {
     setIsOpen(!isOpen);
   };
 
-  const toggleDropdown = () => {
-    setIsDropdownOpen(!isDropdownOpen);
-  };
 
-  const startResizing = () => {
-    setIsResizing(true);
-  };
-
-  const resizeSidebar = (e) => {
-    if (isResizing) {
-      const newWidth = Math.max(e.clientX, 64);
-      setSidebarWidth(newWidth);
-    }
-  };
-
-  const stopResizing = () => {
-    setIsResizing(false);
-  };
 
   useEffect(() => {
     function handleClickOutside(event) {
@@ -152,7 +94,7 @@ function Sidebar() {
         <div className="sidebar-header">
           <button
             onClick={toggleSidebar}
-            className="toggle-button ms-1 mb-5"
+            className="toggle-button ms-1 my-5 "
             aria-label={isOpen ? "Close Sidebar" : "Open Sidebar"}
           >
             {isOpen ? <MdOutlineClose /> : <FaHome />}
@@ -418,14 +360,21 @@ function Sidebar() {
           />
 
           {/* Text Section */}
-          <div className="text-left plexify-font">
-            <h2 className="text-2xl md:text-4xl font-bold text-[#daa431] plexify-font">
-              Manage Grow Inherit
-            </h2>
-            <p className="text1 text-sm md:text-base">
-              चिंतामुक्त भविष्य, विरासत का सुखद सफर
-            </p>
-          </div>
+          <div className="text-left plexify-font manage-text">
+  <h2 className="text-2xl md:text-4xl font-bold text-[#daa431] plexify-font">
+    Manage Grow Inherit
+  </h2>
+  <p className="text1 text-sm md:text-base">
+    चिंतामुक्त भविष्य, विरासत का सुखद सफर
+  </p>
+</div>
+<style jsx>{`
+  @media (max-width: 1200px) {
+    .manage-text {
+      display: none; /* Hide the text section below 1200px */
+    }
+  }
+`}</style>
         </div>
       </NavbarContainer>
     </div>

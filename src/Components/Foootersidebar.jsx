@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import styled, { keyframes } from "styled-components";
 import { FaFileAlt, FaPiggyBank, FaChartLine, FaLightbulb } from "react-icons/fa";
-import { MdDashboardCustomize } from "react-icons/md";
 import { Link } from "react-router-dom";
 
 function FooterSidebar() {
@@ -14,13 +13,6 @@ function FooterSidebar() {
       { label: "Recurring Deposit", link: "/recurring-deposit" },
       { label: "Property/Real Estate", link: "/property" },
       { label: "Stocks", link: "/stocks" },
-    ],
-    liabilities: [
-      { label: "Home Loan", link: "/home-loan" },
-      { label: "Car Loan", link: "/car-loan" },
-      { label: "Personal Loan", link: "/personal-loan" },
-      { label: "Credit Card Debt", link: "/credit-card-debt" },
-      { label: "Business Loan", link: "/business-loan" },
     ],
     "post-demise": [
       { label: "Legal Documentation", link: "/legal-documentation" },
@@ -46,7 +38,7 @@ function FooterSidebar() {
 
   return (
     <FooterContainer>
-      {activeSection && (
+      {activeSection && activeSection !== "liabilities" && (
         <SlidingDrawer>
           <DrawerContent>
             <ModalHeader>{activeSection.replace(/-/g, " ").toUpperCase()}</ModalHeader>
@@ -64,10 +56,8 @@ function FooterSidebar() {
           <FaFileAlt />
           <span>Wealth</span>
         </FooterButton>
-        <FooterButton
-          onClick={() => setActiveSection("liabilities")}
-          active={activeSection === "liabilities"}
-        >
+        <FooterButton as={Link} to="/liabilites">
+          {/* Directly navigates to the liabilities page */}
           <FaPiggyBank />
           <span>Liabilities</span>
         </FooterButton>

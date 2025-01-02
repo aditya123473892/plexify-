@@ -492,7 +492,7 @@ router.get("/deposits", authMiddleware, async (req, res) => {
     const deposits = await queryDatabase(fetchDepositsQuery, [user_id]);
 
  
-
+console.log(deposits,'depositsdepositsdeposits')
     // Return the deposits to the client
     res.status(200).json({
       deposits,
@@ -516,86 +516,72 @@ const deposits_upload = multer({
   storage: deposits_storage
 });
 
-router.post(
-  "/deposits",
-  authMiddleware,
-  deposits_upload.single("document"),
-  async (req, res) => {
-    try {
-      console.log("Request Body:", req.body);
-      console.log("Uploaded File:", req.file);
+router.post("/deposits", authMiddleware, deposits_upload.single("document"), async (req, res) => {
+  try {
+    const {
+      depositId, depositType, depositName, accountNumber, bankName,
+      depositTerm, depositAmount, interestRate, maturityAmount,
+    } = req.body;
 
-      const {
-        depositId, depositType, depositName, accountNumber, bankName,
-        depositTerm, depositAmount, interestRate, maturityAmount,
-      } = req.body;
+    const depositAmountParsed = parseFloat(depositAmount);
+    const interestRateParsed = parseFloat(interestRate);
+    const maturityAmountParsed = parseFloat(maturityAmount);
 
- 
+    if (isNaN(depositAmountParsed) || isNaN(interestRateParsed) || isNaN(maturityAmountParsed)) {
+      return res.status(400).json({ msg: "Invalid numeric values" });
+    }
 
-      const depositAmountParsed = parseFloat(depositAmount);
-      const interestRateParsed = parseFloat(interestRate);
-      const maturityAmountParsed = parseFloat(maturityAmount);
-
-      if (isNaN(depositAmountParsed) || isNaN(interestRateParsed) || isNaN(maturityAmountParsed)) {
-        return res.status(400).json({ msg: "Invalid numeric values" });
+    let documentData = null;
+    if (req.file) {
+      try {
+        documentData = fs.readFileSync(req.file.path);
+      } catch (err) {
+        return res.status(500).json({ msg: "Error reading document file" });
       }
+    }
 
-      let documentData = null;
-      if (req.file) {
-        try {
-          documentData = fs.readFileSync(req.file.path);
-        } catch (err) {
-          return res.status(500).json({ msg: "Error reading document file" });
-        }
-      }
+    if (!documentData) {
+      return res.status(400).json({ msg: "No document data to upload" });
+    }
 
-      if (!documentData) {
-        return res.status(400).json({ msg: "No document data to upload" });
-      }
+    const user_id = req.user_id;
 
-      const user_id = req.user_id;
-
-      const checkDepositQuery = `
-      SELECT * FROM fixed_deposit WHERE user_id = ? AND deposit_id = ?
+    const checkDepositQuery = `
+      SELECT * FROM fixed_deposit WHERE user_id = ?
     `;
-    const depositExists = await queryDatabase(checkDepositQuery, [user_id, depositId]);
-    console.log("Deposit Exists:", depositExists);  // Add this log
-    
+    const depositExists = await queryDatabase(checkDepositQuery, [user_id]);
+
     if (depositExists.length > 0) {
       const updateDepositQuery = `
         UPDATE fixed_deposit SET 
           deposit_type = ?, deposit_name = ?, account_number = ?, bank_name = ?, deposit_term = ?, 
-          deposit_amount = ?, interest_rate = ?, maturity_amount = ?, document = ?
-        WHERE user_id = ? AND deposit_id = ?
+          deposit_amount = ?, interest_rate = ?, maturity_amount = ?, document = ?, updated_at = GETDATE()
+        WHERE user_id = ? 
       `;
-      const updateResult = await queryDatabase(updateDepositQuery, [
-        depositType, depositName, accountNumber, bankName, depositTerm, depositAmountParsed, 
-        interestRateParsed, maturityAmountParsed, documentData, user_id, depositId
+      await queryDatabase(updateDepositQuery, [
+        depositType, depositName, accountNumber, bankName, depositTerm,
+        depositAmountParsed, interestRateParsed, maturityAmountParsed, documentData, user_id
       ]);
-      console.log("Update Result:", updateResult);  // Log the result of update query
+      return res.status(200).json({ msg: "Deposit details updated successfully" });
     } else {
       const insertDepositQuery = `
         INSERT INTO fixed_deposit (
           user_id, deposit_type, deposit_name, account_number, bank_name, deposit_term,
-          deposit_amount, interest_rate, maturity_amount, document
+          deposit_amount, interest_rate, maturity_amount, document, status, created_at, updated_at
         )
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, GETDATE(), GETDATE())
       `;
-      const insertResult = await queryDatabase(insertDepositQuery, [
+      await queryDatabase(insertDepositQuery, [
         user_id, depositType, depositName, accountNumber, bankName, depositTerm,
-        depositAmountParsed, interestRateParsed, maturityAmountParsed, documentData
+        depositAmountParsed, interestRateParsed, maturityAmountParsed, documentData, "active"
       ]);
-      console.log("Insert Result:", insertResult);  // Log the result of insert query
       return res.status(201).json({ msg: "Deposit details added successfully" });
     }
-    
-    
-    } catch (error) {
-      console.error("Error processing deposit details:", error);
-      res.status(500).json({ msg: "Error processing deposit details" });
-    }
+  } catch (error) {
+    console.error("Error processing deposit details:", error);
+    res.status(500).json({ msg: "Error processing deposit details" });
   }
-);
+});
 
 router.get("/recurring_deposits", authMiddleware, async (req, res) => {
   const user_id = req.user_id; // Get the user ID from the authenticated user
